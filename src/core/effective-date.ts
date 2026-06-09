@@ -9,9 +9,10 @@
  *   1. frontmatter.event_date    — meeting / event pages
  *   2. frontmatter.date          — dated essays
  *   3. frontmatter.published     — writing/
- *   4. filename-date             — leading YYYY-MM-DD in basename
- *   5. updated_at                — fallback
- *   6. created_at                — last resort (only if updated_at NULL)
+ *   4. frontmatter.created       — birth date of the fact (wiki/card corpora)
+ *   5. filename-date             — leading YYYY-MM-DD in basename
+ *   6. updated_at                — fallback
+ *   7. created_at                — last resort (only if updated_at NULL)
  *
  * Per-prefix override: for `daily/` and `meetings/` slug prefixes, the
  * filename-date jumps to position 1 — the filename is the user's primary
@@ -124,6 +125,7 @@ export function computeEffectiveDate(opts: ComputeEffectiveDateOpts): EffectiveD
   const fmEvent = validateInRange(parseDateLoose(frontmatter.event_date));
   const fmDate = validateInRange(parseDateLoose(frontmatter.date));
   const fmPublished = validateInRange(parseDateLoose(frontmatter.published));
+  const fmCreated = validateInRange(parseDateLoose(frontmatter.created));
   const filenameDate = extractFilenameDate(filename);
 
   // Build the ordered candidate list. For filename-first prefixes
@@ -134,11 +136,13 @@ export function computeEffectiveDate(opts: ComputeEffectiveDateOpts): EffectiveD
         { date: fmEvent, source: 'event_date' },
         { date: fmDate, source: 'date' },
         { date: fmPublished, source: 'published' },
+        { date: fmCreated, source: 'created' },
       ]
     : [
         { date: fmEvent, source: 'event_date' },
         { date: fmDate, source: 'date' },
         { date: fmPublished, source: 'published' },
+        { date: fmCreated, source: 'created' },
         { date: filenameDate, source: 'filename' },
       ];
 
