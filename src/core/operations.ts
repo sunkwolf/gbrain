@@ -1589,6 +1589,12 @@ const query: Operation = {
   },
   handler: async (ctx, p) => {
     const startedAt = Date.now();
+    // Per-call expansion only when the caller explicitly set `expand`;
+    // otherwise leave it undefined so resolveSearchMode falls through to
+    // per-key config / the mode bundle (expansion is off for
+    // conservative/balanced by design — a hardcoded `true` here overrode
+    // that for every op-layer query).
+    const expandExplicit = typeof p.expand === 'boolean' ? (p.expand as boolean) : undefined;
     const expand = p.expand !== false;
     const detail = (p.detail as 'low' | 'medium' | 'high') || undefined;
     const queryText = p.query as string | undefined;
@@ -1648,7 +1654,7 @@ const query: Operation = {
     const results = await hybridSearchCached(ctx.engine, queryText, {
       limit: (p.limit as number) || 20,
       offset: (p.offset as number) || 0,
-      expansion: expand,
+      expansion: expandExplicit,
       expandFn: expand ? expandQuery : undefined,
       // T4/D5 — per-call mode (local/trusted only; remote ignored).
       ...((): { mode?: string } => { const m = resolvePerCallMode(ctx, p.mode); return m ? { mode: m } : {}; })(),
