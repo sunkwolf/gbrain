@@ -181,6 +181,7 @@ export type EffectiveDateSource =
   | 'event_date'
   | 'date'
   | 'published'
+  | 'created'
   | 'filename'
   | 'fallback';
 
