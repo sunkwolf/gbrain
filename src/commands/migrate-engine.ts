@@ -306,21 +306,34 @@ export async function runMigrateEngine(sourceEngine: BrainEngine, args: string[]
   // Copy links (after all pages exist in target).
   // v0.32.8 F8: thread source_id so cross-source links migrate correctly.
   console.log('Copying links...');
+  let skippedLinks = 0;
   progress.start('migrate.copy_links', allPages.length);
   for (const page of allPages) {
     const sourceOpts = { sourceId: page.source_id };
     const links = await sourceEngine.getLinks(page.slug, sourceOpts);
     for (const link of links) {
-      await targetEngine.addLink(
-        link.from_slug, link.to_slug,
-        link.context, link.link_type,
-        undefined, undefined, undefined,
-        { fromSourceId: page.source_id, toSourceId: page.source_id },
-      );
+      try {
+        await targetEngine.addLink(
+          link.from_slug, link.to_slug,
+          link.context, link.link_type,
+          undefined, undefined, undefined,
+          { fromSourceId: page.source_id, toSourceId: page.source_id },
+        );
+      } catch (err) {
+        // Dangling links (wikilinks to not-yet-written pages) exist in the
+        // source brain but the target engine validates both endpoints.
+        // Skip + warn instead of aborting a multi-thousand-page migration;
+        // links are derivable from page content via `gbrain extract links`.
+        skippedLinks++;
+        console.warn(`skipping link ${link.from_slug} -> ${link.to_slug} (${page.source_id}): ${err instanceof Error ? err.message : String(err)}`);
+      }
     }
     progress.tick(1);
   }
   progress.finish();
+  if (skippedLinks > 0) {
+    console.warn(`${skippedLinks} dangling link(s) skipped — re-derive with \`gbrain extract links\` if needed.`);
+  }
 
   // Copy config (selective).
   //
