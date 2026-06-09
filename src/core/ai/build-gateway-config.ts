@@ -65,6 +65,11 @@ export function buildGatewayConfig(c: GBrainConfig): AIGatewayConfig {
   if (process.env.LMSTUDIO_BASE_URL) envBaseUrls['lmstudio'] = process.env.LMSTUDIO_BASE_URL;
   if (process.env.LITELLM_BASE_URL) envBaseUrls['litellm'] = process.env.LITELLM_BASE_URL;
   if (process.env.OPENROUTER_BASE_URL) envBaseUrls['openrouter'] = process.env.OPENROUTER_BASE_URL;
+  // Native-provider overrides for local proxies (e.g. a claude-CLI-backed
+  // /v1/messages proxy). Consumed by instantiateChat/instantiateExpansion;
+  // unset means the SDK default endpoint, so existing setups are unaffected.
+  if (process.env.ANTHROPIC_BASE_URL) envBaseUrls['anthropic'] = process.env.ANTHROPIC_BASE_URL;
+  if (process.env.OPENAI_BASE_URL) envBaseUrls['openai'] = process.env.OPENAI_BASE_URL;
 
   // #3350: native base-URL fold — MUST read the file plane directly, not `c`
   // (callers can pass a DB-merged config; see foldNativeBaseUrlsFromFilePlane's
