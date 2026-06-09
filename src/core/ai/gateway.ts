@@ -2450,7 +2450,9 @@ function instantiateExpansion(recipe: Recipe, modelId: string, cfg: AIGatewayCon
     case 'native-openai': {
       const apiKey = cfg.env.OPENAI_API_KEY;
       if (!apiKey) throw new AIConfigError(`OpenAI expansion requires OPENAI_API_KEY.`, recipe.setup_hint);
-      const baseURL = resolveNativeBaseUrl('openai', cfg);
+      // #1249 reconcile: config-plane provider_base_urls (proxy claude-p) wins;
+      // resolveNativeBaseUrl adds *_BASE_URL env fallback; undefined = SDK default.
+      const baseURL = cfg.base_urls?.[recipe.id] ?? resolveNativeBaseUrl('openai', cfg);
       return createOpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) }).languageModel(modelId);
     }
     case 'native-google': {
@@ -2461,7 +2463,9 @@ function instantiateExpansion(recipe: Recipe, modelId: string, cfg: AIGatewayCon
     case 'native-anthropic': {
       const apiKey = cfg.env.ANTHROPIC_API_KEY;
       if (!apiKey) throw new AIConfigError(`Anthropic expansion requires ANTHROPIC_API_KEY.`, recipe.setup_hint);
-      const baseURL = resolveNativeBaseUrl('anthropic', cfg);
+      // #1249 reconcile: config-plane provider_base_urls (proxy claude-p) wins;
+      // resolveNativeBaseUrl adds *_BASE_URL env fallback; undefined = SDK default.
+      const baseURL = cfg.base_urls?.[recipe.id] ?? resolveNativeBaseUrl('anthropic', cfg);
       return createAnthropic({ apiKey, ...(baseURL ? { baseURL } : {}) }).languageModel(modelId);
     }
     case 'claude-cli': {
@@ -3020,7 +3024,9 @@ function instantiateChat(recipe: Recipe, modelId: string, cfg: AIGatewayConfig):
     case 'native-openai': {
       const apiKey = cfg.env.OPENAI_API_KEY;
       if (!apiKey) throw new AIConfigError(`OpenAI chat requires OPENAI_API_KEY.`, recipe.setup_hint);
-      const baseURL = resolveNativeBaseUrl('openai', cfg);
+      // #1249 reconcile: config-plane provider_base_urls (proxy claude-p) wins;
+      // resolveNativeBaseUrl adds *_BASE_URL env fallback; undefined = SDK default.
+      const baseURL = cfg.base_urls?.[recipe.id] ?? resolveNativeBaseUrl('openai', cfg);
       return createOpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) }).languageModel(modelId);
     }
     case 'native-google': {
@@ -3031,7 +3037,9 @@ function instantiateChat(recipe: Recipe, modelId: string, cfg: AIGatewayConfig):
     case 'native-anthropic': {
       const apiKey = cfg.env.ANTHROPIC_API_KEY;
       if (!apiKey) throw new AIConfigError(`Anthropic chat requires ANTHROPIC_API_KEY.`, recipe.setup_hint);
-      const baseURL = resolveNativeBaseUrl('anthropic', cfg);
+      // #1249 reconcile: config-plane provider_base_urls (proxy claude-p) wins;
+      // resolveNativeBaseUrl adds *_BASE_URL env fallback; undefined = SDK default.
+      const baseURL = cfg.base_urls?.[recipe.id] ?? resolveNativeBaseUrl('anthropic', cfg);
       return createAnthropic({ apiKey, ...(baseURL ? { baseURL } : {}) }).languageModel(modelId);
     }
     case 'claude-cli': {
