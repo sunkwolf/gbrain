@@ -1457,6 +1457,7 @@ export async function hybridSearch(
     topNOut: resolvedMode.reranker_top_n_out,
     model: resolvedMode.reranker_model,
     timeoutMs: resolvedMode.reranker_timeout_ms,
+    docMaxChars: resolvedMode.reranker_doc_max_chars ?? undefined,
   };
   const reranked = rerankerOpts.enabled
     ? await applyReranker(query, deduped, rerankerOpts as any)
