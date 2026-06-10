@@ -127,6 +127,14 @@ export interface ModeBundle {
   reranker_top_n_out: number | null;
   /** HTTP timeout in ms (default 5000). Threaded into gateway.rerank. */
   reranker_timeout_ms: number;
+  /**
+   * Truncate each document to this many chars before the reranker call
+   * (`null` = send the full chunk_text — historical behavior). Config key:
+   * `search.reranker.doc_max_chars`. CPU rerankers need a low cap
+   * (350-1600) to keep per-query prefill sane; benchmarked ranking quality
+   * with capped snippets is equivalent to full documents.
+   */
+  reranker_doc_max_chars: number | null;
 
   /**
    * v0.35.6.0 — floor-ratio gate for metadata-axis boost stages (backlink,
@@ -304,6 +312,7 @@ export const MODE_BUNDLES: Readonly<Record<SearchMode, Readonly<ModeBundle>>> = 
     reranker_top_n_in: 30,
     reranker_top_n_out: null,
     reranker_timeout_ms: 5000,
+    reranker_doc_max_chars: null,
     // v0.35.6.0 — undefined for all three bundles; the per-corpus ablation
     // (TODOS.md) gates any default flip.
     floor_ratio: undefined,
@@ -358,6 +367,7 @@ export const MODE_BUNDLES: Readonly<Record<SearchMode, Readonly<ModeBundle>>> = 
     reranker_top_n_in: 25,
     reranker_top_n_out: null,
     reranker_timeout_ms: 5000,
+    reranker_doc_max_chars: null,
     // v0.35.6.0 — undefined for all three bundles; the per-corpus ablation
     // (TODOS.md) gates any default flip.
     floor_ratio: undefined,
@@ -413,6 +423,7 @@ export const MODE_BUNDLES: Readonly<Record<SearchMode, Readonly<ModeBundle>>> = 
     reranker_top_n_in: 50,
     reranker_top_n_out: null,
     reranker_timeout_ms: 5000,
+    reranker_doc_max_chars: null,
     // v0.35.6.0 — undefined for all three bundles; the per-corpus ablation
     // (TODOS.md) gates any default flip.
     floor_ratio: undefined,
@@ -472,6 +483,7 @@ export interface SearchKeyOverrides {
   // number | undefined.
   reranker_top_n_out?: number | null;
   reranker_timeout_ms?: number;
+  reranker_doc_max_chars?: number | null;
   // v0.35.6.0 — floor-ratio gate override.
   floor_ratio?: number;
   // T2 — title-phrase boost override.
@@ -518,6 +530,7 @@ export interface SearchPerCallOpts {
   reranker_top_n_in?: number;
   reranker_top_n_out?: number | null;
   reranker_timeout_ms?: number;
+  reranker_doc_max_chars?: number | null;
   // v0.35.6.0 — floor-ratio per-call override.
   floor_ratio?: number;
   // T2 — title-phrase boost per-call override.
@@ -617,6 +630,7 @@ export function resolveSearchMode(input: ResolveSearchModeInput): ResolvedSearch
     reranker_top_n_in: pick('reranker_top_n_in'),
     reranker_top_n_out: pick('reranker_top_n_out'),
     reranker_timeout_ms: pickRerankerTimeoutMs(),
+    reranker_doc_max_chars: pick('reranker_doc_max_chars'),
     // v0.35.6.0 — floor-ratio resolved via the same pick chain.
     floor_ratio: pick('floor_ratio'),
     title_boost: pick('title_boost'),
@@ -1049,6 +1063,18 @@ export function loadOverridesFromConfig(
     const n = parseInt(rt, 10);
     if (Number.isFinite(n) && n > 0) out.reranker_timeout_ms = n;
   }
+  // doc_max_chars: same three-shape parsing as top_n_out — absent → bundle,
+  // 'null'/'none'/'' → explicit null (full documents), positive int → cap.
+  const rdc = get('search.reranker.doc_max_chars');
+  if (rdc !== undefined) {
+    const trimmed = rdc.trim().toLowerCase();
+    if (trimmed === '' || trimmed === 'null' || trimmed === 'none') {
+      out.reranker_doc_max_chars = null;
+    } else {
+      const n = parseInt(trimmed, 10);
+      if (Number.isFinite(n) && n > 0) out.reranker_doc_max_chars = n;
+    }
+  }
 
   // v0.35.6.0 — floor-ratio config key. Accepts a number in [0, 1]; values
   // outside that range silently fall through (no override applied). The
@@ -1159,6 +1185,7 @@ export const SEARCH_MODE_CONFIG_KEYS: ReadonlyArray<string> = Object.freeze([
   'search.reranker.top_n_in',
   'search.reranker.top_n_out',
   'search.reranker.timeout_ms',
+  'search.reranker.doc_max_chars',
   // v0.35.6.0 — floor-ratio gate
   'search.floor_ratio',
   'search.title_boost',
