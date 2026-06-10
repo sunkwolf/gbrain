@@ -33,6 +33,15 @@ export interface RerankerOpts {
   /** Per-call timeout in ms (default 5000 — propagates to gateway.rerank). */
   timeoutMs?: number;
   /**
+   * Truncate each document to this many chars before sending to the
+   * reranker (undefined = no truncation beyond the gateway's own cap).
+   * CPU rerankers need this: full ~8000-char chunks cost minutes of
+   * prefill per query, while benchmarked quality with 350-1600-char
+   * snippets is statistically equivalent (cross-encoders rank fine on
+   * the matched span's head).
+   */
+  docMaxChars?: number;
+  /**
    * Test seam — when set, applyReranker calls this instead of gateway.rerank.
    * Production must NEVER set this.
    */
@@ -71,7 +80,11 @@ export async function applyReranker(
   // Document text — chunk_text is the matched span. Fall back to title if
   // empty (shouldn't happen in practice; defensive). Empty docs would
   // confuse the reranker, but we still send them — the upstream model decides.
-  const documents = head.map(r => r.chunk_text || r.title || '');
+  const cap = opts.docMaxChars;
+  const documents = head.map(r => {
+    const text = r.chunk_text || r.title || '';
+    return cap !== undefined && cap > 0 ? text.slice(0, cap) : text;
+  });
 
   let reranked: RerankResult[];
   try {
