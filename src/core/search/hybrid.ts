@@ -2155,6 +2155,7 @@ export async function hybridSearch(
     topNOut: resolvedMode.reranker_top_n_out,
     model: resolvedMode.reranker_model,
     timeoutMs: resolvedMode.reranker_timeout_ms,
+    docMaxChars: resolvedMode.reranker_doc_max_chars ?? undefined,
   };
   // #4648: a success-shaped pass-through (provider answered 200 with an
   // empty/malformed result set) stamps the degraded[] channel so callers can
