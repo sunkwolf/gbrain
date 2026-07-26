@@ -1,0 +1,761 @@
+SUITE_START head=0a1ecb6b9811ee6d676dc3ca46fab0294d5fa8ba files=1304 home=/tmp/gb-diff-home
+SUITE_ROW	test/abort-check.test.ts	8	0	0
+SUITE_ROW	test/active-pack-wiring.test.ts	5	0	0
+SUITE_ROW	test/admin-agents-spend.test.ts	19	0	0
+SUITE_ROW	test/admin-embed-spawn.serial.test.ts	0	4	1
+SUITE_RED_BEGIN test/admin-embed-spawn.serial.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/admin-embed-spawn.serial.test.ts:
+125 | 
+126 |   if (!ready) {
+127 |     // Capture some diagnostics for the failure message before tearing down.
+128 |     const stderrText = await new Response(proc.stderr).text().catch(() => '');
+129 |     await cleanup();
+130 |     throw new Error(
+                    ^
+error: serve --http never became ready on port 33362 after 30s. stderr:   Schema version 1 → 125 (120 migration(s) pending)
+  [2] slugify_existing_pages...
+  [2] ✓ slugify_existing_pages
+  [3] unique_chunk_index...
+  [3] ✓ unique_chunk_index
+  [4] access_tokens_and_mcp_log...
+  [4] ✓ access_tokens_and_mcp_log
+  [5] minion_jobs_table...
+  [5] ✓ minion_jobs_table
+  [6] agent_orchestration_primitives...
+  [6] ✓ agent_orchestration_primitives
+  [7] agent_parity_layer...
+  [7] ✓ agent_parity_layer
+  [8] multi_type_links_constraint...
+  [8] ✓ multi_type_links_constraint
+  [9] timeline_dedup_index...
+  [9] ✓ timeline_dedup_index
+  [10] drop_timeline_search_trigger...
+  [10] ✓ drop_timeline_search_trigger
+  [11] links_provenance_columns...
+  [11] ✓ links_provenance_columns
+  [12] budget_ledger...
+  [12] ✓ budget_ledger
+  [13] minion_quiet_hours_stagger...
+  [13] ✓ minion_quiet_hours_stagger
+  [14] pages_updated_at_index...
+  [14] ✓ pages_updated_at_index
+  [15] minion_jobs_max_stalled_default_5...
+  [15] ✓ minion_jobs_max_stalled_default_5
+  [16] cycle_locks_table...
+  [16] ✓ cycle_locks_table
+  [20] sources_table_additive...
+  [20] ✓ sources_table_additive
+  [21] pages_source_id_composite_unique...
+  [21] ✓ pages_source_id_composite_unique
+  [22] links_resolution_type...
+  [22] ✓ links_resolution_type
+  [23] files_source_id_page_id_ledger...
+  [23] ✓ files_source_id_page_id_ledger
+  [24] rls_backfill_missing_tables...
+  [24] ✓ rls_backfill_missing_tables
+  [25] pages_page_kind...
+  [25] ✓ pages_page_kind
+  [26] content_chunks_code_metadata...
+  [26] ✓ content_chunks_code_metadata
+  [27] cathedral_ii_foundation...
+  [27] ✓ cathedral_ii_foundation
+  [28] cathedral_ii_chunk_fts_backfill...
+  [28] ✓ cathedral_ii_chunk_fts_backfill
+  [29] cathedral_ii_code_edges_rls...
+  [29] ✓ cathedral_ii_code_edges_rls
+  [30] dream_verdicts_table...
+  [30] ✓ dream_verdicts_table
+  [31] eval_capture_tables...
+  [31] ✓ eval_capture_tables
+  [32] oauth_infrastructure...
+  [32] ✓ oauth_infrastructure
+  [33] admin_dashboard_columns_v0_26_3...
+  [33] ✓ admin_dashboard
+      at spawnServer (/workspace/test/admin-embed-spawn.serial.test.ts:130:15)
+      at async <anonymous> (/workspace/test/admin-embed-spawn.serial.test.ts:140:21)
+(fail) admin embed E2E — /admin served from embedded manifest (v0.36.1.x #1090) > GET /admin/ returns 200 with the React SPA shell HTML [30038.46ms]
+125 | 
+126 |   if (!ready) {
+127 |     // Capture some diagnostics for the failure message before tearing down.
+128 |     const stderrText = await new Response(proc.stderr).text().catch(() => '');
+129 |     await cleanup();
+130 |     throw new Error(
+                    ^
+error: serve --http never became ready on port 33705 after 30s. stderr:   Schema version 1 → 125 (120 migration(s) pending)
+  [2] slugify_existing_pages...
+  [2] ✓ slugify_existing_pages
+  [3] unique_chunk_index...
+  [3] ✓ unique_chunk_index
+  [4] access_tokens_and_mcp_log...
+  [4] ✓ access_tokens_and_mcp_log
+  [5] minion_jobs_table...
+  [5] ✓ minion_jobs_table
+  [6] agent_orchestration_primitives...
+  [6] ✓ agent_orchestration_primitives
+  [7] agent_parity_layer...
+  [7] ✓ agent_parity_layer
+  [8] multi_type_links_constraint...
+  [8] ✓ multi_type_links_constraint
+  [9] timeline_dedup_index...
+  [9] ✓ timeline_dedup_index
+  [10] drop_timeline_search_trigger...
+  [10] ✓ drop_timeline_search_trigger
+  [11] links_provenance_columns...
+  [11] ✓ links_provenance_columns
+  [12] budget_ledger...
+  [12] ✓ budget_ledger
+  [13] minion_quiet_hours_stagger...
+  [13] ✓ minion_quiet_hours_stagger
+  [14] pages_updated_at_index...
+  [14] ✓ pages_updated_at_index
+  [15] minion_jobs_max_stalled_default_5...
+  [15] ✓ minion_jobs_max_stalled_default_5
+  [16] cycle_locks_table...
+  [16] ✓ cycle_locks_table
+  [20] sources_table_additive...
+  [20] ✓ sources_table_additive
+  [21] pages_source_id_composite_unique...
+  [21] ✓ pages_source_id_composite_unique
+  [22] links_resolution_type...
+  [22] ✓ links_resolution_type
+  [23] files_source_id_page_id_ledger...
+  [23] ✓ files_source_id_page_id_ledger
+  [24] rls_backfill_missing_tables...
+  [24] ✓ rls_backfill_missing_tables
+  [25] pages_page_kind...
+  [25] ✓ pages_page_kind
+  [26] content_chunks_code_metadata...
+  [26] ✓ content_chunks_code_metadata
+  [27] cathedral_ii_foundation...
+  [27] ✓ cathedral_ii_foundation
+  [28] cathedral_ii_chunk_fts_backfill...
+  [28] ✓ cathedral_ii_chunk_fts_backfill
+  [29] cathedral_ii_code_edges_rls...
+  [29] ✓ cathedral_ii_code_edges_rls
+  [30] dream_verdicts_table...
+  [30] ✓ dream_verdicts_table
+  [31] eval_capture_tables...
+  [31] ✓ eval_capture_tables
+  [32] oauth_infrastructure...
+  [32] ✓ oauth_infrastructure
+  [33] admin_dashboard_columns_v0_26_3...
+  [33] ✓ admin_dashboard
+      at spawnServer (/workspace/test/admin-embed-spawn.serial.test.ts:130:15)
+      at async <anonymous> (/workspace/test/admin-embed-spawn.serial.test.ts:161:21)
+(fail) admin embed E2E — /admin served from embedded manifest (v0.36.1.x #1090) > GET /admin/index.html (explicit path) also returns the SPA HTML [30033.47ms]
+125 | 
+126 |   if (!ready) {
+127 |     // Capture some diagnostics for the failure message before tearing down.
+128 |     const stderrText = await new Response(proc.stderr).text().catch(() => '');
+129 |     await cleanup();
+130 |     throw new Error(
+                    ^
+error: serve --http never became ready on port 34345 after 30s. stderr:   Schema version 1 → 125 (120 migration(s) pending)
+  [2] slugify_existing_pages...
+  [2] ✓ slugify_existing_pages
+  [3] unique_chunk_index...
+  [3] ✓ unique_chunk_index
+  [4] access_tokens_and_mcp_log...
+  [4] ✓ access_tokens_and_mcp_log
+  [5] minion_jobs_table...
+  [5] ✓ minion_jobs_table
+  [6] agent_orchestration_primitives...
+  [6] ✓ agent_orchestration_primitives
+  [7] agent_parity_layer...
+  [7] ✓ agent_parity_layer
+  [8] multi_type_links_constraint...
+  [8] ✓ multi_type_links_constraint
+  [9] timeline_dedup_index...
+  [9] ✓ timeline_dedup_index
+  [10] drop_timeline_search_trigger...
+  [10] ✓ drop_timeline_search_trigger
+  [11] links_provenance_columns...
+  [11] ✓ links_provenance_columns
+  [12] budget_ledger...
+  [12] ✓ budget_ledger
+  [13] minion_quiet_hours_stagger...
+  [13] ✓ minion_quiet_hours_stagger
+  [14] pages_updated_at_index...
+  [14] ✓ pages_updated_at_index
+  [15] minion_jobs_max_stalled_default_5...
+  [15] ✓ minion_jobs_max_stalled_default_5
+  [16] cycle_locks_table...
+  [16] ✓ cycle_locks_table
+  [20] sources_table_additive...
+  [20] ✓ sources_table_additive
+  [21] pages_source_id_composite_unique...
+  [21] ✓ pages_source_id_composite_unique
+  [22] links_resolution_type...
+  [22] ✓ links_resolution_type
+  [23] files_source_id_page_id_ledger...
+  [23] ✓ files_source_id_page_id_ledger
+  [24] rls_backfill_missing_tables...
+  [24] ✓ rls_backfill_missing_tables
+  [25] pages_page_kind...
+  [25] ✓ pages_page_kind
+  [26] content_chunks_code_metadata...
+  [26] ✓ content_chunks_code_metadata
+  [27] cathedral_ii_foundation...
+  [27] ✓ cathedral_ii_foundation
+  [28] cathedral_ii_chunk_fts_backfill...
+  [28] ✓ cathedral_ii_chunk_fts_backfill
+  [29] cathedral_ii_code_edges_rls...
+  [29] ✓ cathedral_ii_code_edges_rls
+  [30] dream_verdicts_table...
+  [30] ✓ dream_verdicts_table
+  [31] eval_capture_tables...
+  [31] ✓ eval_capture_tables
+  [32] oauth_infrastructure...
+  [32] ✓ oauth_infrastructure
+  [33] admin_dashboard_columns_v0_26_3...
+  [33] ✓ admin_dashboard
+      at spawnServer (/workspace/test/admin-embed-spawn.serial.test.ts:130:15)
+      at async <anonymous> (/workspace/test/admin-embed-spawn.serial.test.ts:175:21)
+(fail) admin embed E2E — /admin served from embedded manifest (v0.36.1.x #1090) > GET /admin/agents (SPA-routed deep link) falls back to index.html [30037.04ms]
+125 | 
+126 |   if (!ready) {
+127 |     // Capture some diagnostics for the failure message before tearing down.
+128 |     const stderrText = await new Response(proc.stderr).text().catch(() => '');
+129 |     await cleanup();
+130 |     throw new Error(
+                    ^
+error: serve --http never became ready on port 33183 after 30s. stderr:   Schema version 1 → 125 (120 migration(s) pending)
+  [2] slugify_existing_pages...
+  [2] ✓ slugify_existing_pages
+  [3] unique_chunk_index...
+  [3] ✓ unique_chunk_index
+  [4] access_tokens_and_mcp_log...
+  [4] ✓ access_tokens_and_mcp_log
+  [5] minion_jobs_table...
+  [5] ✓ minion_jobs_table
+  [6] agent_orchestration_primitives...
+  [6] ✓ agent_orchestration_primitives
+  [7] agent_parity_layer...
+  [7] ✓ agent_parity_layer
+  [8] multi_type_links_constraint...
+  [8] ✓ multi_type_links_constraint
+  [9] timeline_dedup_index...
+  [9] ✓ timeline_dedup_index
+  [10] drop_timeline_search_trigger...
+  [10] ✓ drop_timeline_search_trigger
+  [11] links_provenance_columns...
+  [11] ✓ links_provenance_columns
+  [12] budget_ledger...
+  [12] ✓ budget_ledger
+  [13] minion_quiet_hours_stagger...
+  [13] ✓ minion_quiet_hours_stagger
+  [14] pages_updated_at_index...
+  [14] ✓ pages_updated_at_index
+  [15] minion_jobs_max_stalled_default_5...
+  [15] ✓ minion_jobs_max_stalled_default_5
+  [16] cycle_locks_table...
+  [16] ✓ cycle_locks_table
+  [20] sources_table_additive...
+  [20] ✓ sources_table_additive
+  [21] pages_source_id_composite_unique...
+  [21] ✓ pages_source_id_composite_unique
+  [22] links_resolution_type...
+  [22] ✓ links_resolution_type
+  [23] files_source_id_page_id_ledger...
+  [23] ✓ files_source_id_page_id_ledger
+  [24] rls_backfill_missing_tables...
+  [24] ✓ rls_backfill_missing_tables
+  [25] pages_page_kind...
+  [25] ✓ pages_page_kind
+  [26] content_chunks_code_metadata...
+  [26] ✓ content_chunks_code_metadata
+  [27] cathedral_ii_foundation...
+  [27] ✓ cathedral_ii_foundation
+  [28] cathedral_ii_chunk_fts_backfill...
+  [28] ✓ cathedral_ii_chunk_fts_backfill
+  [29] cathedral_ii_code_edges_rls...
+  [29] ✓ cathedral_ii_code_edges_rls
+  [30] dream_verdicts_table...
+  [30] ✓ dream_verdicts_table
+  [31] eval_capture_tables...
+  [31] ✓ eval_capture_tables
+  [32] oauth_infrastructure...
+  [32] ✓ oauth_infrastructure
+  [33] admin_dashboard_columns_v0_26_3...
+  [33] ✓ admin_dashboard
+      at spawnServer (/workspace/test/admin-embed-spawn.serial.test.ts:130:15)
+      at async <anonymous> (/workspace/test/admin-embed-spawn.serial.test.ts:192:21)
+(fail) admin embed E2E — /admin served from embedded manifest (v0.36.1.x #1090) > GET /admin/api/stats (API route) is NOT swallowed by the SPA fallback — returns auth challenge [30035.26ms]
+
+ 0 pass
+ 4 fail
+Ran 4 tests across 1 file. [120.24s]
+SUITE_RED_END test/admin-embed-spawn.serial.test.ts
+SUITE_ROW	test/admin-sse-eventsource.test.ts	1	0	0
+SUITE_ROW	test/advisor-apply.test.ts	5	0	0
+SUITE_ROW	test/advisor-core.test.ts	11	0	0
+SUITE_ROW	test/advisor-op-gate.test.ts	4	0	0
+SUITE_ROW	test/advisor-ranking-eval.test.ts	2	0	0
+SUITE_ROW	test/agent-cli.test.ts	35	0	0
+SUITE_ROW	test/agent-runner.test.ts	6	0	0
+SUITE_ROW	test/ai/adaptive-embed-batch.test.ts	31	0	0
+SUITE_ROW	test/ai/anthropic-key.test.ts	6	0	0
+SUITE_ROW	test/ai/build-gateway-config.test.ts	15	0	0
+SUITE_ROW	test/ai/capabilities.test.ts	15	0	0
+SUITE_ROW	test/ai/config-no-env-mutation.test.ts	1	0	0
+SUITE_ROW	test/ai/deepseek-reasoning-content.test.ts	11	0	0
+SUITE_ROW	test/ai/diagnose-embedding-dims.test.ts	4	0	0
+SUITE_ROW	test/ai/dims-openai.test.ts	20	0	0
+SUITE_ROW	test/ai/dims-zeroentropy.test.ts	13	0	0
+SUITE_ROW	test/ai/embedQuery.test.ts	8	0	0
+SUITE_ROW	test/ai/gateway-cache-breakpoint.test.ts	13	0	0
+SUITE_ROW	test/ai/gateway-chat.test.ts	26	0	0
+SUITE_ROW	test/ai/gateway-openai-prompt-cache-key.test.ts	9	0	0
+SUITE_ROW	test/ai/gateway-probe-chat-model.test.ts	9	0	0
+SUITE_ROW	test/ai/gateway-tool-loop.test.ts	9	0	0
+SUITE_ROW	test/ai/gateway-toolcall-pairing.test.ts	5	0	0
+SUITE_ROW	test/ai/gateway-tools-schema.test.ts	3	0	0
+SUITE_ROW	test/ai/gateway.test.ts	37	0	0
+SUITE_ROW	test/ai/header-transport.serial.test.ts	3	0	0
+SUITE_ROW	test/ai/model-resolver-slash.test.ts	11	0	0
+SUITE_ROW	test/ai/no-batch-cap-suppression.serial.test.ts	5	0	0
+SUITE_ROW	test/ai/recipe-azure-openai.test.ts	13	0	0
+SUITE_ROW	test/ai/recipe-dashscope-rerank.test.ts	7	0	0
+SUITE_ROW	test/ai/recipe-dashscope.test.ts	6	0	0
+SUITE_ROW	test/ai/recipe-llama-server-reranker.test.ts	8	0	0
+SUITE_ROW	test/ai/recipe-llama-server.test.ts	7	0	0
+SUITE_ROW	test/ai/recipe-minimax.test.ts	14	0	0
+SUITE_ROW	test/ai/recipe-mistral.test.ts	8	0	0
+SUITE_ROW	test/ai/recipe-moonshot.test.ts	5	0	0
+SUITE_ROW	test/ai/recipe-nvidia.test.ts	9	0	0
+SUITE_ROW	test/ai/recipe-ollama-dims.test.ts	5	0	0
+SUITE_ROW	test/ai/recipe-openrouter.test.ts	15	0	0
+SUITE_ROW	test/ai/recipe-perplexity.test.ts	8	0	0
+SUITE_ROW	test/ai/recipe-zhipu.test.ts	10	0	0
+SUITE_ROW	test/ai/recipes-existing-regression.test.ts	17	0	0
+SUITE_ROW	test/ai/rerank.test.ts	27	0	0
+SUITE_ROW	test/ai/resolve-native-base-url.test.ts	6	0	0
+SUITE_ROW	test/ai/schema-templating.test.ts	7	0	0
+SUITE_ROW	test/ai/silent-drop-regression.test.ts	3	0	0
+SUITE_ROW	test/ai/voyage-code-3-recipe.test.ts	4	0	0
+SUITE_ROW	test/ai/zeroentropy-compat-fetch.test.ts	14	0	0
+SUITE_ROW	test/ai/zeroentropy-recipe.test.ts	6	0	0
+SUITE_ROW	test/anomalies.test.ts	13	0	0
+SUITE_ROW	test/anthropic-model-ids.test.ts	8	0	0
+SUITE_ROW	test/anthropic-pricing.test.ts	8	0	0
+SUITE_ROW	test/apply-migrations-pglite-spawn.serial.test.ts	1	0	0
+SUITE_ROW	test/apply-migrations.test.ts	23	0	0
+SUITE_ROW	test/archive-crawler-config.test.ts	19	0	0
+SUITE_ROW	test/artifact-abstraction.test.ts	6	0	0
+SUITE_ROW	test/asymmetric-encoding-contract.test.ts	6	0	0
+SUITE_ROW	test/audit-parser-probe.serial.test.ts	7	0	0
+SUITE_ROW	test/audit-slug-fallback.serial.test.ts	6	0	0
+SUITE_ROW	test/audit-synopsis.serial.test.ts	8	0	0
+SUITE_ROW	test/audit/audit-dir-preload.test.ts	3	0	0
+SUITE_ROW	test/audit/audit-writer.test.ts	22	0	0
+SUITE_ROW	test/audit/batch-retry-audit.test.ts	12	0	0
+SUITE_ROW	test/audit/batch-retry-redaction.test.ts	3	0	0
+SUITE_ROW	test/audit/content-sanity-audit.test.ts	12	0	0
+SUITE_ROW	test/audit/lock-renewal-audit.test.ts	11	0	0
+SUITE_ROW	test/audit/pool-recovery-audit.test.ts	6	0	0
+SUITE_ROW	test/audit/redact-connection-info.test.ts	15	0	0
+SUITE_ROW	test/auth-create-args.test.ts	6	0	0
+SUITE_ROW	test/auth-register-client-args.test.ts	23	0	0
+SUITE_ROW	test/auto-think-phase.test.ts	15	0	0
+SUITE_ROW	test/autopilot-auto-drain-wiring.test.ts	8	0	0
+SUITE_ROW	test/autopilot-cycle-failure-classification.test.ts	5	0	0
+SUITE_ROW	test/autopilot-cycle-handler.test.ts	7	0	0
+SUITE_ROW	test/autopilot-cycle-source-checkout.test.ts	3	0	0
+SUITE_ROW	test/autopilot-failure-cooldown.test.ts	14	0	0
+SUITE_ROW	test/autopilot-fanout-clamp.serial.test.ts	5	0	0
+SUITE_ROW	test/autopilot-fanout-wiring.test.ts	6	0	0
+SUITE_ROW	test/autopilot-fanout.test.ts	28	0	0
+SUITE_ROW	test/autopilot-global-maintenance.test.ts	8	0	0
+SUITE_ROW	test/autopilot-install.test.ts	6	0	0
+SUITE_ROW	test/autopilot-lock-path.test.ts	3	0	0
+SUITE_ROW	test/autopilot-lock.test.ts	6	0	0
+SUITE_ROW	test/autopilot-nightly-probe-wiring.test.ts	9	0	0
+SUITE_ROW	test/autopilot-parser-probe-wiring.test.ts	10	0	0
+SUITE_ROW	test/autopilot-reconnect-classifier.test.ts	16	0	0
+SUITE_ROW	test/autopilot-resolve-cli.test.ts	4	0	0
+SUITE_ROW	test/autopilot-self-upgrade.test.ts	7	0	0
+SUITE_ROW	test/autopilot-shutdown-engine-close.test.ts	4	0	0
+SUITE_ROW	test/autopilot-supervisor-wiring.test.ts	6	0	0
+SUITE_ROW	test/backfill-base.test.ts	11	0	0
+SUITE_ROW	test/backfill-concurrency-clamp.serial.test.ts	6	0	0
+SUITE_ROW	test/backlink-count-mention-filter.test.ts	6	0	0
+SUITE_ROW	test/backlinks-job-default.test.ts	3	0	0
+SUITE_ROW	test/backlinks.test.ts	17	0	0
+SUITE_ROW	test/backoff.test.ts	11	0	0
+SUITE_PROGRESS done=100 total=1304 red=1
+SUITE_ROW	test/balanced-reranker-default.test.ts	10	0	0
+SUITE_ROW	test/batch-projection.test.ts	18	0	0
+SUITE_ROW	test/bench-publish.test.ts	9	0	0
+SUITE_ROW	test/bench/baseline-file.test.ts	9	0	0
+SUITE_ROW	test/bench/correctness-gate.test.ts	6	0	0
+SUITE_ROW	test/bench/qrels-file.test.ts	19	0	0
+SUITE_ROW	test/binary-self-update.test.ts	9	0	0
+SUITE_ROW	test/book-mirror.test.ts	9	0	0
+SUITE_ROW	test/bootstrap.test.ts	8	0	0
+SUITE_ROW	test/brain-allowlist.serial.test.ts	20	0	0
+SUITE_ROW	test/brain-durability-hook.serial.test.ts	7	0	0
+SUITE_ROW	test/brain-registry.serial.test.ts	28	0	0
+SUITE_ROW	test/brain-repo-durability.serial.test.ts	19	0	0
+SUITE_ROW	test/brain-resolver.test.ts	18	0	0
+SUITE_ROW	test/brain-score-breakdown.test.ts	11	0	0
+SUITE_ROW	test/brain-score-recommendations.test.ts	30	0	0
+SUITE_ROW	test/brain-writer-partial-scan.test.ts	9	0	0
+SUITE_ROW	test/brain-writer-walk-prune.test.ts	15	0	0
+SUITE_ROW	test/brain-writer.test.ts	27	0	0
+SUITE_ROW	test/brainstorm-timeout.test.ts	14	0	0
+SUITE_ROW	test/brainstorm/checkpoint.serial.test.ts	20	0	0
+SUITE_ROW	test/brainstorm/cost-guardrails.test.ts	12	0	0
+SUITE_ROW	test/brainstorm/distance.test.ts	8	0	0
+SUITE_ROW	test/brainstorm/eval-brainstorm.test.ts	17	0	0
+SUITE_ROW	test/brainstorm/judges-maxtokens.test.ts	16	0	0
+SUITE_ROW	test/brainstorm/lsd-mode-skip.test.ts	13	0	0
+SUITE_ROW	test/brainstorm/model-config.test.ts	6	0	0
+SUITE_ROW	test/brainstorm/save.test.ts	11	0	0
+SUITE_ROW	test/budget-meter.test.ts	8	0	0
+SUITE_ROW	test/budget-tracker.test.ts	10	0	0
+SUITE_ROW	test/build-llms.test.ts	12	0	0
+SUITE_ROW	test/by-mention.test.ts	22	0	0
+SUITE_ROW	test/cache-scope-key.test.ts	5	0	0
+SUITE_ROW	test/calibration-cli.test.ts	23	0	0
+SUITE_ROW	test/calibration-profile.test.ts	23	0	0
+SUITE_ROW	test/candidate-audit.test.ts	17	0	0
+SUITE_ROW	test/capture-build-content.test.ts	21	0	0
+SUITE_ROW	test/capture-runcapture.test.ts	26	0	0
+SUITE_ROW	test/cathedral-ii-brainbench.test.ts	6	0	0
+SUITE_ROW	test/check-jsonb-params.test.ts	2	0	0
+SUITE_ROW	test/check-resolvable-cli.test.ts	22	0	0
+SUITE_ROW	test/check-resolvable-openclaw-compact.test.ts	8	0	0
+SUITE_ROW	test/check-resolvable.test.ts	41	0	0
+SUITE_ROW	test/check-system-of-record.test.ts	6	0	0
+SUITE_ROW	test/check-update-refresh.serial.test.ts	5	0	0
+SUITE_ROW	test/check-update.test.ts	20	0	0
+SUITE_ROW	test/child-worker-supervisor.test.ts	14	0	0
+SUITE_ROW	test/chronicle-advisor.test.ts	3	0	0
+SUITE_ROW	test/chronicle-backfill.test.ts	2	0	0
+SUITE_ROW	test/chronicle-capture.test.ts	7	0	0
+SUITE_ROW	test/chronicle-context.test.ts	2	0	0
+SUITE_ROW	test/chronicle-delight.test.ts	5	0	0
+SUITE_ROW	test/chronicle-doctor.test.ts	1	0	0
+SUITE_ROW	test/chronicle-extract.test.ts	20	0	0
+SUITE_ROW	test/chronicle-ontology-ops.test.ts	4	0	0
+SUITE_ROW	test/chronicle-ontology.test.ts	10	0	0
+SUITE_ROW	test/chronicle-search-boost.test.ts	3	0	0
+SUITE_ROW	test/chronicle-timeline-reads.test.ts	8	0	0
+SUITE_ROW	test/chunk-grain-fts.test.ts	11	0	0
+SUITE_ROW	test/chunker-timeout.test.ts	7	0	0
+SUITE_ROW	test/chunker-version-gate.test.ts	3	0	0
+SUITE_ROW	test/chunker-version-insert-default.test.ts	3	0	0
+SUITE_ROW	test/chunkers/code.test.ts	31	0	0
+SUITE_ROW	test/chunkers/recursive.test.ts	24	0	0
+SUITE_ROW	test/cjk.test.ts	26	0	0
+SUITE_ROW	test/claude-cli-recipe.test.ts	20	0	0
+SUITE_ROW	test/claw-test-cli.test.ts	9	0	0
+SUITE_ROW	test/cli-args.test.ts	1	0	0
+SUITE_ROW	test/cli-bigint-normalize.test.ts	8	0	0
+SUITE_ROW	test/cli-dispatch-thin-client.test.ts	18	0	0
+SUITE_ROW	test/cli-dream-engine-warn.test.ts	2	0	0
+SUITE_ROW	test/cli-exit-verdict-pin.test.ts	1	0	0
+SUITE_ROW	test/cli-finish-teardown.test.ts	26	0	0
+SUITE_ROW	test/cli-force-exit-teardown-arming.test.ts	1	0	0
+SUITE_ROW	test/cli-format-volunteer.test.ts	4	0	0
+SUITE_ROW	test/cli-help-discoverability.test.ts	10	0	0
+SUITE_ROW	test/cli-multimodal-integration.test.ts	4	0	0
+SUITE_ROW	test/cli-options.test.ts	31	0	0
+SUITE_ROW	test/cli-pipe-truncation.test.ts	1	0	0
+SUITE_ROW	test/cli-pty-runner.test.ts	24	0	0
+SUITE_ROW	test/cli-query-image.test.ts	6	0	0
+SUITE_ROW	test/cli-search-dispatch.test.ts	3	0	0
+SUITE_ROW	test/cli-should-force-exit.test.ts	11	0	0
+SUITE_ROW	test/cli.test.ts	18	0	0
+SUITE_ROW	test/code-callers-cli.test.ts	2	0	0
+SUITE_ROW	test/code-callers-pin.serial.test.ts	9	0	0
+SUITE_ROW	test/code-def-refs.test.ts	10	0	0
+SUITE_ROW	test/code-edges.test.ts	8	0	0
+SUITE_ROW	test/code-graph-readiness.test.ts	11	0	0
+SUITE_ROW	test/code-intel/edge-densification.test.ts	13	0	0
+SUITE_ROW	test/code-intel/eval-capture-graph.test.ts	20	0	0
+SUITE_ROW	test/code-intel/recursive-walk.test.ts	11	0	0
+SUITE_ROW	test/code-intel/scope-walker-resolution.test.ts	10	0	0
+SUITE_ROW	test/code-intel/traversal-cache.test.ts	13	0	0
+SUITE_ROW	test/code-retrieval-harness.test.ts	26	0	0
+SUITE_ROW	test/code-scoped-source-resolve.test.ts	8	0	0
+SUITE_ROW	test/commands-search.test.ts	17	0	0
+SUITE_ROW	test/commands/capture.test.ts	21	0	0
+SUITE_ROW	test/commands/schema-packpath.test.ts	3	0	0
+SUITE_ROW	test/config-ensure-gitignore.test.ts	6	0	0
+SUITE_PROGRESS done=200 total=1304 red=1
+SUITE_ROW	test/config-env-hijack.test.ts	8	0	0
+SUITE_ROW	test/config-env.test.ts	5	0	0
+SUITE_ROW	test/config-file-plane-diag.serial.test.ts	10	0	0
+SUITE_ROW	test/config-get-plane.test.ts	4	0	0
+SUITE_ROW	test/config-set.test.ts	24	0	0
+SUITE_ROW	test/config-unset.test.ts	9	0	0
+SUITE_ROW	test/config.test.ts	23	0	0
+SUITE_ROW	test/connect.test.ts	102	0	0
+SUITE_ROW	test/connection-manager.serial.test.ts	36	0	0
+SUITE_ROW	test/connection-resilience.test.ts	25	0	0
+SUITE_ROW	test/console-prefix.test.ts	8	0	0
+SUITE_ROW	test/consolidate-valid-until.test.ts	4	0	0
+SUITE_ROW	test/content-sanity-literals.test.ts	13	0	0
+SUITE_ROW	test/content-sanity.test.ts	80	0	0
+SUITE_ROW	test/context-engine.test.ts	24	0	0
+SUITE_ROW	test/context/entity-salience.test.ts	12	0	0
+SUITE_ROW	test/context/resolve-ipc.test.ts	1	3	1
+SUITE_RED_BEGIN test/context/resolve-ipc.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/context/resolve-ipc.test.ts:
+32 |     };
+33 |     const server = await startResolveIpcServer(sock, async (req) => {
+34 |       expect(req.candidates[0].query).toBe('Alice');
+35 |       return block;
+36 |     });
+37 |     expect(server).not.toBeNull();
+                            ^
+error: expect(received).not.toBeNull()
+
+Received: null
+
+      at <anonymous> (/workspace/test/context/resolve-ipc.test.ts:37:24)
+(fail) resolve IPC > round-trip: client gets the pointer block the server returns [2.28ms]
+(pass) resolve IPC > absent socket → IPC_UNAVAILABLE (caller falls through ladder) [0.11ms]
+54 |     const dir = tmpDir();
+55 |     const sock = resolveSocketPath(dir);
+56 |     const server = await startResolveIpcServer(sock, async () => null);
+57 |     servers.push(server!);
+58 |     const got = await resolveViaIpc(sock, { candidates: [{ display: 'A', query: 'A' }] });
+59 |     expect(got).toBeNull();
+                     ^
+error: expect(received).toBeNull()
+
+Received: Symbol(ipc-unavailable)
+
+      at <anonymous> (/workspace/test/context/resolve-ipc.test.ts:59:17)
+(fail) resolve IPC > server returning null relays as null (resolved, nothing found) [1.23ms]
+63 |   test('stale socket file is cleaned up so a fresh server can bind', async () => {
+64 |     const dir = tmpDir();
+65 |     const sock = resolveSocketPath(dir);
+66 |     const s1 = await startResolveIpcServer(sock, async () => null);
+67 |     servers.push(s1!);
+68 |     s1!.close();
+         ^
+TypeError: null is not an object (evaluating 's1.close')
+      at <anonymous> (/workspace/test/context/resolve-ipc.test.ts:68:5)
+(fail) resolve IPC > stale socket file is cleaned up so a fresh server can bind [1.23ms]
+
+ 1 pass
+ 3 fail
+ 3 expect() calls
+Ran 4 tests across 1 file. [109.00ms]
+SUITE_RED_END test/context/resolve-ipc.test.ts
+SUITE_ROW	test/contextual-retrieval-doctor.serial.test.ts	8	0	0
+SUITE_ROW	test/contextual-retrieval-resolver.test.ts	28	0	0
+SUITE_ROW	test/contextual-retrieval-service-pure.test.ts	21	0	0
+SUITE_ROW	test/conversation-parser-cli.test.ts	10	0	0
+SUITE_ROW	test/conversation-parser/llm-base.test.ts	20	0	0
+SUITE_ROW	test/conversation-parser/llm-fallback.test.ts	17	0	0
+SUITE_ROW	test/conversation-parser/llm-polish.test.ts	9	0	0
+SUITE_ROW	test/conversation-parser/nightly-probe.test.ts	7	0	0
+SUITE_ROW	test/conversation-parser/parse.test.ts	76	0	0
+SUITE_ROW	test/core/audit-week-file.serial.test.ts	8	0	0
+SUITE_ROW	test/core/background-work.test.ts	6	0	0
+SUITE_ROW	test/core/base-phase.test.ts	13	0	0
+SUITE_ROW	test/core/budget/budget-tracker.test.ts	27	0	0
+SUITE_ROW	test/core/budget/gateway-budget-composition.test.ts	6	0	0
+SUITE_ROW	test/core/cycle.serial.test.ts	35	0	0
+SUITE_ROW	test/core/diarize/payload-fitter-summarize.test.ts	6	0	0
+SUITE_ROW	test/core/diarize/payload-fitter.test.ts	5	0	0
+SUITE_ROW	test/core/git-head.test.ts	14	0	0
+SUITE_ROW	test/core/remediation-checkpoint.serial.test.ts	13	0	0
+SUITE_ROW	test/core/retry-reconnect.test.ts	5	0	0
+SUITE_ROW	test/core/retry-stress.slow.test.ts	5	0	0
+SUITE_ROW	test/core/retry.test.ts	37	0	0
+SUITE_ROW	test/cosine-rescore-column.test.ts	4	0	0
+SUITE_ROW	test/cross-brain-calibration.test.ts	15	0	0
+SUITE_ROW	test/cross-modal-default-slots.test.ts	3	0	0
+SUITE_ROW	test/cross-modal-eval-aggregate.test.ts	8	0	0
+SUITE_ROW	test/cross-modal-eval-cli.test.ts	13	0	0
+SUITE_ROW	test/cross-modal-eval-json-repair.test.ts	11	0	0
+SUITE_ROW	test/cross-modal-hybrid-integration.serial.test.ts	7	0	0
+SUITE_ROW	test/cross-modal-phase1.test.ts	45	0	0
+SUITE_ROW	test/cross-modal-phase2.test.ts	15	0	0
+SUITE_ROW	test/cycle-abort.test.ts	10	0	0
+SUITE_ROW	test/cycle-consolidate.test.ts	5	0	0
+SUITE_ROW	test/cycle-dream-output-root.test.ts	7	0	0
+SUITE_ROW	test/cycle-extract-source.test.ts	2	0	0
+SUITE_ROW	test/cycle-last-full-cycle-at.test.ts	5	0	0
+SUITE_ROW	test/cycle-legacy-phases.test.ts	11	0	0
+SUITE_ROW	test/cycle-lock-per-source.test.ts	12	0	0
+SUITE_ROW	test/cycle-pack-gating.test.ts	19	0	0
+SUITE_ROW	test/cycle-patterns-child-outcome.test.ts	2	0	0
+SUITE_ROW	test/cycle-patterns-deadline-budget.test.ts	15	0	0
+SUITE_ROW	test/cycle-patterns.test.ts	12	0	0
+SUITE_ROW	test/cycle-pglite-lock-ordering.serial.test.ts	6	0	0
+SUITE_ROW	test/cycle-synthesize-braindir-resolve.test.ts	4	0	0
+SUITE_ROW	test/cycle-synthesize-chunker.test.ts	21	0	0
+SUITE_ROW	test/cycle-synthesize-md-discovery.test.ts	6	0	0
+SUITE_ROW	test/cycle-synthesize-slug-collection.test.ts	11	0	0
+SUITE_ROW	test/cycle-synthesize-subagent-timeout.test.ts	1	0	0
+SUITE_ROW	test/cycle-synthesize.test.ts	42	0	0
+SUITE_ROW	test/cycle/cycle-lock-ttl.test.ts	1	0	0
+SUITE_ROW	test/cycle/extract-atoms-batch.test.ts	5	0	0
+SUITE_ROW	test/cycle/extract-atoms-progress.test.ts	6	0	0
+SUITE_ROW	test/cycle/extract-atoms-synthesize-concepts.test.ts	27	0	0
+SUITE_ROW	test/cycle/nightly-probe-adapters.test.ts	6	0	0
+SUITE_ROW	test/cycle/regression-pr-wave-r1-r2-r4.test.ts	7	0	0
+SUITE_ROW	test/cycle/synthesize-concepts-progress.test.ts	3	0	0
+SUITE_ROW	test/cycle/synthesize-gateway-adapter.test.ts	12	0	0
+SUITE_ROW	test/cycle/yield-during-phase-refresh.test.ts	8	0	0
+SUITE_ROW	test/cycle/yield-during-phase-throttle.test.ts	3	0	0
+SUITE_ROW	test/data-research.test.ts	33	0	0
+SUITE_ROW	test/db-disconnect-audit.test.ts	6	0	0
+SUITE_ROW	test/db-lock-auto-takeover.test.ts	11	0	0
+SUITE_ROW	test/db-lock-election.test.ts	5	0	0
+SUITE_ROW	test/db-lock-heartbeat-takeover.test.ts	9	0	0
+SUITE_ROW	test/db-lock-inspect.test.ts	14	0	0
+SUITE_ROW	test/db-lock-per-source.test.ts	7	0	0
+SUITE_ROW	test/db-lock-reap.test.ts	9	0	0
+SUITE_ROW	test/db-lock-refresh.test.ts	6	0	0
+SUITE_ROW	test/db-pacer.test.ts	15	0	0
+SUITE_ROW	test/dedup.test.ts	14	0	0
+SUITE_ROW	test/destructive-guard.test.ts	21	0	0
+SUITE_ROW	test/disk-walk.test.ts	9	0	0
+SUITE_ROW	test/distribution-import-boundary.test.ts	2	0	0
+SUITE_ROW	test/doctor-autopilot-fanout-concurrency.serial.test.ts	4	0	0
+SUITE_ROW	test/doctor-batch-retry.test.ts	9	0	0
+SUITE_ROW	test/doctor-behavioral.test.ts	13	0	0
+SUITE_ROW	test/doctor-brain-checks-score.test.ts	14	0	0
+SUITE_ROW	test/doctor-calibration-checks.test.ts	15	0	0
+SUITE_ROW	test/doctor-categories.test.ts	10	0	0
+SUITE_ROW	test/doctor-cause-rank.test.ts	10	0	0
+SUITE_ROW	test/doctor-child-orphans.test.ts	7	0	0
+SUITE_ROW	test/doctor-cli-smoke.serial.test.ts	1	0	0
+SUITE_ROW	test/doctor-conversation-facts-backlog.test.ts	3	0	0
+SUITE_PROGRESS done=300 total=1304 red=2
+SUITE_ROW	test/doctor-cycle-freshness.test.ts	9	0	0
+SUITE_ROW	test/doctor-cycle-phase-scope.test.ts	5	0	0
+SUITE_ROW	test/doctor-drift-advice.test.ts	4	0	0
+SUITE_ROW	test/doctor-embedding-env-override.test.ts	7	0	0
+SUITE_ROW	test/doctor-extract-atoms-backlog.test.ts	6	0	0
+SUITE_ROW	test/doctor-extract-health.test.ts	8	0	0
+SUITE_ROW	test/doctor-federation-health.test.ts	6	0	0
+SUITE_ROW	test/doctor-fix.test.ts	3	0	0
+SUITE_ROW	test/doctor-frontmatter-partial.test.ts	11	0	0
+SUITE_ROW	test/doctor-hidden-by-search-policy.test.ts	7	0	0
+SUITE_ROW	test/doctor-home-dir-in-worktree.test.ts	5	0	0
+SUITE_ROW	test/doctor-links-extraction-lag.test.ts	9	0	0
+SUITE_ROW	test/doctor-minions-check.test.ts	4	4	1
+SUITE_RED_BEGIN test/doctor-minions-check.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/doctor-minions-check.test.ts:
+76 |     );
+77 | 
+78 |     // Use --fast so we skip the DB section entirely (no engine configured).
+79 |     const result = run(['doctor', '--fast', '--json']);
+80 |     // doctor exits 1 on any FAIL; that's expected here.
+81 |     expect(result.exitCode).toBe(1);
+                                 ^
+error: expect(received).toBe(expected)
+
+Expected: 1
+Received: 0
+
+      at <anonymous> (/workspace/test/doctor-minions-check.test.ts:81:29)
+(fail) gbrain doctor — half-migrated Minions detection > filesystem: partial completed.jsonl entry with no matching complete → FAIL [468.37ms]
+(pass) gbrain doctor — half-migrated Minions detection > filesystem: partial followed by complete → NO warning [460.48ms]
+(pass) gbrain doctor — half-migrated Minions detection > filesystem: no completed.jsonl at all → NO warning (fresh install path) [471.53ms]
+(pass) gbrain doctor — half-migrated Minions detection > regression: fresh install with schema-applied DB but no prefs must NOT fail [468.23ms]
+158 |         JSON.stringify({ version: '0.11.0', status: 'partial' }),
+159 |       ].join('\n') + '\n',
+160 |     );
+161 | 
+162 |     const result = run(['doctor', '--fast', '--json']);
+163 |     expect(result.exitCode).toBe(1);
+                                  ^
+error: expect(received).toBe(expected)
+
+Expected: 1
+Received: 0
+
+      at <anonymous> (/workspace/test/doctor-minions-check.test.ts:163:29)
+(fail) gbrain doctor — half-migrated Minions detection > filesystem: multiple versions each need their own complete entry [466.03ms]
+(pass) gbrain doctor — half-migrated Minions detection > filesystem: stale partial superseded by newer complete → NO warning (forward-progress override) [467.01ms]
+218 |         JSON.stringify({ version: '0.16.0', status: 'partial' }),
+219 |       ].join('\n') + '\n',
+220 |     );
+221 | 
+222 |     const result = run(['doctor', '--fast', '--json']);
+223 |     expect(result.exitCode).toBe(1);
+                                  ^
+error: expect(received).toBe(expected)
+
+Expected: 1
+Received: 0
+
+      at <anonymous> (/workspace/test/doctor-minions-check.test.ts:223:29)
+(fail) gbrain doctor — half-migrated Minions detection > filesystem: stale partial NOT superseded → still flagged [477.46ms]
+237 |       join(migrationsDir, 'completed.jsonl'),
+238 |       JSON.stringify({ version: '0.11.0', status: 'partial' }) + '\n',
+239 |     );
+240 | 
+241 |     const result = run(['doctor', '--fast']);
+242 |     expect(result.exitCode).toBe(1);
+                                  ^
+error: expect(received).toBe(expected)
+
+Expected: 1
+Received: 0
+
+      at <anonymous> (/workspace/test/doctor-minions-check.test.ts:242:29)
+(fail) gbrain doctor — half-migrated Minions detection > human output: prints MINIONS HALF-INSTALLED loud banner [476.33ms]
+
+ 4 pass
+ 4 fail
+ 5 expect() calls
+Ran 8 tests across 1 file. [3.85s]
+SUITE_RED_END test/doctor-minions-check.test.ts
+SUITE_ROW	test/doctor-orphan-ratio.test.ts	11	0	0
+SUITE_ROW	test/doctor-parser-probe-check.test.ts	5	0	0
+SUITE_ROW	test/doctor-pool-reap-health.test.ts	5	0	0
+SUITE_ROW	test/doctor-raw-provenance.test.ts	6	0	0
+SUITE_ROW	test/doctor-remediation-plan-render.test.ts	5	0	0
+SUITE_ROW	test/doctor-remote.serial.test.ts	0	1	1
+SUITE_RED_BEGIN test/doctor-remote.serial.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/doctor-remote.serial.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+46 |     }
+47 |   }
+48 |   let er;
+49 |   if (args.length > 0)
+50 |     er = args[0];
+51 |     throw er;
+                 ^
+error: Failed to start server. Is port 0 in use?
+      at emitError (node:events:51:13)
+-------------------------------
+
+(fail) (unnamed) [5000.01ms]
+  ^ a beforeEach/afterEach hook timed out for this test.
+
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [5.16s]
+SUITE_RED_END test/doctor-remote.serial.test.ts
+SUITE_ROW	test/doctor-report-remote.serial.test.ts	11	0	0
+SUITE_ROW	test/doctor-retrieval-reflex.test.ts	3	0	0
+SUITE_ROW	test/doctor-scope-filter.test.ts	4	0	0
+SUITE_ROW	test/doctor-search-mode.test.ts	7	0	0
+SUITE_ROW	test/doctor-self-upgrade.test.ts	5	0	0
+SUITE_ROW	test/doctor-source-config-shape.test.ts	4	0	0
+SUITE_ROW	test/doctor-subagent-health.test.ts	4	0	0
+SUITE_ROW	test/doctor-sync-consolidation.test.ts	6	0	0
+SUITE_ROW	test/doctor-timeline-metric-labels-2298.test.ts	9	0	0
+SUITE_ROW	test/doctor-v0_37_7_checks.test.ts	9	0	0

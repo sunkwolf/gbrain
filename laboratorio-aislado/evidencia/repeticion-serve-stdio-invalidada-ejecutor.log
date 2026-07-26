@@ -1,0 +1,44 @@
+Cannot open netlink socket: Operation not permitted
+NETNS_INIT loopback=down mode=DEGRADADO reason=ip-netlink-denied
+SUITE_START head=0a1ecb6b9811ee6d676dc3ca46fab0294d5fa8ba files=1 home=/tmp/gb-diff-home
+SUITE_ROW	test/e2e/serve-stdio-roundtrip.test.ts	0	1	1
+SUITE_RED_BEGIN test/e2e/serve-stdio-roundtrip.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/e2e/serve-stdio-roundtrip.test.ts:
+Starting GBrain MCP server (stdio)...
+killed 1 dangling process
+(fail) serve stdio round-trip E2E (local PGLite → real MCP tool calls) > (unnamed) [60010.03ms]
+  ^ a beforeEach/afterEach hook timed out for this test.
+GBrain MCP server: graceful exit (SIGTERM)
+[gbrain-serve] shutdown: SIGTERM
+
+# Unhandled error between tests
+-------------------------------
+2043 |             if (errorData.elicitations) {
+2044 |                 return new UrlElicitationRequiredError(errorData.elicitations, message);
+2045 |             }
+2046 |         }
+2047 |         // Default to generic McpError
+2048 |         return new McpError(code, message, data);
+                      ^
+McpError: MCP error -32000: Connection closed
+ code: -32000,
+ data: undefined,
+
+      at fromError (/input/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js:2048:16)
+      at _onclose (/input/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js:263:32)
+      at <anonymous> (/input/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js:223:18)
+      at <anonymous> (/input/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js:85:22)
+      at emit (node:events:98:22)
+      at #maybeClose (node:child_process:766:16)
+      at #handleOnExit (node:child_process:520:72)
+-------------------------------
+
+
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [60.18s]
+SUITE_RED_END test/e2e/serve-stdio-roundtrip.test.ts
+SUITE_SUMMARY files=1 green_files=0 red_files=1 tests_pass=0 tests_fail=1 unknown=0

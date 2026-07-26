@@ -1,0 +1,6 @@
+SUITE_START head=0a1ecb6b9811ee6d676dc3ca46fab0294d5fa8ba files=4 home=/tmp/gb-diff-home
+SUITE_ROW	test/doctor-minions-check.test.ts	8	0	0
+SUITE_ROW	test/core/cycle.serial.test.ts	35	0	0
+SUITE_ROW	test/config.test.ts	23	0	0
+SUITE_ROW	test/pglite-engine.test.ts	109	0	0
+SUITE_SUMMARY files=4 green_files=4 red_files=0 tests_pass=175 tests_fail=0 unknown=0

@@ -1,0 +1,8 @@
+SUITE_START head=0a1ecb6b9811ee6d676dc3ca46fab0294d5fa8ba files=6 home=/tmp/gb-diff-home
+SUITE_ROW	test/config.test.ts	23	0	0
+SUITE_ROW	test/e2e/db-guard.test.ts	7	0	0
+SUITE_ROW	test/search/call-receipt.test.ts	17	0	0
+SUITE_ROW	test/search/call-receipt-wiring.serial.test.ts	19	0	0
+SUITE_ROW	test/pglite-engine.test.ts	109	0	0
+SUITE_ROW	test/e2e/source-isolation-pglite.test.ts	14	0	0
+SUITE_SUMMARY files=6 green_files=6 red_files=0 tests_pass=189 tests_fail=0 unknown=0

@@ -1,0 +1,3641 @@
+Cannot open netlink socket: Operation not permitted
+NETNS_INIT loopback=down mode=DEGRADADO reason=ip-netlink-denied
+SUITE_START head=0a1ecb6b9811ee6d676dc3ca46fab0294d5fa8ba files=1304 home=/tmp/gb-diff-home
+SUITE_ROW	test/abort-check.test.ts	8	0	0
+SUITE_ROW	test/active-pack-wiring.test.ts	5	0	0
+SUITE_ROW	test/admin-agents-spend.test.ts	19	0	0
+SUITE_ROW	test/admin-embed-spawn.serial.test.ts	0	4	1
+SUITE_RED_BEGIN test/admin-embed-spawn.serial.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/admin-embed-spawn.serial.test.ts:
+125 | 
+126 |   if (!ready) {
+127 |     // Capture some diagnostics for the failure message before tearing down.
+128 |     const stderrText = await new Response(proc.stderr).text().catch(() => '');
+129 |     await cleanup();
+130 |     throw new Error(
+                    ^
+error: serve --http never became ready on port 34313 after 30s. stderr:   Schema version 1 → 125 (120 migration(s) pending)
+  [2] slugify_existing_pages...
+  [2] ✓ slugify_existing_pages
+  [3] unique_chunk_index...
+  [3] ✓ unique_chunk_index
+  [4] access_tokens_and_mcp_log...
+  [4] ✓ access_tokens_and_mcp_log
+  [5] minion_jobs_table...
+  [5] ✓ minion_jobs_table
+  [6] agent_orchestration_primitives...
+  [6] ✓ agent_orchestration_primitives
+  [7] agent_parity_layer...
+  [7] ✓ agent_parity_layer
+  [8] multi_type_links_constraint...
+  [8] ✓ multi_type_links_constraint
+  [9] timeline_dedup_index...
+  [9] ✓ timeline_dedup_index
+  [10] drop_timeline_search_trigger...
+  [10] ✓ drop_timeline_search_trigger
+  [11] links_provenance_columns...
+  [11] ✓ links_provenance_columns
+  [12] budget_ledger...
+  [12] ✓ budget_ledger
+  [13] minion_quiet_hours_stagger...
+  [13] ✓ minion_quiet_hours_stagger
+  [14] pages_updated_at_index...
+  [14] ✓ pages_updated_at_index
+  [15] minion_jobs_max_stalled_default_5...
+  [15] ✓ minion_jobs_max_stalled_default_5
+  [16] cycle_locks_table...
+  [16] ✓ cycle_locks_table
+  [20] sources_table_additive...
+  [20] ✓ sources_table_additive
+  [21] pages_source_id_composite_unique...
+  [21] ✓ pages_source_id_composite_unique
+  [22] links_resolution_type...
+  [22] ✓ links_resolution_type
+  [23] files_source_id_page_id_ledger...
+  [23] ✓ files_source_id_page_id_ledger
+  [24] rls_backfill_missing_tables...
+  [24] ✓ rls_backfill_missing_tables
+  [25] pages_page_kind...
+  [25] ✓ pages_page_kind
+  [26] content_chunks_code_metadata...
+  [26] ✓ content_chunks_code_metadata
+  [27] cathedral_ii_foundation...
+  [27] ✓ cathedral_ii_foundation
+  [28] cathedral_ii_chunk_fts_backfill...
+  [28] ✓ cathedral_ii_chunk_fts_backfill
+  [29] cathedral_ii_code_edges_rls...
+  [29] ✓ cathedral_ii_code_edges_rls
+  [30] dream_verdicts_table...
+  [30] ✓ dream_verdicts_table
+  [31] eval_capture_tables...
+  [31] ✓ eval_capture_tables
+  [32] oauth_infrastructure...
+  [32] ✓ oauth_infrastructure
+  [33] admin_dashboard_columns_v0_26_3...
+  [33] ✓ admin_dashboard
+      at spawnServer (/workspace/test/admin-embed-spawn.serial.test.ts:130:15)
+      at async <anonymous> (/workspace/test/admin-embed-spawn.serial.test.ts:140:21)
+(fail) admin embed E2E — /admin served from embedded manifest (v0.36.1.x #1090) > GET /admin/ returns 200 with the React SPA shell HTML [30041.48ms]
+125 | 
+126 |   if (!ready) {
+127 |     // Capture some diagnostics for the failure message before tearing down.
+128 |     const stderrText = await new Response(proc.stderr).text().catch(() => '');
+129 |     await cleanup();
+130 |     throw new Error(
+                    ^
+error: serve --http never became ready on port 34159 after 30s. stderr:   Schema version 1 → 125 (120 migration(s) pending)
+  [2] slugify_existing_pages...
+  [2] ✓ slugify_existing_pages
+  [3] unique_chunk_index...
+  [3] ✓ unique_chunk_index
+  [4] access_tokens_and_mcp_log...
+  [4] ✓ access_tokens_and_mcp_log
+  [5] minion_jobs_table...
+  [5] ✓ minion_jobs_table
+  [6] agent_orchestration_primitives...
+  [6] ✓ agent_orchestration_primitives
+  [7] agent_parity_layer...
+  [7] ✓ agent_parity_layer
+  [8] multi_type_links_constraint...
+  [8] ✓ multi_type_links_constraint
+  [9] timeline_dedup_index...
+  [9] ✓ timeline_dedup_index
+  [10] drop_timeline_search_trigger...
+  [10] ✓ drop_timeline_search_trigger
+  [11] links_provenance_columns...
+  [11] ✓ links_provenance_columns
+  [12] budget_ledger...
+  [12] ✓ budget_ledger
+  [13] minion_quiet_hours_stagger...
+  [13] ✓ minion_quiet_hours_stagger
+  [14] pages_updated_at_index...
+  [14] ✓ pages_updated_at_index
+  [15] minion_jobs_max_stalled_default_5...
+  [15] ✓ minion_jobs_max_stalled_default_5
+  [16] cycle_locks_table...
+  [16] ✓ cycle_locks_table
+  [20] sources_table_additive...
+  [20] ✓ sources_table_additive
+  [21] pages_source_id_composite_unique...
+  [21] ✓ pages_source_id_composite_unique
+  [22] links_resolution_type...
+  [22] ✓ links_resolution_type
+  [23] files_source_id_page_id_ledger...
+  [23] ✓ files_source_id_page_id_ledger
+  [24] rls_backfill_missing_tables...
+  [24] ✓ rls_backfill_missing_tables
+  [25] pages_page_kind...
+  [25] ✓ pages_page_kind
+  [26] content_chunks_code_metadata...
+  [26] ✓ content_chunks_code_metadata
+  [27] cathedral_ii_foundation...
+  [27] ✓ cathedral_ii_foundation
+  [28] cathedral_ii_chunk_fts_backfill...
+  [28] ✓ cathedral_ii_chunk_fts_backfill
+  [29] cathedral_ii_code_edges_rls...
+  [29] ✓ cathedral_ii_code_edges_rls
+  [30] dream_verdicts_table...
+  [30] ✓ dream_verdicts_table
+  [31] eval_capture_tables...
+  [31] ✓ eval_capture_tables
+  [32] oauth_infrastructure...
+  [32] ✓ oauth_infrastructure
+  [33] admin_dashboard_columns_v0_26_3...
+  [33] ✓ admin_dashboard
+      at spawnServer (/workspace/test/admin-embed-spawn.serial.test.ts:130:15)
+      at async <anonymous> (/workspace/test/admin-embed-spawn.serial.test.ts:161:21)
+(fail) admin embed E2E — /admin served from embedded manifest (v0.36.1.x #1090) > GET /admin/index.html (explicit path) also returns the SPA HTML [30038.20ms]
+125 | 
+126 |   if (!ready) {
+127 |     // Capture some diagnostics for the failure message before tearing down.
+128 |     const stderrText = await new Response(proc.stderr).text().catch(() => '');
+129 |     await cleanup();
+130 |     throw new Error(
+                    ^
+error: serve --http never became ready on port 34732 after 30s. stderr:   Schema version 1 → 125 (120 migration(s) pending)
+  [2] slugify_existing_pages...
+  [2] ✓ slugify_existing_pages
+  [3] unique_chunk_index...
+  [3] ✓ unique_chunk_index
+  [4] access_tokens_and_mcp_log...
+  [4] ✓ access_tokens_and_mcp_log
+  [5] minion_jobs_table...
+  [5] ✓ minion_jobs_table
+  [6] agent_orchestration_primitives...
+  [6] ✓ agent_orchestration_primitives
+  [7] agent_parity_layer...
+  [7] ✓ agent_parity_layer
+  [8] multi_type_links_constraint...
+  [8] ✓ multi_type_links_constraint
+  [9] timeline_dedup_index...
+  [9] ✓ timeline_dedup_index
+  [10] drop_timeline_search_trigger...
+  [10] ✓ drop_timeline_search_trigger
+  [11] links_provenance_columns...
+  [11] ✓ links_provenance_columns
+  [12] budget_ledger...
+  [12] ✓ budget_ledger
+  [13] minion_quiet_hours_stagger...
+  [13] ✓ minion_quiet_hours_stagger
+  [14] pages_updated_at_index...
+  [14] ✓ pages_updated_at_index
+  [15] minion_jobs_max_stalled_default_5...
+  [15] ✓ minion_jobs_max_stalled_default_5
+  [16] cycle_locks_table...
+  [16] ✓ cycle_locks_table
+  [20] sources_table_additive...
+  [20] ✓ sources_table_additive
+  [21] pages_source_id_composite_unique...
+  [21] ✓ pages_source_id_composite_unique
+  [22] links_resolution_type...
+  [22] ✓ links_resolution_type
+  [23] files_source_id_page_id_ledger...
+  [23] ✓ files_source_id_page_id_ledger
+  [24] rls_backfill_missing_tables...
+  [24] ✓ rls_backfill_missing_tables
+  [25] pages_page_kind...
+  [25] ✓ pages_page_kind
+  [26] content_chunks_code_metadata...
+  [26] ✓ content_chunks_code_metadata
+  [27] cathedral_ii_foundation...
+  [27] ✓ cathedral_ii_foundation
+  [28] cathedral_ii_chunk_fts_backfill...
+  [28] ✓ cathedral_ii_chunk_fts_backfill
+  [29] cathedral_ii_code_edges_rls...
+  [29] ✓ cathedral_ii_code_edges_rls
+  [30] dream_verdicts_table...
+  [30] ✓ dream_verdicts_table
+  [31] eval_capture_tables...
+  [31] ✓ eval_capture_tables
+  [32] oauth_infrastructure...
+  [32] ✓ oauth_infrastructure
+  [33] admin_dashboard_columns_v0_26_3...
+  [33] ✓ admin_dashboard
+      at spawnServer (/workspace/test/admin-embed-spawn.serial.test.ts:130:15)
+      at async <anonymous> (/workspace/test/admin-embed-spawn.serial.test.ts:175:21)
+(fail) admin embed E2E — /admin served from embedded manifest (v0.36.1.x #1090) > GET /admin/agents (SPA-routed deep link) falls back to index.html [30038.99ms]
+125 | 
+126 |   if (!ready) {
+127 |     // Capture some diagnostics for the failure message before tearing down.
+128 |     const stderrText = await new Response(proc.stderr).text().catch(() => '');
+129 |     await cleanup();
+130 |     throw new Error(
+                    ^
+error: serve --http never became ready on port 32915 after 30s. stderr:   Schema version 1 → 125 (120 migration(s) pending)
+  [2] slugify_existing_pages...
+  [2] ✓ slugify_existing_pages
+  [3] unique_chunk_index...
+  [3] ✓ unique_chunk_index
+  [4] access_tokens_and_mcp_log...
+  [4] ✓ access_tokens_and_mcp_log
+  [5] minion_jobs_table...
+  [5] ✓ minion_jobs_table
+  [6] agent_orchestration_primitives...
+  [6] ✓ agent_orchestration_primitives
+  [7] agent_parity_layer...
+  [7] ✓ agent_parity_layer
+  [8] multi_type_links_constraint...
+  [8] ✓ multi_type_links_constraint
+  [9] timeline_dedup_index...
+  [9] ✓ timeline_dedup_index
+  [10] drop_timeline_search_trigger...
+  [10] ✓ drop_timeline_search_trigger
+  [11] links_provenance_columns...
+  [11] ✓ links_provenance_columns
+  [12] budget_ledger...
+  [12] ✓ budget_ledger
+  [13] minion_quiet_hours_stagger...
+  [13] ✓ minion_quiet_hours_stagger
+  [14] pages_updated_at_index...
+  [14] ✓ pages_updated_at_index
+  [15] minion_jobs_max_stalled_default_5...
+  [15] ✓ minion_jobs_max_stalled_default_5
+  [16] cycle_locks_table...
+  [16] ✓ cycle_locks_table
+  [20] sources_table_additive...
+  [20] ✓ sources_table_additive
+  [21] pages_source_id_composite_unique...
+  [21] ✓ pages_source_id_composite_unique
+  [22] links_resolution_type...
+  [22] ✓ links_resolution_type
+  [23] files_source_id_page_id_ledger...
+  [23] ✓ files_source_id_page_id_ledger
+  [24] rls_backfill_missing_tables...
+  [24] ✓ rls_backfill_missing_tables
+  [25] pages_page_kind...
+  [25] ✓ pages_page_kind
+  [26] content_chunks_code_metadata...
+  [26] ✓ content_chunks_code_metadata
+  [27] cathedral_ii_foundation...
+  [27] ✓ cathedral_ii_foundation
+  [28] cathedral_ii_chunk_fts_backfill...
+  [28] ✓ cathedral_ii_chunk_fts_backfill
+  [29] cathedral_ii_code_edges_rls...
+  [29] ✓ cathedral_ii_code_edges_rls
+  [30] dream_verdicts_table...
+  [30] ✓ dream_verdicts_table
+  [31] eval_capture_tables...
+  [31] ✓ eval_capture_tables
+  [32] oauth_infrastructure...
+  [32] ✓ oauth_infrastructure
+  [33] admin_dashboard_columns_v0_26_3...
+  [33] ✓ admin_dashboard
+      at spawnServer (/workspace/test/admin-embed-spawn.serial.test.ts:130:15)
+      at async <anonymous> (/workspace/test/admin-embed-spawn.serial.test.ts:192:21)
+(fail) admin embed E2E — /admin served from embedded manifest (v0.36.1.x #1090) > GET /admin/api/stats (API route) is NOT swallowed by the SPA fallback — returns auth challenge [30037.79ms]
+
+ 0 pass
+ 4 fail
+Ran 4 tests across 1 file. [120.26s]
+SUITE_RED_END test/admin-embed-spawn.serial.test.ts
+SUITE_ROW	test/admin-sse-eventsource.test.ts	1	0	0
+SUITE_ROW	test/advisor-apply.test.ts	5	0	0
+SUITE_ROW	test/advisor-core.test.ts	11	0	0
+SUITE_ROW	test/advisor-op-gate.test.ts	4	0	0
+SUITE_ROW	test/advisor-ranking-eval.test.ts	2	0	0
+SUITE_ROW	test/agent-cli.test.ts	35	0	0
+SUITE_ROW	test/agent-runner.test.ts	6	0	0
+SUITE_ROW	test/ai/adaptive-embed-batch.test.ts	31	0	0
+SUITE_ROW	test/ai/anthropic-key.test.ts	6	0	0
+SUITE_ROW	test/ai/build-gateway-config.test.ts	15	0	0
+SUITE_ROW	test/ai/capabilities.test.ts	15	0	0
+SUITE_ROW	test/ai/config-no-env-mutation.test.ts	1	0	0
+SUITE_ROW	test/ai/deepseek-reasoning-content.test.ts	11	0	0
+SUITE_ROW	test/ai/diagnose-embedding-dims.test.ts	4	0	0
+SUITE_ROW	test/ai/dims-openai.test.ts	20	0	0
+SUITE_ROW	test/ai/dims-zeroentropy.test.ts	13	0	0
+SUITE_ROW	test/ai/embedQuery.test.ts	8	0	0
+SUITE_ROW	test/ai/gateway-cache-breakpoint.test.ts	13	0	0
+SUITE_ROW	test/ai/gateway-chat.test.ts	26	0	0
+SUITE_ROW	test/ai/gateway-openai-prompt-cache-key.test.ts	9	0	0
+SUITE_ROW	test/ai/gateway-probe-chat-model.test.ts	9	0	0
+SUITE_ROW	test/ai/gateway-tool-loop.test.ts	9	0	0
+SUITE_ROW	test/ai/gateway-toolcall-pairing.test.ts	5	0	0
+SUITE_ROW	test/ai/gateway-tools-schema.test.ts	3	0	0
+SUITE_ROW	test/ai/gateway.test.ts	37	0	0
+SUITE_ROW	test/ai/header-transport.serial.test.ts	3	0	0
+SUITE_ROW	test/ai/model-resolver-slash.test.ts	11	0	0
+SUITE_ROW	test/ai/no-batch-cap-suppression.serial.test.ts	5	0	0
+SUITE_ROW	test/ai/recipe-azure-openai.test.ts	13	0	0
+SUITE_ROW	test/ai/recipe-dashscope-rerank.test.ts	7	0	0
+SUITE_ROW	test/ai/recipe-dashscope.test.ts	6	0	0
+SUITE_ROW	test/ai/recipe-llama-server-reranker.test.ts	8	0	0
+SUITE_ROW	test/ai/recipe-llama-server.test.ts	7	0	0
+SUITE_ROW	test/ai/recipe-minimax.test.ts	14	0	0
+SUITE_ROW	test/ai/recipe-mistral.test.ts	8	0	0
+SUITE_ROW	test/ai/recipe-moonshot.test.ts	5	0	0
+SUITE_ROW	test/ai/recipe-nvidia.test.ts	9	0	0
+SUITE_ROW	test/ai/recipe-ollama-dims.test.ts	5	0	0
+SUITE_ROW	test/ai/recipe-openrouter.test.ts	15	0	0
+SUITE_ROW	test/ai/recipe-perplexity.test.ts	8	0	0
+SUITE_ROW	test/ai/recipe-zhipu.test.ts	10	0	0
+SUITE_ROW	test/ai/recipes-existing-regression.test.ts	17	0	0
+SUITE_ROW	test/ai/rerank.test.ts	27	0	0
+SUITE_ROW	test/ai/resolve-native-base-url.test.ts	6	0	0
+SUITE_ROW	test/ai/schema-templating.test.ts	7	0	0
+SUITE_ROW	test/ai/silent-drop-regression.test.ts	3	0	0
+SUITE_ROW	test/ai/voyage-code-3-recipe.test.ts	4	0	0
+SUITE_ROW	test/ai/zeroentropy-compat-fetch.test.ts	14	0	0
+SUITE_ROW	test/ai/zeroentropy-recipe.test.ts	6	0	0
+SUITE_ROW	test/anomalies.test.ts	13	0	0
+SUITE_ROW	test/anthropic-model-ids.test.ts	8	0	0
+SUITE_ROW	test/anthropic-pricing.test.ts	8	0	0
+SUITE_ROW	test/apply-migrations-pglite-spawn.serial.test.ts	1	0	0
+SUITE_ROW	test/apply-migrations.test.ts	23	0	0
+SUITE_ROW	test/archive-crawler-config.test.ts	19	0	0
+SUITE_ROW	test/artifact-abstraction.test.ts	6	0	0
+SUITE_ROW	test/asymmetric-encoding-contract.test.ts	6	0	0
+SUITE_ROW	test/audit-parser-probe.serial.test.ts	7	0	0
+SUITE_ROW	test/audit-slug-fallback.serial.test.ts	6	0	0
+SUITE_ROW	test/audit-synopsis.serial.test.ts	8	0	0
+SUITE_ROW	test/audit/audit-dir-preload.test.ts	3	0	0
+SUITE_ROW	test/audit/audit-writer.test.ts	22	0	0
+SUITE_ROW	test/audit/batch-retry-audit.test.ts	12	0	0
+SUITE_ROW	test/audit/batch-retry-redaction.test.ts	3	0	0
+SUITE_ROW	test/audit/content-sanity-audit.test.ts	12	0	0
+SUITE_ROW	test/audit/lock-renewal-audit.test.ts	11	0	0
+SUITE_ROW	test/audit/pool-recovery-audit.test.ts	6	0	0
+SUITE_ROW	test/audit/redact-connection-info.test.ts	15	0	0
+SUITE_ROW	test/auth-create-args.test.ts	6	0	0
+SUITE_ROW	test/auth-register-client-args.test.ts	23	0	0
+SUITE_ROW	test/auto-think-phase.test.ts	15	0	0
+SUITE_ROW	test/autopilot-auto-drain-wiring.test.ts	8	0	0
+SUITE_ROW	test/autopilot-cycle-failure-classification.test.ts	5	0	0
+SUITE_ROW	test/autopilot-cycle-handler.test.ts	7	0	0
+SUITE_ROW	test/autopilot-cycle-source-checkout.test.ts	3	0	0
+SUITE_ROW	test/autopilot-failure-cooldown.test.ts	14	0	0
+SUITE_ROW	test/autopilot-fanout-clamp.serial.test.ts	5	0	0
+SUITE_ROW	test/autopilot-fanout-wiring.test.ts	6	0	0
+SUITE_ROW	test/autopilot-fanout.test.ts	28	0	0
+SUITE_ROW	test/autopilot-global-maintenance.test.ts	8	0	0
+SUITE_ROW	test/autopilot-install.test.ts	6	0	0
+SUITE_ROW	test/autopilot-lock-path.test.ts	3	0	0
+SUITE_ROW	test/autopilot-lock.test.ts	6	0	0
+SUITE_ROW	test/autopilot-nightly-probe-wiring.test.ts	9	0	0
+SUITE_ROW	test/autopilot-parser-probe-wiring.test.ts	10	0	0
+SUITE_ROW	test/autopilot-reconnect-classifier.test.ts	16	0	0
+SUITE_ROW	test/autopilot-resolve-cli.test.ts	4	0	0
+SUITE_ROW	test/autopilot-self-upgrade.test.ts	7	0	0
+SUITE_ROW	test/autopilot-shutdown-engine-close.test.ts	4	0	0
+SUITE_ROW	test/autopilot-supervisor-wiring.test.ts	6	0	0
+SUITE_ROW	test/backfill-base.test.ts	11	0	0
+SUITE_ROW	test/backfill-concurrency-clamp.serial.test.ts	6	0	0
+SUITE_ROW	test/backlink-count-mention-filter.test.ts	6	0	0
+SUITE_ROW	test/backlinks-job-default.test.ts	3	0	0
+SUITE_ROW	test/backlinks.test.ts	17	0	0
+SUITE_ROW	test/backoff.test.ts	11	0	0
+SUITE_PROGRESS done=100 total=1304 red=1
+SUITE_ROW	test/balanced-reranker-default.test.ts	10	0	0
+SUITE_ROW	test/batch-projection.test.ts	18	0	0
+SUITE_ROW	test/bench-publish.test.ts	9	0	0
+SUITE_ROW	test/bench/baseline-file.test.ts	9	0	0
+SUITE_ROW	test/bench/correctness-gate.test.ts	6	0	0
+SUITE_ROW	test/bench/qrels-file.test.ts	19	0	0
+SUITE_ROW	test/binary-self-update.test.ts	9	0	0
+SUITE_ROW	test/book-mirror.test.ts	9	0	0
+SUITE_ROW	test/bootstrap.test.ts	8	0	0
+SUITE_ROW	test/brain-allowlist.serial.test.ts	20	0	0
+SUITE_ROW	test/brain-durability-hook.serial.test.ts	7	0	0
+SUITE_ROW	test/brain-registry.serial.test.ts	28	0	0
+SUITE_ROW	test/brain-repo-durability.serial.test.ts	19	0	0
+SUITE_ROW	test/brain-resolver.test.ts	18	0	0
+SUITE_ROW	test/brain-score-breakdown.test.ts	11	0	0
+SUITE_ROW	test/brain-score-recommendations.test.ts	30	0	0
+SUITE_ROW	test/brain-writer-partial-scan.test.ts	9	0	0
+SUITE_ROW	test/brain-writer-walk-prune.test.ts	15	0	0
+SUITE_ROW	test/brain-writer.test.ts	27	0	0
+SUITE_ROW	test/brainstorm-timeout.test.ts	14	0	0
+SUITE_ROW	test/brainstorm/checkpoint.serial.test.ts	20	0	0
+SUITE_ROW	test/brainstorm/cost-guardrails.test.ts	12	0	0
+SUITE_ROW	test/brainstorm/distance.test.ts	8	0	0
+SUITE_ROW	test/brainstorm/eval-brainstorm.test.ts	17	0	0
+SUITE_ROW	test/brainstorm/judges-maxtokens.test.ts	16	0	0
+SUITE_ROW	test/brainstorm/lsd-mode-skip.test.ts	13	0	0
+SUITE_ROW	test/brainstorm/model-config.test.ts	6	0	0
+SUITE_ROW	test/brainstorm/save.test.ts	11	0	0
+SUITE_ROW	test/budget-meter.test.ts	8	0	0
+SUITE_ROW	test/budget-tracker.test.ts	10	0	0
+SUITE_ROW	test/build-llms.test.ts	12	0	0
+SUITE_ROW	test/by-mention.test.ts	22	0	0
+SUITE_ROW	test/cache-scope-key.test.ts	5	0	0
+SUITE_ROW	test/calibration-cli.test.ts	23	0	0
+SUITE_ROW	test/calibration-profile.test.ts	23	0	0
+SUITE_ROW	test/candidate-audit.test.ts	17	0	0
+SUITE_ROW	test/capture-build-content.test.ts	21	0	0
+SUITE_ROW	test/capture-runcapture.test.ts	26	0	0
+SUITE_ROW	test/cathedral-ii-brainbench.test.ts	6	0	0
+SUITE_ROW	test/check-jsonb-params.test.ts	2	0	0
+SUITE_ROW	test/check-resolvable-cli.test.ts	22	0	0
+SUITE_ROW	test/check-resolvable-openclaw-compact.test.ts	8	0	0
+SUITE_ROW	test/check-resolvable.test.ts	41	0	0
+SUITE_ROW	test/check-system-of-record.test.ts	6	0	0
+SUITE_ROW	test/check-update-refresh.serial.test.ts	5	0	0
+SUITE_ROW	test/check-update.test.ts	20	0	0
+SUITE_ROW	test/child-worker-supervisor.test.ts	14	0	0
+SUITE_ROW	test/chronicle-advisor.test.ts	3	0	0
+SUITE_ROW	test/chronicle-backfill.test.ts	2	0	0
+SUITE_ROW	test/chronicle-capture.test.ts	7	0	0
+SUITE_ROW	test/chronicle-context.test.ts	2	0	0
+SUITE_ROW	test/chronicle-delight.test.ts	5	0	0
+SUITE_ROW	test/chronicle-doctor.test.ts	1	0	0
+SUITE_ROW	test/chronicle-extract.test.ts	20	0	0
+SUITE_ROW	test/chronicle-ontology-ops.test.ts	4	0	0
+SUITE_ROW	test/chronicle-ontology.test.ts	10	0	0
+SUITE_ROW	test/chronicle-search-boost.test.ts	3	0	0
+SUITE_ROW	test/chronicle-timeline-reads.test.ts	8	0	0
+SUITE_ROW	test/chunk-grain-fts.test.ts	11	0	0
+SUITE_ROW	test/chunker-timeout.test.ts	7	0	0
+SUITE_ROW	test/chunker-version-gate.test.ts	3	0	0
+SUITE_ROW	test/chunker-version-insert-default.test.ts	3	0	0
+SUITE_ROW	test/chunkers/code.test.ts	31	0	0
+SUITE_ROW	test/chunkers/recursive.test.ts	24	0	0
+SUITE_ROW	test/cjk.test.ts	26	0	0
+SUITE_ROW	test/claude-cli-recipe.test.ts	20	0	0
+SUITE_ROW	test/claw-test-cli.test.ts	9	0	0
+SUITE_ROW	test/cli-args.test.ts	1	0	0
+SUITE_ROW	test/cli-bigint-normalize.test.ts	8	0	0
+SUITE_ROW	test/cli-dispatch-thin-client.test.ts	18	0	0
+SUITE_ROW	test/cli-dream-engine-warn.test.ts	2	0	0
+SUITE_ROW	test/cli-exit-verdict-pin.test.ts	1	0	0
+SUITE_ROW	test/cli-finish-teardown.test.ts	26	0	0
+SUITE_ROW	test/cli-force-exit-teardown-arming.test.ts	1	0	0
+SUITE_ROW	test/cli-format-volunteer.test.ts	4	0	0
+SUITE_ROW	test/cli-help-discoverability.test.ts	10	0	0
+SUITE_ROW	test/cli-multimodal-integration.test.ts	4	0	0
+SUITE_ROW	test/cli-options.test.ts	31	0	0
+SUITE_ROW	test/cli-pipe-truncation.test.ts	1	0	0
+SUITE_ROW	test/cli-pty-runner.test.ts	24	0	0
+SUITE_ROW	test/cli-query-image.test.ts	6	0	0
+SUITE_ROW	test/cli-search-dispatch.test.ts	3	0	0
+SUITE_ROW	test/cli-should-force-exit.test.ts	11	0	0
+SUITE_ROW	test/cli.test.ts	18	0	0
+SUITE_ROW	test/code-callers-cli.test.ts	2	0	0
+SUITE_ROW	test/code-callers-pin.serial.test.ts	9	0	0
+SUITE_ROW	test/code-def-refs.test.ts	10	0	0
+SUITE_ROW	test/code-edges.test.ts	8	0	0
+SUITE_ROW	test/code-graph-readiness.test.ts	11	0	0
+SUITE_ROW	test/code-intel/edge-densification.test.ts	13	0	0
+SUITE_ROW	test/code-intel/eval-capture-graph.test.ts	20	0	0
+SUITE_ROW	test/code-intel/recursive-walk.test.ts	11	0	0
+SUITE_ROW	test/code-intel/scope-walker-resolution.test.ts	10	0	0
+SUITE_ROW	test/code-intel/traversal-cache.test.ts	13	0	0
+SUITE_ROW	test/code-retrieval-harness.test.ts	26	0	0
+SUITE_ROW	test/code-scoped-source-resolve.test.ts	8	0	0
+SUITE_ROW	test/commands-search.test.ts	17	0	0
+SUITE_ROW	test/commands/capture.test.ts	21	0	0
+SUITE_ROW	test/commands/schema-packpath.test.ts	3	0	0
+SUITE_ROW	test/config-ensure-gitignore.test.ts	6	0	0
+SUITE_PROGRESS done=200 total=1304 red=1
+SUITE_ROW	test/config-env-hijack.test.ts	8	0	0
+SUITE_ROW	test/config-env.test.ts	5	0	0
+SUITE_ROW	test/config-file-plane-diag.serial.test.ts	10	0	0
+SUITE_ROW	test/config-get-plane.test.ts	4	0	0
+SUITE_ROW	test/config-set.test.ts	24	0	0
+SUITE_ROW	test/config-unset.test.ts	9	0	0
+SUITE_ROW	test/config.test.ts	23	0	0
+SUITE_ROW	test/connect.test.ts	102	0	0
+SUITE_ROW	test/connection-manager.serial.test.ts	36	0	0
+SUITE_ROW	test/connection-resilience.test.ts	25	0	0
+SUITE_ROW	test/console-prefix.test.ts	8	0	0
+SUITE_ROW	test/consolidate-valid-until.test.ts	4	0	0
+SUITE_ROW	test/content-sanity-literals.test.ts	13	0	0
+SUITE_ROW	test/content-sanity.test.ts	80	0	0
+SUITE_ROW	test/context-engine.test.ts	24	0	0
+SUITE_ROW	test/context/entity-salience.test.ts	12	0	0
+SUITE_ROW	test/context/resolve-ipc.test.ts	1	3	1
+SUITE_RED_BEGIN test/context/resolve-ipc.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/context/resolve-ipc.test.ts:
+32 |     };
+33 |     const server = await startResolveIpcServer(sock, async (req) => {
+34 |       expect(req.candidates[0].query).toBe('Alice');
+35 |       return block;
+36 |     });
+37 |     expect(server).not.toBeNull();
+                            ^
+error: expect(received).not.toBeNull()
+
+Received: null
+
+      at <anonymous> (/workspace/test/context/resolve-ipc.test.ts:37:24)
+(fail) resolve IPC > round-trip: client gets the pointer block the server returns [2.24ms]
+(pass) resolve IPC > absent socket → IPC_UNAVAILABLE (caller falls through ladder) [0.11ms]
+54 |     const dir = tmpDir();
+55 |     const sock = resolveSocketPath(dir);
+56 |     const server = await startResolveIpcServer(sock, async () => null);
+57 |     servers.push(server!);
+58 |     const got = await resolveViaIpc(sock, { candidates: [{ display: 'A', query: 'A' }] });
+59 |     expect(got).toBeNull();
+                     ^
+error: expect(received).toBeNull()
+
+Received: Symbol(ipc-unavailable)
+
+      at <anonymous> (/workspace/test/context/resolve-ipc.test.ts:59:17)
+(fail) resolve IPC > server returning null relays as null (resolved, nothing found) [1.23ms]
+63 |   test('stale socket file is cleaned up so a fresh server can bind', async () => {
+64 |     const dir = tmpDir();
+65 |     const sock = resolveSocketPath(dir);
+66 |     const s1 = await startResolveIpcServer(sock, async () => null);
+67 |     servers.push(s1!);
+68 |     s1!.close();
+         ^
+TypeError: null is not an object (evaluating 's1.close')
+      at <anonymous> (/workspace/test/context/resolve-ipc.test.ts:68:5)
+(fail) resolve IPC > stale socket file is cleaned up so a fresh server can bind [1.22ms]
+
+ 1 pass
+ 3 fail
+ 3 expect() calls
+Ran 4 tests across 1 file. [107.00ms]
+SUITE_RED_END test/context/resolve-ipc.test.ts
+SUITE_ROW	test/contextual-retrieval-doctor.serial.test.ts	8	0	0
+SUITE_ROW	test/contextual-retrieval-resolver.test.ts	28	0	0
+SUITE_ROW	test/contextual-retrieval-service-pure.test.ts	21	0	0
+SUITE_ROW	test/conversation-parser-cli.test.ts	10	0	0
+SUITE_ROW	test/conversation-parser/llm-base.test.ts	20	0	0
+SUITE_ROW	test/conversation-parser/llm-fallback.test.ts	17	0	0
+SUITE_ROW	test/conversation-parser/llm-polish.test.ts	9	0	0
+SUITE_ROW	test/conversation-parser/nightly-probe.test.ts	7	0	0
+SUITE_ROW	test/conversation-parser/parse.test.ts	76	0	0
+SUITE_ROW	test/core/audit-week-file.serial.test.ts	8	0	0
+SUITE_ROW	test/core/background-work.test.ts	6	0	0
+SUITE_ROW	test/core/base-phase.test.ts	13	0	0
+SUITE_ROW	test/core/budget/budget-tracker.test.ts	27	0	0
+SUITE_ROW	test/core/budget/gateway-budget-composition.test.ts	6	0	0
+SUITE_ROW	test/core/cycle.serial.test.ts	35	0	0
+SUITE_ROW	test/core/diarize/payload-fitter-summarize.test.ts	6	0	0
+SUITE_ROW	test/core/diarize/payload-fitter.test.ts	5	0	0
+SUITE_ROW	test/core/git-head.test.ts	14	0	0
+SUITE_ROW	test/core/remediation-checkpoint.serial.test.ts	13	0	0
+SUITE_ROW	test/core/retry-reconnect.test.ts	5	0	0
+SUITE_ROW	test/core/retry-stress.slow.test.ts	5	0	0
+SUITE_ROW	test/core/retry.test.ts	37	0	0
+SUITE_ROW	test/cosine-rescore-column.test.ts	4	0	0
+SUITE_ROW	test/cross-brain-calibration.test.ts	15	0	0
+SUITE_ROW	test/cross-modal-default-slots.test.ts	3	0	0
+SUITE_ROW	test/cross-modal-eval-aggregate.test.ts	8	0	0
+SUITE_ROW	test/cross-modal-eval-cli.test.ts	13	0	0
+SUITE_ROW	test/cross-modal-eval-json-repair.test.ts	11	0	0
+SUITE_ROW	test/cross-modal-hybrid-integration.serial.test.ts	7	0	0
+SUITE_ROW	test/cross-modal-phase1.test.ts	45	0	0
+SUITE_ROW	test/cross-modal-phase2.test.ts	15	0	0
+SUITE_ROW	test/cycle-abort.test.ts	10	0	0
+SUITE_ROW	test/cycle-consolidate.test.ts	5	0	0
+SUITE_ROW	test/cycle-dream-output-root.test.ts	7	0	0
+SUITE_ROW	test/cycle-extract-source.test.ts	2	0	0
+SUITE_ROW	test/cycle-last-full-cycle-at.test.ts	5	0	0
+SUITE_ROW	test/cycle-legacy-phases.test.ts	11	0	0
+SUITE_ROW	test/cycle-lock-per-source.test.ts	12	0	0
+SUITE_ROW	test/cycle-pack-gating.test.ts	19	0	0
+SUITE_ROW	test/cycle-patterns-child-outcome.test.ts	2	0	0
+SUITE_ROW	test/cycle-patterns-deadline-budget.test.ts	15	0	0
+SUITE_ROW	test/cycle-patterns.test.ts	12	0	0
+SUITE_ROW	test/cycle-pglite-lock-ordering.serial.test.ts	6	0	0
+SUITE_ROW	test/cycle-synthesize-braindir-resolve.test.ts	4	0	0
+SUITE_ROW	test/cycle-synthesize-chunker.test.ts	21	0	0
+SUITE_ROW	test/cycle-synthesize-md-discovery.test.ts	6	0	0
+SUITE_ROW	test/cycle-synthesize-slug-collection.test.ts	11	0	0
+SUITE_ROW	test/cycle-synthesize-subagent-timeout.test.ts	1	0	0
+SUITE_ROW	test/cycle-synthesize.test.ts	42	0	0
+SUITE_ROW	test/cycle/cycle-lock-ttl.test.ts	1	0	0
+SUITE_ROW	test/cycle/extract-atoms-batch.test.ts	5	0	0
+SUITE_ROW	test/cycle/extract-atoms-progress.test.ts	6	0	0
+SUITE_ROW	test/cycle/extract-atoms-synthesize-concepts.test.ts	27	0	0
+SUITE_ROW	test/cycle/nightly-probe-adapters.test.ts	6	0	0
+SUITE_ROW	test/cycle/regression-pr-wave-r1-r2-r4.test.ts	7	0	0
+SUITE_ROW	test/cycle/synthesize-concepts-progress.test.ts	3	0	0
+SUITE_ROW	test/cycle/synthesize-gateway-adapter.test.ts	12	0	0
+SUITE_ROW	test/cycle/yield-during-phase-refresh.test.ts	8	0	0
+SUITE_ROW	test/cycle/yield-during-phase-throttle.test.ts	3	0	0
+SUITE_ROW	test/data-research.test.ts	33	0	0
+SUITE_ROW	test/db-disconnect-audit.test.ts	6	0	0
+SUITE_ROW	test/db-lock-auto-takeover.test.ts	11	0	0
+SUITE_ROW	test/db-lock-election.test.ts	5	0	0
+SUITE_ROW	test/db-lock-heartbeat-takeover.test.ts	9	0	0
+SUITE_ROW	test/db-lock-inspect.test.ts	14	0	0
+SUITE_ROW	test/db-lock-per-source.test.ts	7	0	0
+SUITE_ROW	test/db-lock-reap.test.ts	9	0	0
+SUITE_ROW	test/db-lock-refresh.test.ts	6	0	0
+SUITE_ROW	test/db-pacer.test.ts	15	0	0
+SUITE_ROW	test/dedup.test.ts	14	0	0
+SUITE_ROW	test/destructive-guard.test.ts	21	0	0
+SUITE_ROW	test/disk-walk.test.ts	9	0	0
+SUITE_ROW	test/distribution-import-boundary.test.ts	2	0	0
+SUITE_ROW	test/doctor-autopilot-fanout-concurrency.serial.test.ts	4	0	0
+SUITE_ROW	test/doctor-batch-retry.test.ts	9	0	0
+SUITE_ROW	test/doctor-behavioral.test.ts	13	0	0
+SUITE_ROW	test/doctor-brain-checks-score.test.ts	14	0	0
+SUITE_ROW	test/doctor-calibration-checks.test.ts	15	0	0
+SUITE_ROW	test/doctor-categories.test.ts	10	0	0
+SUITE_ROW	test/doctor-cause-rank.test.ts	10	0	0
+SUITE_ROW	test/doctor-child-orphans.test.ts	7	0	0
+SUITE_ROW	test/doctor-cli-smoke.serial.test.ts	1	0	0
+SUITE_ROW	test/doctor-conversation-facts-backlog.test.ts	3	0	0
+SUITE_PROGRESS done=300 total=1304 red=2
+SUITE_ROW	test/doctor-cycle-freshness.test.ts	9	0	0
+SUITE_ROW	test/doctor-cycle-phase-scope.test.ts	5	0	0
+SUITE_ROW	test/doctor-drift-advice.test.ts	4	0	0
+SUITE_ROW	test/doctor-embedding-env-override.test.ts	7	0	0
+SUITE_ROW	test/doctor-extract-atoms-backlog.test.ts	6	0	0
+SUITE_ROW	test/doctor-extract-health.test.ts	8	0	0
+SUITE_ROW	test/doctor-federation-health.test.ts	6	0	0
+SUITE_ROW	test/doctor-fix.test.ts	3	0	0
+SUITE_ROW	test/doctor-frontmatter-partial.test.ts	11	0	0
+SUITE_ROW	test/doctor-hidden-by-search-policy.test.ts	7	0	0
+SUITE_ROW	test/doctor-home-dir-in-worktree.test.ts	5	0	0
+SUITE_ROW	test/doctor-links-extraction-lag.test.ts	9	0	0
+SUITE_ROW	test/doctor-minions-check.test.ts	8	0	0
+SUITE_ROW	test/doctor-orphan-ratio.test.ts	11	0	0
+SUITE_ROW	test/doctor-parser-probe-check.test.ts	5	0	0
+SUITE_ROW	test/doctor-pool-reap-health.test.ts	5	0	0
+SUITE_ROW	test/doctor-raw-provenance.test.ts	6	0	0
+SUITE_ROW	test/doctor-remediation-plan-render.test.ts	5	0	0
+SUITE_ROW	test/doctor-remote.serial.test.ts	0	1	1
+SUITE_RED_BEGIN test/doctor-remote.serial.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/doctor-remote.serial.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+46 |     }
+47 |   }
+48 |   let er;
+49 |   if (args.length > 0)
+50 |     er = args[0];
+51 |     throw er;
+                 ^
+error: Failed to start server. Is port 0 in use?
+      at emitError (node:events:51:13)
+-------------------------------
+
+(fail) (unnamed) [5000.01ms]
+  ^ a beforeEach/afterEach hook timed out for this test.
+
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [5.16s]
+SUITE_RED_END test/doctor-remote.serial.test.ts
+SUITE_ROW	test/doctor-report-remote.serial.test.ts	11	0	0
+SUITE_ROW	test/doctor-retrieval-reflex.test.ts	3	0	0
+SUITE_ROW	test/doctor-scope-filter.test.ts	4	0	0
+SUITE_ROW	test/doctor-search-mode.test.ts	7	0	0
+SUITE_ROW	test/doctor-self-upgrade.test.ts	5	0	0
+SUITE_ROW	test/doctor-source-config-shape.test.ts	4	0	0
+SUITE_ROW	test/doctor-subagent-health.test.ts	4	0	0
+SUITE_ROW	test/doctor-sync-consolidation.test.ts	6	0	0
+SUITE_ROW	test/doctor-timeline-metric-labels-2298.test.ts	9	0	0
+SUITE_ROW	test/doctor-v0_37_7_checks.test.ts	9	0	0
+SUITE_ROW	test/doctor-v0_41_13_checks.test.ts	4	0	0
+SUITE_ROW	test/doctor-wedged-queue.test.ts	9	0	0
+SUITE_ROW	test/doctor-worker-oom-loop.test.ts	6	0	0
+SUITE_ROW	test/doctor-ze-checks.test.ts	7	0	0
+SUITE_ROW	test/doctor.test.ts	86	0	0
+SUITE_ROW	test/domain-aggregators.test.ts	13	0	0
+SUITE_ROW	test/dream-cli-flags.test.ts	27	0	0
+SUITE_ROW	test/dream-dir-source-stamp.test.ts	2	0	0
+SUITE_ROW	test/dream-postgres.serial.test.ts	9	0	0
+SUITE_ROW	test/dream.test.ts	32	0	0
+SUITE_ROW	test/drift-watch.test.ts	12	0	0
+SUITE_ROW	test/dry-fix.test.ts	28	0	0
+SUITE_ROW	test/durability-cron.test.ts	5	0	0
+SUITE_ROW	test/e2e/anomalies-pglite.test.ts	4	0	0
+SUITE_ROW	test/e2e/auth-permissions.test.ts	0	0	0
+SUITE_ROW	test/e2e/auth-takes-holders-pglite.test.ts	6	0	0
+SUITE_ROW	test/e2e/autopilot-cooldown-parity.test.ts	1	0	0
+SUITE_ROW	test/e2e/autopilot-fanout-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/backfill-perf-pglite.test.ts	1	0	0
+SUITE_ROW	test/e2e/brainstorm-resume.test.ts	4	0	0
+SUITE_ROW	test/e2e/cache-gate-pglite.test.ts	8	0	0
+SUITE_ROW	test/e2e/capture-generation-regression.test.ts	3	0	0
+SUITE_ROW	test/e2e/chronicle-last-seen-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/chunker-takes-strip.test.ts	3	0	0
+SUITE_ROW	test/e2e/cjk-roundtrip.test.ts	6	0	0
+SUITE_ROW	test/e2e/claw-test.test.ts	3	0	0
+SUITE_ROW	test/e2e/cli-source-scoping-pglite.test.ts	3	0	0
+SUITE_ROW	test/e2e/code-edges-jsonb-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/code-indexing.test.ts	24	0	0
+SUITE_ROW	test/e2e/code-intel-mcp-ops-pglite.test.ts	16	0	0
+SUITE_ROW	test/e2e/concurrent-embed-race.test.ts	3	0	0
+SUITE_ROW	test/e2e/connect-bearer.test.ts	0	1	1
+SUITE_RED_BEGIN test/e2e/connect-bearer.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/e2e/connect-bearer.test.ts:
+75 |         const res = await fetch(`${BASE}/health`);
+76 |         if (res.ok) { serverReady = true; break; }
+77 |       } catch { /* not up yet */ }
+78 |       await new Promise((r) => setTimeout(r, 500));
+79 |     }
+80 |     if (!serverReady) throw new Error(`serve --http did not become ready:\n${serr}`);
+                                     ^
+error: serve --http did not become ready:
+
+╔══════════════════════════════════════════════════════╗
+║  GBrain MCP Server v0.42.66.0                            ║
+╠══════════════════════════════════════════════════════╣
+║  Port:      19735                                   ║
+║  Bind:      127.0.0.1                               ║
+║  Engine:    pglite                                  ║
+║  Issuer:    http://127.0.0.1:19735                  ║
+║  Clients:   1                                       ║
+║  DCR:       disabled                                ║
+║  Skills:    published                               ║
+║  Token TTL: 3600s                                   ║
+╠══════════════════════════════════════════════════════╣
+║  Admin:     http://localhost:19735/admin              ║
+║  MCP:       http://localhost:19735/mcp                ║
+║  Health:    http://localhost:19735/health             ║
+╠══════════════════════════════════════════════════════╣
+║  Admin Token: hidden (non-TTY log-leak guard)        ║
+║  set $GBRAIN_ADMIN_BOOTSTRAP_TOKEN, or pass          ║
+║  --print-admin-token on a trusted terminal.          ║
+╚══════════════════════════════════════════════════════╝
+
+
+      at <anonymous> (/workspace/test/e2e/connect-bearer.test.ts:80:33)
+(fail) connect bearer probe E2E (PGLite + real serve --http) > (unnamed) [33171.96ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [33.32s]
+SUITE_RED_END test/e2e/connect-bearer.test.ts
+SUITE_ROW	test/e2e/contextual-retrieval-pglite.test.ts	5	0	0
+SUITE_ROW	test/e2e/conversation-parser-pglite.test.ts	20	0	0
+SUITE_ROW	test/e2e/cross-modal-eval.test.ts	2	2	1
+SUITE_RED_BEGIN test/e2e/cross-modal-eval.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/e2e/cross-modal-eval.test.ts:
+(pass) gbrain eval cross-modal — runner verdict contract > PASS: 3 happy responses, all dims >=7 [2.98ms]
+(pass) gbrain eval cross-modal — runner verdict contract > FAIL: one dim mean below 7 [0.32ms]
+148 |       receiptDir: tempDir,
+149 |       cycles: 1,
+150 |     });
+151 | 
+152 |     expect(result.finalAggregate.verdict).toBe('fail');
+153 |     expect(result.finalAggregate.dimensions.goal!.failReason).toBe('min_below_5');
+                                                                    ^
+error: expect(received).toBe(expected)
+
+Expected: "min_below_5"
+Received: "mean_below_7"
+
+      at <anonymous> (/workspace/test/e2e/cross-modal-eval.test.ts:153:63)
+(fail) gbrain eval cross-modal — runner verdict contract > FAIL: min-score floor caught when one model scores <5 (Q2) [0.30ms]
+184 |       receiptDir: tempDir,
+185 |       cycles: 1,
+186 |     });
+187 | 
+188 |     expect(result.finalAggregate.verdict).toBe('inconclusive');
+189 |     expect(result.finalAggregate.successes).toBe(1);
+                                                  ^
+error: expect(received).toBe(expected)
+
+Expected: 1
+Received: 0
+
+      at <anonymous> (/workspace/test/e2e/cross-modal-eval.test.ts:189:45)
+(fail) gbrain eval cross-modal — runner verdict contract > INCONCLUSIVE: 2 of 3 mock 5xx -> exit 2 contract (Q3) [0.31ms]
+
+ 2 pass
+ 2 fail
+ 12 expect() calls
+Ran 4 tests across 1 file. [110.00ms]
+SUITE_RED_END test/e2e/cross-modal-eval.test.ts
+SUITE_ROW	test/e2e/cycle-consolidate-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/cycle-recompute-emotional-weight-pglite.test.ts	3	0	0
+SUITE_ROW	test/e2e/cycle.test.ts	0	0	0
+SUITE_ROW	test/e2e/db-guard.test.ts	7	0	0
+SUITE_ROW	test/e2e/db-singleton-shared-recovery.test.ts	0	0	0
+SUITE_ROW	test/e2e/doctor-progress.test.ts	0	0	0
+SUITE_ROW	test/e2e/dream-allow-list-pglite.test.ts	6	0	0
+SUITE_ROW	test/e2e/dream-cycle-phase-order-pglite.test.ts	4	1	1
+SUITE_RED_BEGIN test/e2e/dream-cycle-phase-order-pglite.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/e2e/dream-cycle-phase-order-pglite.test.ts:
+(pass) E2E full cycle phase order > ALL_PHASES matches the documented sequence [0.05ms]
+  Schema version 1 → 125 (120 migration(s) pending)
+  [2] slugify_existing_pages...
+  [2] ✓ slugify_existing_pages
+  [3] unique_chunk_index...
+  [3] ✓ unique_chunk_index
+  [4] access_tokens_and_mcp_log...
+  [4] ✓ access_tokens_and_mcp_log
+  [5] minion_jobs_table...
+  [5] ✓ minion_jobs_table
+  [6] agent_orchestration_primitives...
+  [6] ✓ agent_orchestration_primitives
+  [7] agent_parity_layer...
+  [7] ✓ agent_parity_layer
+  [8] multi_type_links_constraint...
+  [8] ✓ multi_type_links_constraint
+  [9] timeline_dedup_index...
+  [9] ✓ timeline_dedup_index
+  [10] drop_timeline_search_trigger...
+  [10] ✓ drop_timeline_search_trigger
+  [11] links_provenance_columns...
+  [11] ✓ links_provenance_columns
+  [12] budget_ledger...
+  [12] ✓ budget_ledger
+  [13] minion_quiet_hours_stagger...
+  [13] ✓ minion_quiet_hours_stagger
+  [14] pages_updated_at_index...
+  [14] ✓ pages_updated_at_index
+  [15] minion_jobs_max_stalled_default_5...
+  [15] ✓ minion_jobs_max_stalled_default_5
+  [16] cycle_locks_table...
+  [16] ✓ cycle_locks_table
+  [20] sources_table_additive...
+  [20] ✓ sources_table_additive
+  [21] pages_source_id_composite_unique...
+  [21] ✓ pages_source_id_composite_unique
+  [22] links_resolution_type...
+  [22] ✓ links_resolution_type
+  [23] files_source_id_page_id_ledger...
+  [23] ✓ files_source_id_page_id_ledger
+  [24] rls_backfill_missing_tables...
+  [24] ✓ rls_backfill_missing_tables
+  [25] pages_page_kind...
+  [25] ✓ pages_page_kind
+  [26] content_chunks_code_metadata...
+  [26] ✓ content_chunks_code_metadata
+  [27] cathedral_ii_foundation...
+  [27] ✓ cathedral_ii_foundation
+  [28] cathedral_ii_chunk_fts_backfill...
+  [28] ✓ cathedral_ii_chunk_fts_backfill
+  [29] cathedral_ii_code_edges_rls...
+  [29] ✓ cathedral_ii_code_edges_rls
+  [30] dream_verdicts_table...
+  [30] ✓ dream_verdicts_table
+  [31] eval_capture_tables...
+  [31] ✓ eval_capture_tables
+  [32] oauth_infrastructure...
+  [32] ✓ oauth_infrastructure
+  [33] admin_dashboard_columns_v0_26_3...
+  [33] ✓ admin_dashboard_columns_v0_26_3
+  [34] destructive_guard_columns...
+  [34] ✓ destructive_guard_columns
+  [35] auto_rls_event_trigger...
+  [35] ✓ auto_rls_event_trigger
+  [36] subagent_provider_neutral_persistence_v0_27...
+  [36] ✓ subagent_provider_neutral_persistence_v0_27
+  [37] takes_and_synthesis_evidence...
+  [37] ✓ takes_and_synthesis_evidence
+  [38] access_tokens_permissions...
+  [38] ✓ access_tokens_permissions
+  [39] multimodal_dual_column_v0_27_1...
+  [39] ✓ multimodal_dual_column_v0_27_1
+  [40] pages_emotional_weight...
+  [40] ✓ pages_emotional_weight
+  [41] pages_recency_columns...
+  [41] ✓ pages_recency_columns
+  [42] eval_candidates_recency_capture...
+  [42] ✓ eval_candidates_recency_capture
+  [43] takes_resolved_quality_and_drift_decisions...
+  [43] ✓ takes_resolved_quality_and_drift_decisions
+  [44] pages_emotional_weight_recomputed_at...
+  [44] ✓ pages_emotional_weight_recomputed_at
+  [45] facts_hot_memory_v0_31...
+  [45] ✓ facts_hot_memory_v0_31
+  [46] mcp_request_log_params_jsonb_normalize...
+  [46] ✓ mcp_request_log_params_jsonb_normalize
+  [47] facts_notability_alter...
+  [47] ✓ facts_notability_alter
+  [48] takes_weight_round_to_grid...
+  [48] ✓ takes_weight_round_to_grid
+  [49] eval_takes_quality_runs...
+  [49] ✓ eval_takes_quality_runs
+  [50] ingest_log_source_id...
+  [50] ✓ ingest_log_source_id
+  [51] facts_fence_columns...
+  [51] ✓ facts_fence_columns
+  [52] eval_contradictions_cache...
+  [52] ✓ eval_contradictions_cache
+  [53] eval_contradictions_runs...
+  [53] ✓ eval_contradictions_runs
+  [54] cjk_wave_pages_chunker_version_and_source_path...
+  [54] ✓ cjk_wave_pages_chunker_version_and_source_path
+  [55] query_cache_search_lite...
+  [55] ✓ query_cache_search_lite
+  [56] query_cache_knobs_hash...
+  [56] ✓ query_cache_knobs_hash
+  [57] search_telemetry_rollup...
+  [57] ✓ search_telemetry_rollup
+  [58] edges_backfilled_at_v0_33_2...
+  [58] ✓ edges_backfilled_at_v0_33_2
+  [59] code_traversal_cache_v0_34...
+  [59] ✓ code_traversal_cache_v0_34
+  [60] oauth_clients_source_id_fk...
+  [60] ✓ oauth_clients_source_id_fk
+  [61] oauth_clients_federated_read_column...
+  [61] ✓ oauth_clients_federated_read_column
+  [62] oauth_clients_federated_read_backfill...
+  [62] ✓ oauth_clients_federated_read_backfill
+  [63] oauth_clients_federated_read_validate...
+  [63] ✓ oauth_clients_federated_read_validate
+  [64] oauth_clients_source_id_fk_restrict...
+  [64] ✓ oauth_clients_source_id_fk_restrict
+  [65] oauth_clients_federated_read_gin_index...
+  [65] ✓ oauth_clients_federated_read_gin_index
+  [66] embed_stale_partial_index...
+  [66] ✓ embed_stale_partial_index
+  [67] facts_typed_claim_columns...
+  [67] ✓ facts_typed_claim_columns
+  [68] calibration_profiles_v0_36...
+  [68] ✓ calibration_profiles_v0_36
+  [69] take_proposals_v0_36...
+  [69] ✓ take_proposals_v0_36
+  [70] take_grade_cache_v0_36...
+  [70] ✓ take_grade_cache_v0_36
+  [71] take_nudge_log_v0_36...
+  [71] ✓ take_nudge_log_v0_36
+  [72] takes_resolved_at_trend_idx_v0_36...
+  [72] ✓ takes_resolved_at_trend_idx_v0_36
+  [73] think_ab_results_v0_36...
+  [73] ✓ think_ab_results_v0_36
+  [74] eval_candidates_embedding_column...
+  [74] ✓ eval_candidates_embedding_column
+  [75] op_checkpoints_table...
+  [75] ✓ op_checkpoints_table
+  [76] minion_jobs_doctor_run_id_index...
+  [76] ✓ minion_jobs_doctor_run_id_index
+  [77] mcp_spend_log...
+  [77] ✓ mcp_spend_log
+  [78] embedding_multimodal_column...
+  [78] ✓ embedding_multimodal_column
+  [79] pages_last_retrieved_at...
+  [79] ✓ pages_last_retrieved_at
+  [80] takes_unresolvable_quality_v0_37_2_0...
+  [80] ✓ takes_unresolvable_quality_v0_37_2_0
+  [81] pages_provenance_columns...
+  [81] ✓ pages_provenance_columns
+  [82] subagent_tool_executions_stable_id...
+  [82] ✓ subagent_tool_executions_stable_id
+  [83] mcp_spend_reservations...
+  [83] ✓ mcp_spend_reservations
+  [84] oauth_clients_budget_usd_per_day...
+  [84] ✓ oauth_clients_budget_usd_per_day
+  [85] oauth_clients_agent_binding...
+  [85] ✓ oauth_clients_agent_binding
+  [86] page_links_view_alias...
+  [86] ✓ page_links_view_alias
+  [87] takes_kind_drop_check...
+  [87] ✓ takes_kind_drop_check
+  [88] eval_candidates_schema_pack_per_source...
+  [88] ✓ eval_candidates_schema_pack_per_source
+  [89] facts_event_type_column...
+  [89] ✓ facts_event_type_column
+  [90] contextual_retrieval_columns...
+  [90] ✓ contextual_retrieval_columns
+  [91] pages_generation_trigger_and_bookmark...
+  [91] ✓ pages_generation_trigger_and_bookmark
+  [92] sources_github_repo_index...
+  [92] ✓ sources_github_repo_index
+  [93] minions_v0_41_audit_and_budget...
+  [93] ✓ minions_v0_41_audit_and_budget
+  [94] take_domain_assignments...
+  [94] ✓ take_domain_assignments
+  [95] links_link_source_check_includes_mentions...
+  [95] ✓ links_link_source_check_includes_mentions
+  [96] facts_extract_conversation_session_index...
+  [96] ✓ facts_extract_conversation_session_index
+  [97] pages_dedup_partial_index...
+  [97] ✓ pages_dedup_partial_index
+  [98] gbrain_cycle_locks_last_refreshed_at...
+  [98] ✓ gbrain_cycle_locks_last_refreshed_at
+  [99] conversation_parser_llm_cache_table...
+  [99] ✓ conversation_parser_llm_cache_table
+  [101] links_link_kind_column...
+  [101] ✓ links_link_kind_column
+  [102] timeline_entries_source_in_dedup...
+  [102] ✓ timeline_entries_source_in_dedup
+  [103] migration_impact_log_and_priority_recent_idx...
+  [103] ✓ migration_impact_log_and_priority_recent_idx
+  [104] pages_atom_source_hash_idx...
+  [104] ✓ pages_atom_source_hash_idx
+  [105] slug_aliases...
+  [105] ✓ slug_aliases
+  [106] extract_rollup_7d_table...
+  [106] ✓ extract_rollup_7d_table
+  [107] page_generation_clock_and_statement_trigger...
+  [107] ✓ page_generation_clock_and_statement_trigger
+  [108] pages_embedding_signature...
+  [108] ✓ pages_embedding_signature
+  [109] sources_newest_content_at...
+  [109] ✓ sources_newest_content_at
+  [110] page_aliases...
+  [110] ✓ page_aliases
+  [111] search_telemetry_rank1_columns...
+  [111] ✓ search_telemetry_rank1_columns
+  [112] pages_links_extracted_at...
+  [112] ✓ pages_links_extracted_at
+  [113] links_link_source_widen_for_wikilink_basename...
+  [113] ✓ links_link_source_widen_for_wikilink_basename
+  [114] links_link_source_check_kebab_regex...
+  [114] ✓ links_link_source_check_kebab_regex
+  [115] op_checkpoint_paths_append_table...
+  [115] ✓ op_checkpoint_paths_append_table
+  [116] code_edges_source_backfill_and_callee_index...
+  [116] ✓ code_edges_source_backfill_and_callee_index
+  [117] context_volunteer_events_table...
+  [117] ✓ context_volunteer_events_table
+  [118] page_generation_clock_sequence_swap...
+  [118] ✓ page_generation_clock_sequence_swap
+  [119] op_checkpoints_completed_keys_array_check...
+  [119] ✓ op_checkpoints_completed_keys_array_check
+  [120] schema_lint_hardening_search_path_security_invoker...
+  [120] ✓ schema_lint_hardening_search_path_security_invoker
+  [121] timeline_entries_event_page_id...
+  [121] ✓ timeline_entries_event_page_id
+  [122] facts_ontology_dimension...
+  [122] ✓ facts_ontology_dimension
+  [123] configurable_fts_language...
+  v123: trigger functions recreated with language='english' (default — no backfill needed)
+  [123] ✓ configurable_fts_language
+  [124] page_search_vector_drop_compiled_truth...
+  v124: update_page_search_vector() no longer indexes compiled_truth (was overflowing tsvector on large pages, #2704)
+  [124] ✓ page_search_vector_drop_compiled_truth
+  [125] take_proposals_per_claim_idempotency...
+  [125] ✓ take_proposals_per_claim_idempotency
+  120 migration(s) applied
+[cycle.lint] start
+[cycle.lint] done
+[cycle.backlinks] start
+[backlinks.scan] start
+[backlinks.scan] done
+[cycle.backlinks] done
+[cycle.sync] start
+SyntaxError: Export named 'willEmbedSynchronously' not found in module '/workspace/src/core/embedding.ts'.
+(fail) E2E full cycle phase order > full cycle on dry-run returns CycleReport.phases in canonical order with v0.23 totals fields [1257.09ms]
+  Schema version 1 → 125 (120 migration(s) pending)
+  [2] slugify_existing_pages...
+  [2] ✓ slugify_existing_pages
+  [3] unique_chunk_index...
+  [3] ✓ unique_chunk_index
+  [4] access_tokens_and_mcp_log...
+  [4] ✓ access_tokens_and_mcp_log
+  [5] minion_jobs_table...
+  [5] ✓ minion_jobs_table
+  [6] agent_orchestration_primitives...
+  [6] ✓ agent_orchestration_primitives
+  [7] agent_parity_layer...
+  [7] ✓ agent_parity_layer
+  [8] multi_type_links_constraint...
+  [8] ✓ multi_type_links_constraint
+  [9] timeline_dedup_index...
+  [9] ✓ timeline_dedup_index
+  [10] drop_timeline_search_trigger...
+  [10] ✓ drop_timeline_search_trigger
+  [11] links_provenance_columns...
+  [11] ✓ links_provenance_columns
+  [12] budget_ledger...
+  [12] ✓ budget_ledger
+  [13] minion_quiet_hours_stagger...
+  [13] ✓ minion_quiet_hours_stagger
+  [14] pages_updated_at_index...
+  [14] ✓ pages_updated_at_index
+  [15] minion_jobs_max_stalled_default_5...
+  [15] ✓ minion_jobs_max_stalled_default_5
+  [16] cycle_locks_table...
+  [16] ✓ cycle_locks_table
+  [20] sources_table_additive...
+  [20] ✓ sources_table_additive
+  [21] pages_source_id_composite_unique...
+  [21] ✓ pages_source_id_composite_unique
+  [22] links_resolution_type...
+  [22] ✓ links_resolution_type
+  [23] files_source_id_page_id_ledger...
+  [23] ✓ files_source_id_page_id_ledger
+  [24] rls_backfill_missing_tables...
+  [24] ✓ rls_backfill_missing_tables
+  [25] pages_page_kind...
+  [25] ✓ pages_page_kind
+  [26] content_chunks_code_metadata...
+  [26] ✓ content_chunks_code_metadata
+  [27] cathedral_ii_foundation...
+  [27] ✓ cathedral_ii_foundation
+  [28] cathedral_ii_chunk_fts_backfill...
+  [28] ✓ cathedral_ii_chunk_fts_backfill
+  [29] cathedral_ii_code_edges_rls...
+  [29] ✓ cathedral_ii_code_edges_rls
+  [30] dream_verdicts_table...
+  [30] ✓ dream_verdicts_table
+  [31] eval_capture_tables...
+  [31] ✓ eval_capture_tables
+  [32] oauth_infrastructure...
+  [32] ✓ oauth_infrastructure
+  [33] admin_dashboard_columns_v0_26_3...
+  [33] ✓ admin_dashboard_columns_v0_26_3
+  [34] destructive_guard_columns...
+  [34] ✓ destructive_guard_columns
+  [35] auto_rls_event_trigger...
+  [35] ✓ auto_rls_event_trigger
+  [36] subagent_provider_neutral_persistence_v0_27...
+  [36] ✓ subagent_provider_neutral_persistence_v0_27
+  [37] takes_and_synthesis_evidence...
+  [37] ✓ takes_and_synthesis_evidence
+  [38] access_tokens_permissions...
+  [38] ✓ access_tokens_permissions
+  [39] multimodal_dual_column_v0_27_1...
+  [39] ✓ multimodal_dual_column_v0_27_1
+  [40] pages_emotional_weight...
+  [40] ✓ pages_emotional_weight
+  [41] pages_recency_columns...
+  [41] ✓ pages_recency_columns
+  [42] eval_candidates_recency_capture...
+  [42] ✓ eval_candidates_recency_capture
+  [43] takes_resolved_quality_and_drift_decisions...
+  [43] ✓ takes_resolved_quality_and_drift_decisions
+  [44] pages_emotional_weight_recomputed_at...
+  [44] ✓ pages_emotional_weight_recomputed_at
+  [45] facts_hot_memory_v0_31...
+  [45] ✓ facts_hot_memory_v0_31
+  [46] mcp_request_log_params_jsonb_normalize...
+  [46] ✓ mcp_request_log_params_jsonb_normalize
+  [47] facts_notability_alter...
+  [47] ✓ facts_notability_alter
+  [48] takes_weight_round_to_grid...
+  [48] ✓ takes_weight_round_to_grid
+  [49] eval_takes_quality_runs...
+  [49] ✓ eval_takes_quality_runs
+  [50] ingest_log_source_id...
+  [50] ✓ ingest_log_source_id
+  [51] facts_fence_columns...
+  [51] ✓ facts_fence_columns
+  [52] eval_contradictions_cache...
+  [52] ✓ eval_contradictions_cache
+  [53] eval_contradictions_runs...
+  [53] ✓ eval_contradictions_runs
+  [54] cjk_wave_pages_chunker_version_and_source_path...
+  [54] ✓ cjk_wave_pages_chunker_version_and_source_path
+  [55] query_cache_search_lite...
+  [55] ✓ query_cache_search_lite
+  [56] query_cache_knobs_hash...
+  [56] ✓ query_cache_knobs_hash
+  [57] search_telemetry_rollup...
+  [57] ✓ search_telemetry_rollup
+  [58] edges_backfilled_at_v0_33_2...
+  [58] ✓ edges_backfilled_at_v0_33_2
+  [59] code_traversal_cache_v0_34...
+  [59] ✓ code_traversal_cache_v0_34
+  [60] oauth_clients_source_id_fk...
+  [60] ✓ oauth_clients_source_id_fk
+  [61] oauth_clients_federated_read_column...
+  [61] ✓ oauth_clients_federated_read_column
+  [62] oauth_clients_federated_read_backfill...
+  [62] ✓ oauth_clients_federated_read_backfill
+  [63] oauth_clients_federated_read_validate...
+  [63] ✓ oauth_clients_federated_read_validate
+  [64] oauth_clients_source_id_fk_restrict...
+  [64] ✓ oauth_clients_source_id_fk_restrict
+  [65] oauth_clients_federated_read_gin_index...
+  [65] ✓ oauth_clients_federated_read_gin_index
+  [66] embed_stale_partial_index...
+  [66] ✓ embed_stale_partial_index
+  [67] facts_typed_claim_columns...
+  [67] ✓ facts_typed_claim_columns
+  [68] calibration_profiles_v0_36...
+  [68] ✓ calibration_profiles_v0_36
+  [69] take_proposals_v0_36...
+  [69] ✓ take_proposals_v0_36
+  [70] take_grade_cache_v0_36...
+  [70] ✓ take_grade_cache_v0_36
+  [71] take_nudge_log_v0_36...
+  [71] ✓ take_nudge_log_v0_36
+  [72] takes_resolved_at_trend_idx_v0_36...
+  [72] ✓ takes_resolved_at_trend_idx_v0_36
+  [73] think_ab_results_v0_36...
+  [73] ✓ think_ab_results_v0_36
+  [74] eval_candidates_embedding_column...
+  [74] ✓ eval_candidates_embedding_column
+  [75] op_checkpoints_table...
+  [75] ✓ op_checkpoints_table
+  [76] minion_jobs_doctor_run_id_index...
+  [76] ✓ minion_jobs_doctor_run_id_index
+  [77] mcp_spend_log...
+  [77] ✓ mcp_spend_log
+  [78] embedding_multimodal_column...
+  [78] ✓ embedding_multimodal_column
+  [79] pages_last_retrieved_at...
+  [79] ✓ pages_last_retrieved_at
+  [80] takes_unresolvable_quality_v0_37_2_0...
+  [80] ✓ takes_unresolvable_quality_v0_37_2_0
+  [81] pages_provenance_columns...
+  [81] ✓ pages_provenance_columns
+  [82] subagent_tool_executions_stable_id...
+  [82] ✓ subagent_tool_executions_stable_id
+  [83] mcp_spend_reservations...
+  [83] ✓ mcp_spend_reservations
+  [84] oauth_clients_budget_usd_per_day...
+  [84] ✓ oauth_clients_budget_usd_per_day
+  [85] oauth_clients_agent_binding...
+  [85] ✓ oauth_clients_agent_binding
+  [86] page_links_view_alias...
+  [86] ✓ page_links_view_alias
+  [87] takes_kind_drop_check...
+  [87] ✓ takes_kind_drop_check
+  [88] eval_candidates_schema_pack_per_source...
+  [88] ✓ eval_candidates_schema_pack_per_source
+  [89] facts_event_type_column...
+  [89] ✓ facts_event_type_column
+  [90] contextual_retrieval_columns...
+  [90] ✓ contextual_retrieval_columns
+  [91] pages_generation_trigger_and_bookmark...
+  [91] ✓ pages_generation_trigger_and_bookmark
+  [92] sources_github_repo_index...
+  [92] ✓ sources_github_repo_index
+  [93] minions_v0_41_audit_and_budget...
+  [93] ✓ minions_v0_41_audit_and_budget
+  [94] take_domain_assignments...
+  [94] ✓ take_domain_assignments
+  [95] links_link_source_check_includes_mentions...
+  [95] ✓ links_link_source_check_includes_mentions
+  [96] facts_extract_conversation_session_index...
+  [96] ✓ facts_extract_conversation_session_index
+  [97] pages_dedup_partial_index...
+  [97] ✓ pages_dedup_partial_index
+  [98] gbrain_cycle_locks_last_refreshed_at...
+  [98] ✓ gbrain_cycle_locks_last_refreshed_at
+  [99] conversation_parser_llm_cache_table...
+  [99] ✓ conversation_parser_llm_cache_table
+  [101] links_link_kind_column...
+  [101] ✓ links_link_kind_column
+  [102] timeline_entries_source_in_dedup...
+  [102] ✓ timeline_entries_source_in_dedup
+  [103] migration_impact_log_and_priority_recent_idx...
+  [103] ✓ migration_impact_log_and_priority_recent_idx
+  [104] pages_atom_source_hash_idx...
+  [104] ✓ pages_atom_source_hash_idx
+  [105] slug_aliases...
+  [105] ✓ slug_aliases
+  [106] extract_rollup_7d_table...
+  [106] ✓ extract_rollup_7d_table
+  [107] page_generation_clock_and_statement_trigger...
+  [107] ✓ page_generation_clock_and_statement_trigger
+  [108] pages_embedding_signature...
+  [108] ✓ pages_embedding_signature
+  [109] sources_newest_content_at...
+  [109] ✓ sources_newest_content_at
+  [110] page_aliases...
+  [110] ✓ page_aliases
+  [111] search_telemetry_rank1_columns...
+  [111] ✓ search_telemetry_rank1_columns
+  [112] pages_links_extracted_at...
+  [112] ✓ pages_links_extracted_at
+  [113] links_link_source_widen_for_wikilink_basename...
+  [113] ✓ links_link_source_widen_for_wikilink_basename
+  [114] links_link_source_check_kebab_regex...
+  [114] ✓ links_link_source_check_kebab_regex
+  [115] op_checkpoint_paths_append_table...
+  [115] ✓ op_checkpoint_paths_append_table
+  [116] code_edges_source_backfill_and_callee_index...
+  [116] ✓ code_edges_source_backfill_and_callee_index
+  [117] context_volunteer_events_table...
+  [117] ✓ context_volunteer_events_table
+  [118] page_generation_clock_sequence_swap...
+  [118] ✓ page_generation_clock_sequence_swap
+  [119] op_checkpoints_completed_keys_array_check...
+  [119] ✓ op_checkpoints_completed_keys_array_check
+  [120] schema_lint_hardening_search_path_security_invoker...
+  [120] ✓ schema_lint_hardening_search_path_security_invoker
+  [121] timeline_entries_event_page_id...
+  [121] ✓ timeline_entries_event_page_id
+  [122] facts_ontology_dimension...
+  [122] ✓ facts_ontology_dimension
+  [123] configurable_fts_language...
+  v123: trigger functions recreated with language='english' (default — no backfill needed)
+  [123] ✓ configurable_fts_language
+  [124] page_search_vector_drop_compiled_truth...
+  v124: update_page_search_vector() no longer indexes compiled_truth (was overflowing tsvector on large pages, #2704)
+  [124] ✓ page_search_vector_drop_compiled_truth
+  [125] take_proposals_per_claim_idempotency...
+  [125] ✓ take_proposals_per_claim_idempotency
+  120 migration(s) applied
+[cycle.synthesize] start
+[cycle.synthesize] done
+(pass) E2E full cycle phase order > --phase synthesize alone runs only that phase, returns skipped/not_configured [1161.34ms]
+  Schema version 1 → 125 (120 migration(s) pending)
+  [2] slugify_existing_pages...
+  [2] ✓ slugify_existing_pages
+  [3] unique_chunk_index...
+  [3] ✓ unique_chunk_index
+  [4] access_tokens_and_mcp_log...
+  [4] ✓ access_tokens_and_mcp_log
+  [5] minion_jobs_table...
+  [5] ✓ minion_jobs_table
+  [6] agent_orchestration_primitives...
+  [6] ✓ agent_orchestration_primitives
+  [7] agent_parity_layer...
+  [7] ✓ agent_parity_layer
+  [8] multi_type_links_constraint...
+  [8] ✓ multi_type_links_constraint
+  [9] timeline_dedup_index...
+  [9] ✓ timeline_dedup_index
+  [10] drop_timeline_search_trigger...
+  [10] ✓ drop_timeline_search_trigger
+  [11] links_provenance_columns...
+  [11] ✓ links_provenance_columns
+  [12] budget_ledger...
+  [12] ✓ budget_ledger
+  [13] minion_quiet_hours_stagger...
+  [13] ✓ minion_quiet_hours_stagger
+  [14] pages_updated_at_index...
+  [14] ✓ pages_updated_at_index
+  [15] minion_jobs_max_stalled_default_5...
+  [15] ✓ minion_jobs_max_stalled_default_5
+  [16] cycle_locks_table...
+  [16] ✓ cycle_locks_table
+  [20] sources_table_additive...
+  [20] ✓ sources_table_additive
+  [21] pages_source_id_composite_unique...
+  [21] ✓ pages_source_id_composite_unique
+  [22] links_resolution_type...
+  [22] ✓ links_resolution_type
+  [23] files_source_id_page_id_ledger...
+  [23] ✓ files_source_id_page_id_ledger
+  [24] rls_backfill_missing_tables...
+  [24] ✓ rls_backfill_missing_tables
+  [25] pages_page_kind...
+  [25] ✓ pages_page_kind
+  [26] content_chunks_code_metadata...
+  [26] ✓ content_chunks_code_metadata
+  [27] cathedral_ii_foundation...
+  [27] ✓ cathedral_ii_foundation
+  [28] cathedral_ii_chunk_fts_backfill...
+  [28] ✓ cathedral_ii_chunk_fts_backfill
+  [29] cathedral_ii_code_edges_rls...
+  [29] ✓ cathedral_ii_code_edges_rls
+  [30] dream_verdicts_table...
+  [30] ✓ dream_verdicts_table
+  [31] eval_capture_tables...
+  [31] ✓ eval_capture_tables
+  [32] oauth_infrastructure...
+  [32] ✓ oauth_infrastructure
+  [33] admin_dashboard_columns_v0_26_3...
+  [33] ✓ admin_dashboard_columns_v0_26_3
+  [34] destructive_guard_columns...
+  [34] ✓ destructive_guard_columns
+  [35] auto_rls_event_trigger...
+  [35] ✓ auto_rls_event_trigger
+  [36] subagent_provider_neutral_persistence_v0_27...
+  [36] ✓ subagent_provider_neutral_persistence_v0_27
+  [37] takes_and_synthesis_evidence...
+  [37] ✓ takes_and_synthesis_evidence
+  [38] access_tokens_permissions...
+  [38] ✓ access_tokens_permissions
+  [39] multimodal_dual_column_v0_27_1...
+  [39] ✓ multimodal_dual_column_v0_27_1
+  [40] pages_emotional_weight...
+  [40] ✓ pages_emotional_weight
+  [41] pages_recency_columns...
+  [41] ✓ pages_recency_columns
+  [42] eval_candidates_recency_capture...
+  [42] ✓ eval_candidates_recency_capture
+  [43] takes_resolved_quality_and_drift_decisions...
+  [43] ✓ takes_resolved_quality_and_drift_decisions
+  [44] pages_emotional_weight_recomputed_at...
+  [44] ✓ pages_emotional_weight_recomputed_at
+  [45] facts_hot_memory_v0_31...
+  [45] ✓ facts_hot_memory_v0_31
+  [46] mcp_request_log_params_jsonb_normalize...
+  [46] ✓ mcp_request_log_params_jsonb_normalize
+  [47] facts_notability_alter...
+  [47] ✓ facts_notability_alter
+  [48] takes_weight_round_to_grid...
+  [48] ✓ takes_weight_round_to_grid
+  [49] eval_takes_quality_runs...
+  [49] ✓ eval_takes_quality_runs
+  [50] ingest_log_source_id...
+  [50] ✓ ingest_log_source_id
+  [51] facts_fence_columns...
+  [51] ✓ facts_fence_columns
+  [52] eval_contradictions_cache...
+  [52] ✓ eval_contradictions_cache
+  [53] eval_contradictions_runs...
+  [53] ✓ eval_contradictions_runs
+  [54] cjk_wave_pages_chunker_version_and_source_path...
+  [54] ✓ cjk_wave_pages_chunker_version_and_source_path
+  [55] query_cache_search_lite...
+  [55] ✓ query_cache_search_lite
+  [56] query_cache_knobs_hash...
+  [56] ✓ query_cache_knobs_hash
+  [57] search_telemetry_rollup...
+  [57] ✓ search_telemetry_rollup
+  [58] edges_backfilled_at_v0_33_2...
+  [58] ✓ edges_backfilled_at_v0_33_2
+  [59] code_traversal_cache_v0_34...
+  [59] ✓ code_traversal_cache_v0_34
+  [60] oauth_clients_source_id_fk...
+  [60] ✓ oauth_clients_source_id_fk
+  [61] oauth_clients_federated_read_column...
+  [61] ✓ oauth_clients_federated_read_column
+  [62] oauth_clients_federated_read_backfill...
+  [62] ✓ oauth_clients_federated_read_backfill
+  [63] oauth_clients_federated_read_validate...
+  [63] ✓ oauth_clients_federated_read_validate
+  [64] oauth_clients_source_id_fk_restrict...
+  [64] ✓ oauth_clients_source_id_fk_restrict
+  [65] oauth_clients_federated_read_gin_index...
+  [65] ✓ oauth_clients_federated_read_gin_index
+  [66] embed_stale_partial_index...
+  [66] ✓ embed_stale_partial_index
+  [67] facts_typed_claim_columns...
+  [67] ✓ facts_typed_claim_columns
+  [68] calibration_profiles_v0_36...
+  [68] ✓ calibration_profiles_v0_36
+  [69] take_proposals_v0_36...
+  [69] ✓ take_proposals_v0_36
+  [70] take_grade_cache_v0_36...
+  [70] ✓ take_grade_cache_v0_36
+  [71] take_nudge_log_v0_36...
+  [71] ✓ take_nudge_log_v0_36
+  [72] takes_resolved_at_trend_idx_v0_36...
+  [72] ✓ takes_resolved_at_trend_idx_v0_36
+  [73] think_ab_results_v0_36...
+  [73] ✓ think_ab_results_v0_36
+  [74] eval_candidates_embedding_column...
+  [74] ✓ eval_candidates_embedding_column
+  [75] op_checkpoints_table...
+  [75] ✓ op_checkpoints_table
+  [76] minion_jobs_doctor_run_id_index...
+  [76] ✓ minion_jobs_doctor_run_id_index
+  [77] mcp_spend_log...
+  [77] ✓ mcp_spend_log
+  [78] embedding_multimodal_column...
+  [78] ✓ embedding_multimodal_column
+  [79] pages_last_retrieved_at...
+  [79] ✓ pages_last_retrieved_at
+  [80] takes_unresolvable_quality_v0_37_2_0...
+  [80] ✓ takes_unresolvable_quality_v0_37_2_0
+  [81] pages_provenance_columns...
+  [81] ✓ pages_provenance_columns
+  [82] subagent_tool_executions_stable_id...
+  [82] ✓ subagent_tool_executions_stable_id
+  [83] mcp_spend_reservations...
+  [83] ✓ mcp_spend_reservations
+  [84] oauth_clients_budget_usd_per_day...
+  [84] ✓ oauth_clients_budget_usd_per_day
+  [85] oauth_clients_agent_binding...
+  [85] ✓ oauth_clients_agent_binding
+  [86] page_links_view_alias...
+  [86] ✓ page_links_view_alias
+  [87] takes_kind_drop_check...
+  [87] ✓ takes_kind_drop_check
+  [88] eval_candidates_schema_pack_per_source...
+  [88] ✓ eval_candidates_schema_pack_per_source
+  [89] facts_event_type_column...
+  [89] ✓ facts_event_type_column
+  [90] contextual_retrieval_columns...
+  [90] ✓ contextual_retrieval_columns
+  [91] pages_generation_trigger_and_bookmark...
+  [91] ✓ pages_generation_trigger_and_bookmark
+  [92] sources_github_repo_index...
+  [92] ✓ sources_github_repo_index
+  [93] minions_v0_41_audit_and_budget...
+  [93] ✓ minions_v0_41_audit_and_budget
+  [94] take_domain_assignments...
+  [94] ✓ take_domain_assignments
+  [95] links_link_source_check_includes_mentions...
+  [95] ✓ links_link_source_check_includes_mentions
+  [96] facts_extract_conversation_session_index...
+  [96] ✓ facts_extract_conversation_session_index
+  [97] pages_dedup_partial_index...
+  [97] ✓ pages_dedup_partial_index
+  [98] gbrain_cycle_locks_last_refreshed_at...
+  [98] ✓ gbrain_cycle_locks_last_refreshed_at
+  [99] conversation_parser_llm_cache_table...
+  [99] ✓ conversation_parser_llm_cache_table
+  [101] links_link_kind_column...
+  [101] ✓ links_link_kind_column
+  [102] timeline_entries_source_in_dedup...
+  [102] ✓ timeline_entries_source_in_dedup
+  [103] migration_impact_log_and_priority_recent_idx...
+  [103] ✓ migration_impact_log_and_priority_recent_idx
+  [104] pages_atom_source_hash_idx...
+  [104] ✓ pages_atom_source_hash_idx
+  [105] slug_aliases...
+  [105] ✓ slug_aliases
+  [106] extract_rollup_7d_table...
+  [106] ✓ extract_rollup_7d_table
+  [107] page_generation_clock_and_statement_trigger...
+  [107] ✓ page_generation_clock_and_statement_trigger
+  [108] pages_embedding_signature...
+  [108] ✓ pages_embedding_signature
+  [109] sources_newest_content_at...
+  [109] ✓ sources_newest_content_at
+  [110] page_aliases...
+  [110] ✓ page_aliases
+  [111] search_telemetry_rank1_columns...
+  [111] ✓ search_telemetry_rank1_columns
+  [112] pages_links_extracted_at...
+  [112] ✓ pages_links_extracted_at
+  [113] links_link_source_widen_for_wikilink_basename...
+  [113] ✓ links_link_source_widen_for_wikilink_basename
+  [114] links_link_source_check_kebab_regex...
+  [114] ✓ links_link_source_check_kebab_regex
+  [115] op_checkpoint_paths_append_table...
+  [115] ✓ op_checkpoint_paths_append_table
+  [116] code_edges_source_backfill_and_callee_index...
+  [116] ✓ code_edges_source_backfill_and_callee_index
+  [117] context_volunteer_events_table...
+  [117] ✓ context_volunteer_events_table
+  [118] page_generation_clock_sequence_swap...
+  [118] ✓ page_generation_clock_sequence_swap
+  [119] op_checkpoints_completed_keys_array_check...
+  [119] ✓ op_checkpoints_completed_keys_array_check
+  [120] schema_lint_hardening_search_path_security_invoker...
+  [120] ✓ schema_lint_hardening_search_path_security_invoker
+  [121] timeline_entries_event_page_id...
+  [121] ✓ timeline_entries_event_page_id
+  [122] facts_ontology_dimension...
+  [122] ✓ facts_ontology_dimension
+  [123] configurable_fts_language...
+  v123: trigger functions recreated with language='english' (default — no backfill needed)
+  [123] ✓ configurable_fts_language
+  [124] page_search_vector_drop_compiled_truth...
+  v124: update_page_search_vector() no longer indexes compiled_truth (was overflowing tsvector on large pages, #2704)
+  [124] ✓ page_search_vector_drop_compiled_truth
+  [125] take_proposals_per_claim_idempotency...
+  [125] ✓ take_proposals_per_claim_idempotency
+  120 migration(s) applied
+[cycle.patterns] start
+[cycle.patterns] done
+(pass) E2E full cycle phase order > --phase patterns alone runs only that phase, returns skipped/insufficient_evidence [1150.19ms]
+  Schema version 1 → 125 (120 migration(s) pending)
+  [2] slugify_existing_pages...
+  [2] ✓ slugify_existing_pages
+  [3] unique_chunk_index...
+  [3] ✓ unique_chunk_index
+  [4] access_tokens_and_mcp_log...
+  [4] ✓ access_tokens_and_mcp_log
+  [5] minion_jobs_table...
+  [5] ✓ minion_jobs_table
+  [6] agent_orchestration_primitives...
+  [6] ✓ agent_orchestration_primitives
+  [7] agent_parity_layer...
+  [7] ✓ agent_parity_layer
+  [8] multi_type_links_constraint...
+  [8] ✓ multi_type_links_constraint
+  [9] timeline_dedup_index...
+  [9] ✓ timeline_dedup_index
+  [10] drop_timeline_search_trigger...
+  [10] ✓ drop_timeline_search_trigger
+  [11] links_provenance_columns...
+  [11] ✓ links_provenance_columns
+  [12] budget_ledger...
+  [12] ✓ budget_ledger
+  [13] minion_quiet_hours_stagger...
+  [13] ✓ minion_quiet_hours_stagger
+  [14] pages_updated_at_index...
+  [14] ✓ pages_updated_at_index
+  [15] minion_jobs_max_stalled_default_5...
+  [15] ✓ minion_jobs_max_stalled_default_5
+  [16] cycle_locks_table...
+  [16] ✓ cycle_locks_table
+  [20] sources_table_additive...
+  [20] ✓ sources_table_additive
+  [21] pages_source_id_composite_unique...
+  [21] ✓ pages_source_id_composite_unique
+  [22] links_resolution_type...
+  [22] ✓ links_resolution_type
+  [23] files_source_id_page_id_ledger...
+  [23] ✓ files_source_id_page_id_ledger
+  [24] rls_backfill_missing_tables...
+  [24] ✓ rls_backfill_missing_tables
+  [25] pages_page_kind...
+  [25] ✓ pages_page_kind
+  [26] content_chunks_code_metadata...
+  [26] ✓ content_chunks_code_metadata
+  [27] cathedral_ii_foundation...
+  [27] ✓ cathedral_ii_foundation
+  [28] cathedral_ii_chunk_fts_backfill...
+  [28] ✓ cathedral_ii_chunk_fts_backfill
+  [29] cathedral_ii_code_edges_rls...
+  [29] ✓ cathedral_ii_code_edges_rls
+  [30] dream_verdicts_table...
+  [30] ✓ dream_verdicts_table
+  [31] eval_capture_tables...
+  [31] ✓ eval_capture_tables
+  [32] oauth_infrastructure...
+  [32] ✓ oauth_infrastructure
+  [33] admin_dashboard_columns_v0_26_3...
+  [33] ✓ admin_dashboard_columns_v0_26_3
+  [34] destructive_guard_columns...
+  [34] ✓ destructive_guard_columns
+  [35] auto_rls_event_trigger...
+  [35] ✓ auto_rls_event_trigger
+  [36] subagent_provider_neutral_persistence_v0_27...
+  [36] ✓ subagent_provider_neutral_persistence_v0_27
+  [37] takes_and_synthesis_evidence...
+  [37] ✓ takes_and_synthesis_evidence
+  [38] access_tokens_permissions...
+  [38] ✓ access_tokens_permissions
+  [39] multimodal_dual_column_v0_27_1...
+  [39] ✓ multimodal_dual_column_v0_27_1
+  [40] pages_emotional_weight...
+  [40] ✓ pages_emotional_weight
+  [41] pages_recency_columns...
+  [41] ✓ pages_recency_columns
+  [42] eval_candidates_recency_capture...
+  [42] ✓ eval_candidates_recency_capture
+  [43] takes_resolved_quality_and_drift_decisions...
+  [43] ✓ takes_resolved_quality_and_drift_decisions
+  [44] pages_emotional_weight_recomputed_at...
+  [44] ✓ pages_emotional_weight_recomputed_at
+  [45] facts_hot_memory_v0_31...
+  [45] ✓ facts_hot_memory_v0_31
+  [46] mcp_request_log_params_jsonb_normalize...
+  [46] ✓ mcp_request_log_params_jsonb_normalize
+  [47] facts_notability_alter...
+  [47] ✓ facts_notability_alter
+  [48] takes_weight_round_to_grid...
+  [48] ✓ takes_weight_round_to_grid
+  [49] eval_takes_quality_runs...
+  [49] ✓ eval_takes_quality_runs
+  [50] ingest_log_source_id...
+  [50] ✓ ingest_log_source_id
+  [51] facts_fence_columns...
+  [51] ✓ facts_fence_columns
+  [52] eval_contradictions_cache...
+  [52] ✓ eval_contradictions_cache
+  [53] eval_contradictions_runs...
+  [53] ✓ eval_contradictions_runs
+  [54] cjk_wave_pages_chunker_version_and_source_path...
+  [54] ✓ cjk_wave_pages_chunker_version_and_source_path
+  [55] query_cache_search_lite...
+  [55] ✓ query_cache_search_lite
+  [56] query_cache_knobs_hash...
+  [56] ✓ query_cache_knobs_hash
+  [57] search_telemetry_rollup...
+  [57] ✓ search_telemetry_rollup
+  [58] edges_backfilled_at_v0_33_2...
+  [58] ✓ edges_backfilled_at_v0_33_2
+  [59] code_traversal_cache_v0_34...
+  [59] ✓ code_traversal_cache_v0_34
+  [60] oauth_clients_source_id_fk...
+  [60] ✓ oauth_clients_source_id_fk
+  [61] oauth_clients_federated_read_column...
+  [61] ✓ oauth_clients_federated_read_column
+  [62] oauth_clients_federated_read_backfill...
+  [62] ✓ oauth_clients_federated_read_backfill
+  [63] oauth_clients_federated_read_validate...
+  [63] ✓ oauth_clients_federated_read_validate
+  [64] oauth_clients_source_id_fk_restrict...
+  [64] ✓ oauth_clients_source_id_fk_restrict
+  [65] oauth_clients_federated_read_gin_index...
+  [65] ✓ oauth_clients_federated_read_gin_index
+  [66] embed_stale_partial_index...
+  [66] ✓ embed_stale_partial_index
+  [67] facts_typed_claim_columns...
+  [67] ✓ facts_typed_claim_columns
+  [68] calibration_profiles_v0_36...
+  [68] ✓ calibration_profiles_v0_36
+  [69] take_proposals_v0_36...
+  [69] ✓ take_proposals_v0_36
+  [70] take_grade_cache_v0_36...
+  [70] ✓ take_grade_cache_v0_36
+  [71] take_nudge_log_v0_36...
+  [71] ✓ take_nudge_log_v0_36
+  [72] takes_resolved_at_trend_idx_v0_36...
+  [72] ✓ takes_resolved_at_trend_idx_v0_36
+  [73] think_ab_results_v0_36...
+  [73] ✓ think_ab_results_v0_36
+  [74] eval_candidates_embedding_column...
+  [74] ✓ eval_candidates_embedding_column
+  [75] op_checkpoints_table...
+  [75] ✓ op_checkpoints_table
+  [76] minion_jobs_doctor_run_id_index...
+  [76] ✓ minion_jobs_doctor_run_id_index
+  [77] mcp_spend_log...
+  [77] ✓ mcp_spend_log
+  [78] embedding_multimodal_column...
+  [78] ✓ embedding_multimodal_column
+  [79] pages_last_retrieved_at...
+  [79] ✓ pages_last_retrieved_at
+  [80] takes_unresolvable_quality_v0_37_2_0...
+  [80] ✓ takes_unresolvable_quality_v0_37_2_0
+  [81] pages_provenance_columns...
+  [81] ✓ pages_provenance_columns
+  [82] subagent_tool_executions_stable_id...
+  [82] ✓ subagent_tool_executions_stable_id
+  [83] mcp_spend_reservations...
+  [83] ✓ mcp_spend_reservations
+  [84] oauth_clients_budget_usd_per_day...
+  [84] ✓ oauth_clients_budget_usd_per_day
+  [85] oauth_clients_agent_binding...
+  [85] ✓ oauth_clients_agent_binding
+  [86] page_links_view_alias...
+  [86] ✓ page_links_view_alias
+  [87] takes_kind_drop_check...
+  [87] ✓ takes_kind_drop_check
+  [88] eval_candidates_schema_pack_per_source...
+  [88] ✓ eval_candidates_schema_pack_per_source
+  [89] facts_event_type_column...
+  [89] ✓ facts_event_type_column
+  [90] contextual_retrieval_columns...
+  [90] ✓ contextual_retrieval_columns
+  [91] pages_generation_trigger_and_bookmark...
+  [91] ✓ pages_generation_trigger_and_bookmark
+  [92] sources_github_repo_index...
+  [92] ✓ sources_github_repo_index
+  [93] minions_v0_41_audit_and_budget...
+  [93] ✓ minions_v0_41_audit_and_budget
+  [94] take_domain_assignments...
+  [94] ✓ take_domain_assignments
+  [95] links_link_source_check_includes_mentions...
+  [95] ✓ links_link_source_check_includes_mentions
+  [96] facts_extract_conversation_session_index...
+  [96] ✓ facts_extract_conversation_session_index
+  [97] pages_dedup_partial_index...
+  [97] ✓ pages_dedup_partial_index
+  [98] gbrain_cycle_locks_last_refreshed_at...
+  [98] ✓ gbrain_cycle_locks_last_refreshed_at
+  [99] conversation_parser_llm_cache_table...
+  [99] ✓ conversation_parser_llm_cache_table
+  [101] links_link_kind_column...
+  [101] ✓ links_link_kind_column
+  [102] timeline_entries_source_in_dedup...
+  [102] ✓ timeline_entries_source_in_dedup
+  [103] migration_impact_log_and_priority_recent_idx...
+  [103] ✓ migration_impact_log_and_priority_recent_idx
+  [104] pages_atom_source_hash_idx...
+  [104] ✓ pages_atom_source_hash_idx
+  [105] slug_aliases...
+  [105] ✓ slug_aliases
+  [106] extract_rollup_7d_table...
+  [106] ✓ extract_rollup_7d_table
+  [107] page_generation_clock_and_statement_trigger...
+  [107] ✓ page_generation_clock_and_statement_trigger
+  [108] pages_embedding_signature...
+  [108] ✓ pages_embedding_signature
+  [109] sources_newest_content_at...
+  [109] ✓ sources_newest_content_at
+  [110] page_aliases...
+  [110] ✓ page_aliases
+  [111] search_telemetry_rank1_columns...
+  [111] ✓ search_telemetry_rank1_columns
+  [112] pages_links_extracted_at...
+  [112] ✓ pages_links_extracted_at
+  [113] links_link_source_widen_for_wikilink_basename...
+  [113] ✓ links_link_source_widen_for_wikilink_basename
+  [114] links_link_source_check_kebab_regex...
+  [114] ✓ links_link_source_check_kebab_regex
+  [115] op_checkpoint_paths_append_table...
+  [115] ✓ op_checkpoint_paths_append_table
+  [116] code_edges_source_backfill_and_callee_index...
+  [116] ✓ code_edges_source_backfill_and_callee_index
+  [117] context_volunteer_events_table...
+  [117] ✓ context_volunteer_events_table
+  [118] page_generation_clock_sequence_swap...
+  [118] ✓ page_generation_clock_sequence_swap
+  [119] op_checkpoints_completed_keys_array_check...
+  [119] ✓ op_checkpoints_completed_keys_array_check
+  [120] schema_lint_hardening_search_path_security_invoker...
+  [120] ✓ schema_lint_hardening_search_path_security_invoker
+  [121] timeline_entries_event_page_id...
+  [121] ✓ timeline_entries_event_page_id
+  [122] facts_ontology_dimension...
+  [122] ✓ facts_ontology_dimension
+  [123] configurable_fts_language...
+  v123: trigger functions recreated with language='english' (default — no backfill needed)
+  [123] ✓ configurable_fts_language
+  [124] page_search_vector_drop_compiled_truth...
+  v124: update_page_search_vector() no longer indexes compiled_truth (was overflowing tsvector on large pages, #2704)
+  [124] ✓ page_search_vector_drop_compiled_truth
+  [125] take_proposals_per_claim_idempotency...
+  [125] ✓ take_proposals_per_claim_idempotency
+  120 migration(s) applied
+[cycle.synthesize] start
+[cycle.synthesize] done
+(pass) E2E full cycle phase order > synthInputFile flag is plumbed through runCycle to runPhaseSynthesize [1107.30ms]
+
+ 4 pass
+ 1 fail
+ 10 expect() calls
+Ran 5 tests across 1 file. [4.80s]
+SUITE_RED_END test/e2e/dream-cycle-phase-order-pglite.test.ts
+SUITE_ROW	test/e2e/dream-patterns-pglite.test.ts	7	0	0
+SUITE_ROW	test/e2e/dream-synthesize-chunking.test.ts	4	0	0
+SUITE_ROW	test/e2e/dream-synthesize-pglite.test.ts	15	0	0
+SUITE_ROW	test/e2e/dream.test.ts	0	0	0
+SUITE_ROW	test/e2e/embed-stale-pagination.test.ts	0	0	0
+SUITE_ROW	test/e2e/embedding-column-pglite.test.ts	10	0	0
+SUITE_ROW	test/e2e/embedding-column-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/engine-parity-salience.test.ts	0	0	0
+SUITE_ROW	test/e2e/engine-parity.test.ts	0	0	0
+SUITE_ROW	test/e2e/enrich-pglite.test.ts	15	0	0
+SUITE_ROW	test/e2e/eval-capture.test.ts	0	0	0
+SUITE_ROW	test/e2e/eval-contradictions-postgres.test.ts	12	0	0
+SUITE_ROW	test/e2e/eval-loop.test.ts	4	0	0
+SUITE_ROW	test/e2e/eval-replay-column.test.ts	5	0	0
+SUITE_ROW	test/e2e/eval-takes-quality.test.ts	0	0	0
+SUITE_ROW	test/e2e/extract-atoms-discovery-sql.test.ts	0	0	0
+SUITE_ROW	test/e2e/facts-context-injection-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/facts-cross-source-isolation.test.ts	0	0	0
+SUITE_ROW	test/e2e/facts-fence-reconcile-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/facts-forget.test.ts	0	0	0
+SUITE_ROW	test/e2e/facts-notability-roundtrip.test.ts	0	0	0
+SUITE_ROW	test/e2e/facts-recall-render.test.ts	0	0	0
+SUITE_ROW	test/e2e/facts-separation-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/fresh-install-pglite.test.ts	2	0	0
+SUITE_ROW	test/e2e/frontmatter-migration.test.ts	5	0	0
+SUITE_ROW	test/e2e/global-basename-pglite.test.ts	10	0	0
+SUITE_ROW	test/e2e/graph-quality.test.ts	11	0	0
+SUITE_ROW	test/e2e/graph-signals-engine.test.ts	7	0	0
+SUITE_PROGRESS done=400 total=1304 red=6
+SUITE_ROW	test/e2e/graph-signals-eval.test.ts	10	0	0
+SUITE_ROW	test/e2e/http-transport.test.ts	0	0	0
+SUITE_ROW	test/e2e/import-credential-preflight.test.ts	1	1	1
+SUITE_RED_BEGIN test/e2e/import-credential-preflight.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/e2e/import-credential-preflight.test.ts:
+59 | describe('v0.41.6.0 D1 E2E — gbrain import preflight rejects missing OPENAI_API_KEY', () => {
+60 |   test('exits non-zero with paste-ready stderr message', () => {
+61 |     const result = runCli(['import', repoDir], {});
+62 |     expect(result.code).not.toBe(0);
+63 |     const combined = result.stderr + result.stdout;
+64 |     expect(combined).toMatch(/OPENAI_API_KEY/);
+                          ^
+error: expect(received).toMatch(expected)
+
+Expected substring or pattern: /OPENAI_API_KEY/
+Received: "No database URL: database_url is missing from config. Fix: Run gbrain init --supabase or gbrain init --url <connection_string>\n"
+
+      at <anonymous> (/workspace/test/e2e/import-credential-preflight.test.ts:64:22)
+(fail) v0.41.6.0 D1 E2E — gbrain import preflight rejects missing OPENAI_API_KEY > exits non-zero with paste-ready stderr message [456.12ms]
+(pass) v0.41.6.0 D1 E2E — gbrain import preflight rejects missing OPENAI_API_KEY > --no-embed bypasses the preflight [454.80ms]
+
+ 1 pass
+ 1 fail
+ 3 expect() calls
+Ran 2 tests across 1 file. [1018.00ms]
+SUITE_RED_END test/e2e/import-credential-preflight.test.ts
+SUITE_ROW	test/e2e/ingestion-roundtrip.test.ts	3	0	0
+SUITE_ROW	test/e2e/init-fresh-pglite.test.ts	9	1	1
+SUITE_RED_BEGIN test/e2e/init-fresh-pglite.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/e2e/init-fresh-pglite.test.ts:
+(pass) v0.37 T12 — fresh init env-detection (D1, D2, D3) + persistence (D5) > OPENAI_API_KEY auto-picks OpenAI, persists embedding_model + embedding_dimensions [6868.76ms]
+(pass) v0.37 T12 — D3 non-TTY no-key fail-loud > --non-interactive with zero provider keys → exit 1 + paste-ready hint [200.85ms]
+(pass) v0.37 T12 — D3 non-TTY no-key fail-loud > --non-interactive with env-key typo surfaces Levenshtein hint [201.71ms]
+killed 1 dangling process
+(fail) v0.37 T12 — D6 regression: bug-reporter no-op keys exit 1 with Levenshtein > (unnamed) [5001.15ms]
+  ^ a beforeEach/afterEach hook timed out for this test.
+(pass) v0.37 T12 — D9 --no-embedding deferred-setup mode > init --pglite --no-embedding succeeds with embedding_disabled sentinel [1868.40ms]
+(pass) v0.37 T12 — D9 --no-embedding deferred-setup mode > gbrain import refuses with config-set hint after --no-embedding init [393.84ms]
+(pass) v0.37 T12 — D9 --no-embedding deferred-setup mode > gbrain import --no-embed flag bypasses the refusal (chunks land without vectors) [717.80ms]
+(pass) v0.37 T12 — D11 preflight refuses BEFORE disk writes > --embedding-dimensions 9999 (invalid for OpenAI text-3-large) refuses early [208.12ms]
+(pass) v0.37 T12 — D11 preflight refuses BEFORE disk writes > --embedding-dimensions 99999 (above pgvector cap) refuses [210.42ms]
+(pass) v0.37 T12 — happy path with picker-bypassing explicit flag > explicit --embedding-model wins over env detection [6863.01ms]
+
+ 9 pass
+ 1 fail
+ 30 expect() calls
+Ran 10 tests across 1 file. [22.66s]
+SUITE_RED_END test/e2e/init-fresh-pglite.test.ts
+SUITE_ROW	test/e2e/integrity-batch.test.ts	0	0	0
+SUITE_ROW	test/e2e/jobs-watch-readsnapshot.test.ts	2	0	0
+SUITE_ROW	test/e2e/jsonb-batch-poison-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/jsonb-roundtrip.test.ts	0	0	0
+SUITE_ROW	test/e2e/list-all-sources-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/list-pages-regression.test.ts	6	0	0
+SUITE_ROW	test/e2e/mcp-budget-reservation-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/mcp.test.ts	2	0	0
+SUITE_ROW	test/e2e/mechanical.test.ts	0	0	0
+SUITE_ROW	test/e2e/migrate-chain.test.ts	0	0	0
+SUITE_ROW	test/e2e/migrate-engine-sources-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/migration-drop-invalid-concurrent-index.test.ts	0	0	0
+SUITE_ROW	test/e2e/migration-flow.test.ts	0	0	0
+SUITE_ROW	test/e2e/migration-v35-auto-rls.test.ts	0	0	0
+SUITE_ROW	test/e2e/migration-v47-notability.test.ts	0	0	0
+SUITE_ROW	test/e2e/migration-v50-ingest-log-source-id.test.ts	0	0	0
+SUITE_ROW	test/e2e/minions-budget-cathedral.test.ts	2	0	0
+SUITE_ROW	test/e2e/minions-concurrency.test.ts	0	0	0
+SUITE_ROW	test/e2e/minions-controller-bounce-only.test.ts	2	0	0
+SUITE_ROW	test/e2e/minions-field-report-repro.test.ts	1	0	0
+SUITE_ROW	test/e2e/minions-prefix-strip-smoke.test.ts	1	0	0
+SUITE_ROW	test/e2e/minions-resilience.test.ts	0	0	0
+SUITE_ROW	test/e2e/minions-self-fix-flow.test.ts	4	0	0
+SUITE_ROW	test/e2e/minions-shell-pglite.test.ts	6	0	0
+SUITE_ROW	test/e2e/minions-shell.test.ts	0	0	0
+SUITE_ROW	test/e2e/multi-source-bug-class.test.ts	8	0	0
+SUITE_ROW	test/e2e/multi-source-emotional-weight-pglite.test.ts	4	0	0
+SUITE_ROW	test/e2e/multi-source.test.ts	0	0	0
+SUITE_ROW	test/e2e/multimodal-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/non-tty-output.serial.test.ts	2	0	0
+SUITE_ROW	test/e2e/onboard-full-flow.test.ts	13	0	0
+SUITE_ROW	test/e2e/op-checkpoint-jsonb-parity.test.ts	0	0	0
+SUITE_ROW	test/e2e/openclaw-context-engine-plugin.test.ts	3	0	0
+SUITE_ROW	test/e2e/openclaw-plugin-load-real.test.ts	0	0	0
+SUITE_ROW	test/e2e/openclaw-reference-compat.test.ts	8	0	0
+SUITE_ROW	test/e2e/orphan-reduction.test.ts	3	0	0
+SUITE_ROW	test/e2e/pgbouncer-teardown.test.ts	0	0	0
+SUITE_ROW	test/e2e/pglite-cli-exit.serial.test.ts	0	1	1
+SUITE_RED_BEGIN test/e2e/pglite-cli-exit.serial.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/e2e/pglite-cli-exit.serial.test.ts:
+109 |   if (initResult.status !== 0) {
+110 |     throw new Error(
+111 |       `gbrain init failed (code=${initResult.status}):\n` +
+112 |         `STDOUT:\n${initResult.stdout}\n` +
+113 |         `STDERR:\n${initResult.stderr}`,
+114 |     );
+          ^
+error: gbrain init failed (code=1):
+STDOUT:
+
+STDERR:
+gbrain init: unknown flag --repo
+Run `gbrain init --help` for supported flags.
+
+      at <anonymous> (/workspace/test/e2e/pglite-cli-exit.serial.test.ts:114:5)
+(fail) (unnamed) [207.48ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [307.00ms]
+SUITE_RED_END test/e2e/pglite-cli-exit.serial.test.ts
+SUITE_ROW	test/e2e/phantom-redirect.test.ts	0	0	0
+SUITE_ROW	test/e2e/postgres-bootstrap.test.ts	0	0	0
+SUITE_ROW	test/e2e/postgres-engine-disconnect-idempotency.test.ts	0	0	0
+SUITE_ROW	test/e2e/postgres-jsonb.test.ts	0	0	0
+SUITE_ROW	test/e2e/postgres-reconnect-singleton.test.ts	0	0	0
+SUITE_ROW	test/e2e/quarantine-search-exclusion.test.ts	3	0	0
+SUITE_ROW	test/e2e/salience-llm-routing.test.ts	0	0	0
+SUITE_ROW	test/e2e/salience-pglite.test.ts	7	0	0
+SUITE_ROW	test/e2e/schema-cathedral.test.ts	8	0	0
+SUITE_ROW	test/e2e/schema-drift.test.ts	0	0	0
+SUITE_ROW	test/e2e/search-exclude.test.ts	13	0	0
+SUITE_ROW	test/e2e/search-quality.test.ts	14	0	0
+SUITE_ROW	test/e2e/search-swamp.test.ts	4	0	0
+SUITE_ROW	test/e2e/self-upgrade-binary-swap.test.ts	0	2	1
+SUITE_RED_BEGIN test/e2e/self-upgrade-binary-swap.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/e2e/self-upgrade-binary-swap.test.ts:
+27 | 
+28 | let server: ReturnType<typeof Bun.serve>;
+29 | let base: string;
+30 | 
+31 | beforeAll(() => {
+32 |   server = Bun.serve({
+                    ^
+error: Failed to start server. Is port 0 in use?
+      at <anonymous> (/workspace/test/e2e/self-upgrade-binary-swap.test.ts:32:16)
+(fail) (unnamed) [1.55ms]
+42 |   });
+43 |   base = `http://127.0.0.1:${server.port}`;
+44 | });
+45 | 
+46 | afterAll(() => {
+47 |   server.stop(true);
+       ^
+TypeError: undefined is not an object (evaluating 'server.stop')
+      at <anonymous> (/workspace/test/e2e/self-upgrade-binary-swap.test.ts:47:3)
+(fail) (unnamed) [0.05ms]
+
+ 0 pass
+ 2 fail
+Ran 2 tests across 1 file. [110.00ms]
+SUITE_RED_END test/e2e/self-upgrade-binary-swap.test.ts
+SUITE_ROW	test/e2e/self-upgrade-marker.test.ts	6	0	0
+SUITE_ROW	test/e2e/serve-http-ingest-webhook.test.ts	0	0	0
+SUITE_ROW	test/e2e/serve-http-meta.test.ts	0	0	0
+SUITE_ROW	test/e2e/serve-http-oauth.test.ts	0	0	0
+SUITE_ROW	test/e2e/serve-stdio-roundtrip.test.ts	0	1	1
+SUITE_RED_BEGIN test/e2e/serve-stdio-roundtrip.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/e2e/serve-stdio-roundtrip.test.ts:
+Starting GBrain MCP server (stdio)...
+killed 1 dangling process
+(fail) serve stdio round-trip E2E (local PGLite → real MCP tool calls) > (unnamed) [60100.45ms]
+  ^ a beforeEach/afterEach hook timed out for this test.
+GBrain MCP server: graceful exit (SIGTERM)
+[gbrain-serve] shutdown: SIGTERM
+
+# Unhandled error between tests
+-------------------------------
+2043 |             if (errorData.elicitations) {
+2044 |                 return new UrlElicitationRequiredError(errorData.elicitations, message);
+2045 |             }
+2046 |         }
+2047 |         // Default to generic McpError
+2048 |         return new McpError(code, message, data);
+                      ^
+McpError: MCP error -32000: Connection closed
+ code: -32000,
+ data: undefined,
+
+      at fromError (/input/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js:2048:16)
+      at _onclose (/input/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js:263:32)
+      at <anonymous> (/input/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js:223:18)
+      at <anonymous> (/input/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js:85:22)
+      at emit (node:events:98:22)
+      at #maybeClose (node:child_process:766:16)
+      at #handleOnExit (node:child_process:520:72)
+-------------------------------
+
+
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [60.27s]
+SUITE_RED_END test/e2e/serve-stdio-roundtrip.test.ts
+SUITE_ROW	test/e2e/skill-brain-first.test.ts	12	0	0
+SUITE_ROW	test/e2e/skillopt-loop.serial.test.ts	17	0	0
+SUITE_ROW	test/e2e/skillopt-pglite.serial.test.ts	3	0	0
+SUITE_ROW	test/e2e/skillpack-flow.test.ts	17	0	0
+SUITE_ROW	test/e2e/skillpack-third-party.test.ts	5	0	0
+SUITE_ROW	test/e2e/skills.test.ts	0	0	0
+SUITE_ROW	test/e2e/source-isolation-pglite.test.ts	14	0	0
+SUITE_ROW	test/e2e/source-routing.test.ts	4	0	0
+SUITE_ROW	test/e2e/sources-remote-mcp.test.ts	0	0	0
+SUITE_ROW	test/e2e/status-pglite.test.ts	6	0	0
+SUITE_ROW	test/e2e/storage-tiering.test.ts	0	0	0
+SUITE_ROW	test/e2e/subagent-crash-replay-multi-provider.test.ts	13	0	0
+SUITE_ROW	test/e2e/subagent-gateway-path.test.ts	7	0	0
+SUITE_ROW	test/e2e/subagent-gateway-resume-reconciliation.test.ts	7	0	0
+SUITE_ROW	test/e2e/symbol-resolver-pglite.test.ts	5	0	0
+SUITE_ROW	test/e2e/sync-cjk-git.test.ts	3	0	0
+SUITE_ROW	test/e2e/sync-credential-preflight.test.ts	2	1	1
+SUITE_RED_BEGIN test/e2e/sync-credential-preflight.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/e2e/sync-credential-preflight.test.ts:
+ 95 |     expect(result.code).not.toBe(0);
+ 96 | 
+ 97 |     // The preflight error message contains the exact phrase from
+ 98 |     // src/core/embed-preflight.ts — pinpoint test, not regex-loose.
+ 99 |     const combined = result.stderr + result.stdout;
+100 |     expect(combined).toMatch(/OPENAI_API_KEY/);
+                           ^
+error: expect(received).toMatch(expected)
+
+Expected substring or pattern: /OPENAI_API_KEY/
+Received: "[sync-watchdog] hard deadline armed: 3600s + 30s grace (default:non-tty); disable with --no-hard-deadline\nNo database URL: database_url is missing from config. Fix: Run gbrain init --supabase or gbrain init --url <connection_string>\n"
+
+      at <anonymous> (/workspace/test/e2e/sync-credential-preflight.test.ts:100:22)
+(fail) v0.41.6.0 D1 E2E — gbrain sync preflight rejects missing OPENAI_API_KEY > exits non-zero with paste-ready stderr message [501.41ms]
+(pass) v0.41.6.0 D1 E2E — gbrain sync preflight rejects missing OPENAI_API_KEY > does NOT write 565 identical entries to sync-failures.jsonl [486.55ms]
+(pass) v0.41.6.0 D1 E2E — gbrain sync preflight rejects missing OPENAI_API_KEY > --no-embed bypasses the preflight (sync proceeds) [494.25ms]
+
+ 2 pass
+ 1 fail
+ 4 expect() calls
+Ran 3 tests across 1 file. [1.59s]
+SUITE_RED_END test/e2e/sync-credential-preflight.test.ts
+SUITE_ROW	test/e2e/sync-lock-recovery.test.ts	0	0	0
+SUITE_ROW	test/e2e/sync-parallel.test.ts	0	0	0
+SUITE_ROW	test/e2e/sync-status-pglite.test.ts	6	0	0
+SUITE_ROW	test/e2e/sync.test.ts	0	0	0
+SUITE_ROW	test/e2e/system-of-record-invariant.test.ts	4	0	0
+SUITE_ROW	test/e2e/takes-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/takes-scorecard-parity.test.ts	0	0	0
+SUITE_ROW	test/e2e/takes-weight-rounding-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/thin-client.test.ts	0	0	0
+SUITE_ROW	test/e2e/think-source-isolation-pglite.test.ts	2	0	0
+SUITE_ROW	test/e2e/think-trajectory-pglite.test.ts	7	0	0
+SUITE_ROW	test/e2e/type-unification-full-flow.test.ts	3	0	0
+SUITE_ROW	test/e2e/upgrade.test.ts	0	0	0
+SUITE_ROW	test/e2e/v030_1-integration-pglite.test.ts	14	0	0
+SUITE_ROW	test/e2e/v0_28_5-fix-wave.test.ts	6	0	0
+SUITE_ROW	test/e2e/v0_29-mcp-dispatch-pglite.test.ts	13	0	0
+SUITE_ROW	test/e2e/v0_30_3-fix-wave.test.ts	4	0	0
+SUITE_ROW	test/e2e/volunteer-context-postgres.test.ts	0	0	0
+SUITE_ROW	test/e2e/voyage-multimodal.test.ts	0	0	0
+SUITE_ROW	test/e2e/whoknows.test.ts	6	0	0
+SUITE_ROW	test/e2e/worker-abort-recovery.test.ts	3	0	0
+SUITE_PROGRESS done=500 total=1304 red=12
+SUITE_ROW	test/e2e/zeroentropy-live.test.ts	6	0	0
+SUITE_ROW	test/e2e/zombie-reaping.test.ts	0	0	0
+SUITE_ROW	test/edge-extractor.test.ts	12	0	0
+SUITE_ROW	test/effective-date.test.ts	21	0	0
+SUITE_ROW	test/embed-backfill-submit.test.ts	14	0	0
+SUITE_ROW	test/embed-helper-migration.test.ts	8	0	0
+SUITE_ROW	test/embed-input-type-wire.serial.test.ts	9	0	0
+SUITE_ROW	test/embed-multimodal-batching.test.ts	13	0	0
+SUITE_ROW	test/embed-preflight.test.ts	12	0	0
+SUITE_ROW	test/embed-skip.test.ts	20	0	0
+SUITE_ROW	test/embed-stale.serial.test.ts	8	0	0
+SUITE_ROW	test/embed.serial.test.ts	31	0	0
+SUITE_ROW	test/embedding-context.test.ts	22	0	0
+SUITE_ROW	test/embedding-dim-check-facts.test.ts	21	0	0
+SUITE_ROW	test/embedding-dim-check.test.ts	32	0	0
+SUITE_ROW	test/embedding-pricing.test.ts	11	0	0
+SUITE_ROW	test/embedding-signature-stale.test.ts	6	0	0
+SUITE_ROW	test/emotional-weight.test.ts	15	0	0
+SUITE_ROW	test/engine-factory.test.ts	5	0	0
+SUITE_ROW	test/engine-find-trajectory.test.ts	18	0	0
+SUITE_ROW	test/engine-parity-event-type.test.ts	6	0	0
+SUITE_ROW	test/engine-resolve-slug-with-alias.test.ts	7	0	0
+SUITE_ROW	test/engine-upsertFile.test.ts	6	0	0
+SUITE_ROW	test/engine-weight-rounding-integration.test.ts	15	0	0
+SUITE_ROW	test/enrich-cycle-phase.test.ts	5	0	0
+SUITE_ROW	test/enrich/idempotency.test.ts	5	0	0
+SUITE_ROW	test/enrich/thin.test.ts	28	0	0
+SUITE_ROW	test/enrichable-pack.test.ts	4	0	0
+SUITE_ROW	test/enrichment-service.test.ts	18	0	0
+SUITE_ROW	test/enrichment.test.ts	24	0	0
+SUITE_ROW	test/entity-resolve-perf.slow.test.ts	1	0	0
+SUITE_ROW	test/entity-resolve.test.ts	27	0	0
+SUITE_ROW	test/error-classify.test.ts	21	0	0
+SUITE_ROW	test/errors.test.ts	12	0	0
+SUITE_ROW	test/eval-candidates.test.ts	14	0	0
+SUITE_ROW	test/eval-capture-drain.test.ts	3	0	0
+SUITE_ROW	test/eval-capture-scrub.test.ts	17	0	0
+SUITE_ROW	test/eval-capture.test.ts	26	0	0
+SUITE_ROW	test/eval-chronicle.test.ts	1	0	0
+SUITE_ROW	test/eval-compare.test.ts	5	0	0
+SUITE_ROW	test/eval-contradictions-auto-supersession.test.ts	14	0	0
+SUITE_ROW	test/eval-contradictions-cache.test.ts	13	0	0
+SUITE_ROW	test/eval-contradictions-calibration-join.test.ts	13	0	0
+SUITE_ROW	test/eval-contradictions-calibration.test.ts	13	0	0
+SUITE_ROW	test/eval-contradictions-cost-prompt.test.ts	9	0	0
+SUITE_ROW	test/eval-contradictions-cost.test.ts	14	0	0
+SUITE_ROW	test/eval-contradictions-cross-source.test.ts	13	0	0
+SUITE_ROW	test/eval-contradictions-date-filter.test.ts	24	0	0
+SUITE_ROW	test/eval-contradictions-engine.test.ts	17	0	0
+SUITE_ROW	test/eval-contradictions-fixture-redact.test.ts	19	0	0
+SUITE_ROW	test/eval-contradictions-integrations.test.ts	11	0	0
+SUITE_ROW	test/eval-contradictions-judge-errors.test.ts	9	0	0
+SUITE_ROW	test/eval-contradictions-judge.test.ts	32	0	0
+SUITE_ROW	test/eval-contradictions-runner.test.ts	24	0	0
+SUITE_ROW	test/eval-contradictions-severity.test.ts	15	0	0
+SUITE_ROW	test/eval-contradictions-trends.test.ts	9	0	0
+SUITE_ROW	test/eval-contradictions/cost-tracker-slash.test.ts	6	0	0
+SUITE_ROW	test/eval-contradictions/no-valid-until-write.test.ts	4	0	0
+SUITE_ROW	test/eval-conversation-parser-cli.test.ts	15	0	0
+SUITE_ROW	test/eval-cross-modal-batch.test.ts	20	0	0
+SUITE_ROW	test/eval-export.test.ts	9	0	0
+SUITE_ROW	test/eval-gate.test.ts	10	0	0
+SUITE_ROW	test/eval-longmemeval-e2e.slow.test.ts	11	0	0
+SUITE_ROW	test/eval-longmemeval.slow.test.ts	15	0	0
+SUITE_ROW	test/eval-prune.test.ts	5	0	0
+SUITE_ROW	test/eval-replay-gate.test.ts	5	0	0
+SUITE_ROW	test/eval-replay-metadata-skip.test.ts	2	0	0
+SUITE_ROW	test/eval-replay.test.ts	16	0	0
+SUITE_ROW	test/eval-retrieval-quality.test.ts	2	0	0
+SUITE_ROW	test/eval-run-all.test.ts	19	0	0
+SUITE_ROW	test/eval-schema-authoring.test.ts	7	0	0
+SUITE_ROW	test/eval-shared-json-repair-shim.test.ts	5	0	0
+SUITE_ROW	test/eval-suspected-contradictions-budget-default.test.ts	4	0	0
+SUITE_ROW	test/eval-takes-quality-aggregate.test.ts	13	0	0
+SUITE_ROW	test/eval-takes-quality-boundaries.test.ts	4	0	0
+SUITE_ROW	test/eval-takes-quality-cli.test.ts	9	0	0
+SUITE_ROW	test/eval-takes-quality-pricing.test.ts	9	0	0
+SUITE_ROW	test/eval-takes-quality-receipt-name.test.ts	10	0	0
+SUITE_ROW	test/eval-takes-quality-receipt-write.test.ts	5	0	0
+SUITE_ROW	test/eval-takes-quality-regress.test.ts	9	0	0
+SUITE_ROW	test/eval-takes-quality-replay.test.ts	7	0	0
+SUITE_ROW	test/eval-takes-quality-rubric.test.ts	12	0	0
+SUITE_ROW	test/eval-takes-quality-runner.serial.test.ts	6	0	0
+SUITE_ROW	test/eval-takes-quality-trend.test.ts	6	0	0
+SUITE_ROW	test/eval-trajectory.test.ts	7	0	0
+SUITE_ROW	test/eval-v041_2-scaffolds.test.ts	7	0	0
+SUITE_ROW	test/eval-whoknows.test.ts	25	0	0
+SUITE_ROW	test/eval.test.ts	38	0	0
+SUITE_ROW	test/eval/cycle-default.test.ts	8	0	0
+SUITE_ROW	test/exit-classification.test.ts	17	0	0
+SUITE_ROW	test/expert-types-pack.test.ts	6	0	0
+SUITE_ROW	test/extract-abort.test.ts	4	0	0
+SUITE_ROW	test/extract-atoms-drain-handler.test.ts	3	0	0
+SUITE_ROW	test/extract-atoms-drain.test.ts	15	0	0
+SUITE_ROW	test/extract-atoms-extractable-types.test.ts	4	0	0
+SUITE_ROW	test/extract-atoms-page-discovery.test.ts	22	0	0
+SUITE_ROW	test/extract-by-mention-resume.test.ts	5	0	0
+SUITE_ROW	test/extract-by-mention.test.ts	12	0	0
+SUITE_ROW	test/extract-conversation-facts-workers.test.ts	17	0	0
+SUITE_ROW	test/extract-conversation-facts.test.ts	58	0	0
+SUITE_PROGRESS done=600 total=1304 red=12
+SUITE_ROW	test/extract-db.test.ts	12	0	0
+SUITE_ROW	test/extract-facts-phase.test.ts	20	0	0
+SUITE_ROW	test/extract-from-fence.test.ts	21	0	0
+SUITE_ROW	test/extract-fs-source-id.test.ts	4	0	0
+SUITE_ROW	test/extract-fs.test.ts	23	0	0
+SUITE_ROW	test/extract-incremental.test.ts	12	0	0
+SUITE_ROW	test/extract-source-aware.test.ts	4	0	0
+SUITE_ROW	test/extract-stale.test.ts	17	0	0
+SUITE_ROW	test/extract-takes-from-pages-progression.test.ts	4	0	0
+SUITE_ROW	test/extract-takes-holder-producer-seam.test.ts	7	0	0
+SUITE_ROW	test/extract-takes-model-resolution.test.ts	2	0	0
+SUITE_ROW	test/extract-takes.test.ts	5	0	0
+SUITE_ROW	test/extract-workers.test.ts	10	0	0
+SUITE_ROW	test/extract.test.ts	29	0	0
+SUITE_ROW	test/extract/benchmark.test.ts	17	0	0
+SUITE_ROW	test/extract/receipt-writer.test.ts	12	0	0
+SUITE_ROW	test/extract/status.test.ts	13	0	0
+SUITE_ROW	test/extractable-pack.test.ts	6	0	0
+SUITE_ROW	test/extractable-spec-widening.test.ts	16	0	0
+SUITE_ROW	test/facts-absorb-log.test.ts	16	0	0
+SUITE_ROW	test/facts-anti-loop.test.ts	4	0	0
+SUITE_ROW	test/facts-backstop-gating.test.ts	5	0	0
+SUITE_ROW	test/facts-backstop-integration.test.ts	6	0	0
+SUITE_ROW	test/facts-backstop.test.ts	13	0	0
+SUITE_ROW	test/facts-canonicality.test.ts	10	0	0
+SUITE_ROW	test/facts-classify.test.ts	9	0	0
+SUITE_ROW	test/facts-context-injection.serial.test.ts	6	0	0
+SUITE_ROW	test/facts-decay.test.ts	13	0	0
+SUITE_ROW	test/facts-doctor-shape.test.ts	4	0	0
+SUITE_ROW	test/facts-eligibility.test.ts	28	0	0
+SUITE_ROW	test/facts-engine.test.ts	14	0	0
+SUITE_ROW	test/facts-extract-silent-no-op.test.ts	5	0	0
+SUITE_ROW	test/facts-extract-smoke.test.ts	4	0	0
+SUITE_ROW	test/facts-extract-truncation.test.ts	6	0	0
+SUITE_ROW	test/facts-extract.test.ts	9	0	0
+SUITE_ROW	test/facts-fence-typed.test.ts	17	0	0
+SUITE_ROW	test/facts-fence.test.ts	37	0	0
+SUITE_ROW	test/facts-mcp-allowlist.serial.test.ts	6	0	0
+SUITE_ROW	test/facts-meta-cache.test.ts	5	0	0
+SUITE_ROW	test/facts-migration-dim.test.ts	5	0	0
+SUITE_ROW	test/facts-multi-tenant.test.ts	6	0	0
+SUITE_ROW	test/facts-queue-drain-pending.test.ts	4	0	0
+SUITE_ROW	test/facts-queue.test.ts	9	0	0
+SUITE_ROW	test/facts-recall-render.test.ts	4	0	0
+SUITE_ROW	test/facts-reconcile-protect-cli.test.ts	2	0	0
+SUITE_ROW	test/facts-separation-pglite.test.ts	2	0	0
+SUITE_ROW	test/facts-unknown-speaker-gate.test.ts	39	0	0
+SUITE_ROW	test/facts-visibility.test.ts	6	0	0
+SUITE_ROW	test/fail-improve.test.ts	17	0	0
+SUITE_ROW	test/feature-flags.test.ts	5	0	0
+SUITE_ROW	test/features.test.ts	9	0	0
+SUITE_ROW	test/fence-extraction.test.ts	10	0	0
+SUITE_ROW	test/fence-write.test.ts	14	0	0
+SUITE_ROW	test/file-migration.test.ts	7	0	0
+SUITE_ROW	test/file-resolver.test.ts	10	0	0
+SUITE_ROW	test/file-upload-security.test.ts	27	0	0
+SUITE_ROW	test/files.test.ts	24	0	0
+SUITE_ROW	test/filing-audit.test.ts	18	0	0
+SUITE_ROW	test/find-experts-op.test.ts	11	0	0
+SUITE_ROW	test/fix-wave-structural.test.ts	22	0	0
+SUITE_ROW	test/flush-then-exit-harness.test.ts	3	0	0
+SUITE_ROW	test/foreground-chat-gateway-init.serial.test.ts	2	0	0
+SUITE_ROW	test/founder-scorecard.test.ts	9	0	0
+SUITE_ROW	test/friction-cli.test.ts	17	0	0
+SUITE_ROW	test/friction.test.ts	20	0	0
+SUITE_ROW	test/frontmatter-cli.test.ts	10	0	0
+SUITE_ROW	test/frontmatter-inference.test.ts	38	0	0
+SUITE_ROW	test/frontmatter-install-hook.test.ts	7	0	0
+SUITE_ROW	test/frontmatter-non-string-fields.test.ts	10	0	0
+SUITE_ROW	test/frontmatter-validate-slug-565.test.ts	3	0	0
+SUITE_ROW	test/fts-language-migration.serial.test.ts	6	0	0
+SUITE_ROW	test/fts-language.serial.test.ts	14	0	0
+SUITE_ROW	test/fuzz/filesystem-validators.test.ts	2	1	1
+SUITE_RED_BEGIN test/fuzz/filesystem-validators.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/fuzz/filesystem-validators.test.ts:
+(pass) validateUploadPath fuzz (fs-backed) > arbitrary relative paths: never wedges, never escapes confinement [10.79ms]
+2443 | 	return error;
+2444 | }
+2445 | /** @internal */
+2446 | function throwIfFailed(out) {
+2447 | 	if (!out.failed) return;
+2448 | 	throw buildError(defaultReportMessage(out), out);
+                                                       ^
+error: Property failed after 4 tests
+{ seed: -142645352, path: "3", endOnFailure: true }
+Counterexample: ["./../../../tmp"]
+Shrunk 0 time(s)
+
+Hint: Enable verbose mode in order to have the list of all failing values encountered during the run
+      at throwIfFailed (/input/node_modules/fast-check/lib/fast-check.js:2448:49)
+      at assert (/input/node_modules/fast-check/lib/fast-check.js:2521:7)
+      at <anonymous> (/workspace/test/fuzz/filesystem-validators.test.ts:74:8)
+(fail) validateUploadPath fuzz (fs-backed) > shaped traversal probes: explicit `..` patterns rejected [1.31ms]
+(pass) validateUploadPath fuzz (fs-backed) > symlink-escape probe: symlinks pointing outside the box are rejected [0.09ms]
+
+ 2 pass
+ 1 fail
+Ran 3 tests across 1 file. [151.00ms]
+SUITE_RED_END test/fuzz/filesystem-validators.test.ts
+SUITE_ROW	test/fuzz/mixed-validators.test.ts	6	0	0
+SUITE_ROW	test/fuzz/pure-validators.test.ts	3	0	0
+SUITE_ROW	test/gateway-embed-model-override.test.ts	8	0	0
+SUITE_ROW	test/gateway-model-messages.test.ts	11	0	0
+SUITE_ROW	test/gateway-tier-extended-models.test.ts	2	0	0
+SUITE_ROW	test/gbrain-home-isolation.test.ts	7	0	0
+SUITE_ROW	test/get-brain-identity.test.ts	9	0	0
+SUITE_ROW	test/get-page-federated-scope.test.ts	28	0	0
+SUITE_ROW	test/get-status-snapshot-op.test.ts	5	0	0
+SUITE_ROW	test/get-timeline-op.test.ts	3	0	0
+SUITE_ROW	test/git-remote-durable.serial.test.ts	11	0	0
+SUITE_ROW	test/git-remote.test.ts	37	0	0
+SUITE_ROW	test/grade-takes-ensemble.test.ts	16	0	0
+SUITE_ROW	test/grade-takes.test.ts	23	0	0
+SUITE_ROW	test/graph-query.test.ts	9	0	0
+SUITE_ROW	test/gstack-learnings-coupling.test.ts	14	0	0
+SUITE_ROW	test/guardrails.test.ts	14	0	0
+SUITE_ROW	test/handlers-embed-backfill.test.ts	7	0	0
+SUITE_ROW	test/handlers.test.ts	10	0	0
+SUITE_ROW	test/helpers/schema-diff-indexes.test.ts	7	0	0
+SUITE_ROW	test/helpers/schema-diff.test.ts	17	0	0
+SUITE_ROW	test/helpers/with-env.test.ts	7	0	0
+SUITE_ROW	test/http-transport.test.ts	2	19	1
+SUITE_RED_BEGIN test/http-transport.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/http-transport.test.ts:
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:198:17)
+(fail) http-transport: auth > (unnamed) [2.05ms]
+198 |     srv = await startTest({
+199 |       validTokens: new Map([[hash(VALID_TOKEN), { id: 'tok-1', name: 'test' }]]),
+200 |       revokedTokens: new Set([hash(REVOKED_TOKEN)]),
+201 |     });
+202 |   });
+203 |   afterAll(() => srv.stop());
+                       ^
+TypeError: undefined is not an object (evaluating 'srv.stop')
+      at <anonymous> (/workspace/test/http-transport.test.ts:203:18)
+(fail) http-transport: auth > (unnamed) [0.05ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:285:17)
+(fail) http-transport: tools/call dispatch > (unnamed) [0.45ms]
+282 |   const TOK = 'tok-fix';
+283 | 
+284 |   beforeAll(async () => {
+285 |     srv = await startTest({ validTokens: new Map([[hash(TOK), { id: 'tok-fix-id', name: 'fix' }]]) });
+286 |   });
+287 |   afterAll(() => srv.stop());
+                       ^
+TypeError: undefined is not an object (evaluating 'srv.stop')
+      at <anonymous> (/workspace/test/http-transport.test.ts:287:18)
+(fail) http-transport: tools/call dispatch > (unnamed) [0.04ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:351:23)
+(fail) http-transport: CORS > 10. no GBRAIN_HTTP_CORS_ORIGIN + browser request → no ACAO header [0.46ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:359:23)
+(fail) http-transport: CORS > 11. env set + matching Origin → ACAO echoes [0.37ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:368:23)
+(fail) http-transport: CORS > 12. env set + non-matching Origin → no ACAO header [0.31ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:382:25)
+(fail) http-transport: CORS > CORS preflight (T6 — consolidated corsHeaders) > preflight + no allowlist + any Origin → NO Allow-Methods/Headers [0.34ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:395:25)
+(fail) http-transport: CORS > CORS preflight (T6 — consolidated corsHeaders) > preflight + allowlist set + matching Origin → echoes ACAO + Methods + Headers [0.32ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:409:25)
+(fail) http-transport: CORS > CORS preflight (T6 — consolidated corsHeaders) > preflight + allowlist set + NON-matching Origin → NO Allow-Methods/Headers (the regression) [0.29ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:423:25)
+(fail) http-transport: CORS > CORS preflight (T6 — consolidated corsHeaders) > actual POST + allowlist set + NON-matching Origin → NO ACAO (browser blocks downstream) [0.27ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:444:23)
+(fail) http-transport: body cap > 13. Content-Length over cap → 413 [0.30ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:460:23)
+(fail) http-transport: body cap > 14. chunked transfer (no Content-Length) over cap → 413 [0.32ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:493:23)
+(fail) http-transport: rate limit > 15. token bucket: refill mechanic over time [0.35ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:518:23)
+(fail) http-transport: rate limit > 16. token bucket exhausted → 429 + Retry-After header [0.30ms]
+(pass) http-transport: rate limit > 17. LRU eviction at cap (insert > cap evicts LRU) [0.22ms]
+(pass) http-transport: rate limit > 18. TTL prune (entries older than 2× window evicted) [0.04ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:563:23)
+(fail) http-transport: rate limit > 19. pre-auth IP bucket fires BEFORE auth (DB not called when IP exhausted) [0.29ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:581:23)
+(fail) http-transport: rate limit > 20. /health bypasses rate limit [0.33ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:599:23)
+(fail) http-transport: mcp_request_log audit > 21. successful request → audit row with token_name + operation + status [0.49ms]
+250 |     sql`INSERT INTO mcp_request_log (token_name, operation, latency_ms, status)
+251 |         VALUES (${tokenName}, ${operation}, ${latencyMs}, ${status})`
+252 |       .catch(() => { /* best-effort */ });
+253 |   }
+254 | 
+255 |   const server = Bun.serve({
+                           ^
+error: Failed to start server. Is port 0 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at startHttpTransport (/workspace/src/mcp/http-transport.ts:255:22)
+      at startTest (/workspace/test/http-transport.test.ts:170:24)
+      at <anonymous> (/workspace/test/http-transport.test.ts:614:23)
+(fail) http-transport: mcp_request_log audit > 22. failed auth → audit row with null token_name + auth_failed status [0.32ms]
+
+ 2 pass
+ 19 fail
+ 15 expect() calls
+Ran 21 tests across 1 file. [151.00ms]
+SUITE_RED_END test/http-transport.test.ts
+SUITE_ROW	test/hybrid-cached-hit-budget-meta.serial.test.ts	1	0	0
+SUITE_ROW	test/hybrid-meta.serial.test.ts	7	0	0
+SUITE_ROW	test/hybrid-recency-config.test.ts	2	0	0
+SUITE_ROW	test/hybrid-search-lite.serial.test.ts	9	0	0
+SUITE_PROGRESS done=700 total=1304 red=14
+SUITE_ROW	test/import-checkpoint.test.ts	24	0	0
+SUITE_ROW	test/import-code-edges-source-id.test.ts	2	0	0
+SUITE_ROW	test/import-dedup-frontmatter-id.test.ts	11	0	0
+SUITE_ROW	test/import-file-content-sanity.test.ts	22	0	0
+SUITE_ROW	test/import-file.test.ts	28	0	0
+SUITE_ROW	test/import-git-fastpath-prune.test.ts	2	0	0
+SUITE_ROW	test/import-image-file.test.ts	8	0	0
+SUITE_ROW	test/import-metafile-skip.test.ts	2	0	0
+SUITE_ROW	test/import-resume.test.ts	5	0	0
+SUITE_ROW	test/import-signature-stamp.serial.test.ts	2	0	0
+SUITE_ROW	test/import-source-id.test.ts	3	0	0
+SUITE_ROW	test/import-walker.test.ts	4	0	0
+SUITE_ROW	test/incremental-chunking.test.ts	3	0	0
+SUITE_ROW	test/infer-type-pack.test.ts	5	0	0
+SUITE_ROW	test/ingestion/daemon.test.ts	19	0	0
+SUITE_ROW	test/ingestion/dedup.test.ts	15	0	0
+SUITE_ROW	test/ingestion/gstack-learnings.test.ts	14	0	0
+SUITE_ROW	test/ingestion/ingest-capture.test.ts	18	0	0
+SUITE_ROW	test/ingestion/markdown-greenfield.test.ts	16	0	0
+SUITE_ROW	test/ingestion/migration-mode.test.ts	7	0	0
+SUITE_ROW	test/ingestion/put-page-write-through.test.ts	10	0	0
+SUITE_ROW	test/ingestion/skillpack-load.test.ts	26	0	0
+SUITE_ROW	test/ingestion/sources/file-watcher.test.ts	12	0	0
+SUITE_ROW	test/ingestion/sources/inbox-folder.test.ts	22	0	0
+SUITE_ROW	test/ingestion/test-harness.test.ts	28	0	0
+SUITE_ROW	test/ingestion/types.test.ts	34	0	0
+SUITE_ROW	test/init-embed-check.test.ts	9	0	0
+SUITE_ROW	test/init-env-detection.test.ts	26	0	0
+SUITE_ROW	test/init-mcp-only.test.ts	0	1	1
+SUITE_RED_BEGIN test/init-mcp-only.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/init-mcp-only.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+46 |     }
+47 |   }
+48 |   let er;
+49 |   if (args.length > 0)
+50 |     er = args[0];
+51 |     throw er;
+                 ^
+error: Failed to start server. Is port 0 in use?
+      at emitError (node:events:51:13)
+-------------------------------
+
+(fail) (unnamed) [5000.01ms]
+  ^ a beforeEach/afterEach hook timed out for this test.
+
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [5.11s]
+SUITE_RED_END test/init-mcp-only.test.ts
+SUITE_ROW	test/init-migrate-only.test.ts	6	0	0
+SUITE_ROW	test/init-mode-picker.test.ts	24	0	0
+SUITE_ROW	test/init-provider-picker.test.ts	7	0	0
+SUITE_ROW	test/insert-facts-batch.test.ts	13	0	0
+SUITE_ROW	test/integrations-install.test.ts	19	0	0
+SUITE_ROW	test/integrations.test.ts	111	0	0
+SUITE_ROW	test/integrity.test.ts	29	0	0
+SUITE_ROW	test/intent-weights.test.ts	13	0	0
+SUITE_ROW	test/jobs-autopilot-cycle-braindir.serial.test.ts	1	0	0
+SUITE_ROW	test/jobs-nice-flag.test.ts	5	0	0
+SUITE_ROW	test/jobs-watch-mode.test.ts	8	0	0
+SUITE_ROW	test/jobs-watch-snapshot.test.ts	8	0	0
+SUITE_ROW	test/language-manifest.test.ts	8	0	0
+SUITE_ROW	test/last-retrieved.test.ts	7	0	0
+SUITE_ROW	test/lease-cap-controller.test.ts	14	0	0
+SUITE_ROW	test/legacy-token-federated-scope.test.ts	7	0	0
+SUITE_ROW	test/lens-pack-manifests.test.ts	31	0	0
+SUITE_ROW	test/levenshtein.test.ts	18	0	0
+SUITE_ROW	test/link-extraction-code-refs.test.ts	10	0	0
+SUITE_ROW	test/link-extraction.test.ts	162	0	0
+SUITE_ROW	test/link-inference-pack.test.ts	10	0	0
+SUITE_ROW	test/link-source-namespaced-regex.test.ts	40	0	0
+SUITE_ROW	test/links-timeline-jsonb-poison.test.ts	21	0	0
+SUITE_ROW	test/lint-content-sanity.test.ts	16	0	0
+SUITE_ROW	test/lint-frontmatter.test.ts	8	0	0
+SUITE_ROW	test/lint-shared-engine.test.ts	1	0	0
+SUITE_ROW	test/lint.test.ts	22	0	0
+SUITE_ROW	test/list-all-sources.test.ts	12	0	0
+SUITE_ROW	test/list-clamp-local-trust.test.ts	8	0	0
+SUITE_ROW	test/list-pages-truncation.test.ts	7	0	0
+SUITE_ROW	test/llm-intent-escalation.test.ts	14	0	0
+SUITE_ROW	test/llm-intent-hybrid-integration.serial.test.ts	6	0	0
+SUITE_ROW	test/loadConfig-merge.test.ts	23	0	0
+SUITE_ROW	test/local-federated-search-scope.test.ts	18	0	0
+SUITE_ROW	test/longmemeval-extract.test.ts	19	0	0
+SUITE_ROW	test/longmemeval-intent.test.ts	9	0	0
+SUITE_ROW	test/longmemeval-sanitize.test.ts	11	0	0
+SUITE_ROW	test/longmemeval-trajectory-routing.test.ts	4	0	0
+SUITE_ROW	test/maintain.test.ts	5	0	0
+SUITE_ROW	test/markdown-serializer.test.ts	19	0	0
+SUITE_ROW	test/markdown-validation.test.ts	27	0	0
+SUITE_ROW	test/markdown.test.ts	45	0	0
+SUITE_ROW	test/mcp-client-hardening.test.ts	31	0	0
+SUITE_ROW	test/mcp-client.test.ts	0	1	1
+SUITE_RED_BEGIN test/mcp-client.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/mcp-client.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+46 |     }
+47 |   }
+48 |   let er;
+49 |   if (args.length > 0)
+50 |     er = args[0];
+51 |     throw er;
+                 ^
+error: Failed to start server. Is port 0 in use?
+      at emitError (node:events:51:13)
+-------------------------------
+
+(fail) (unnamed) [5000.01ms]
+  ^ a beforeEach/afterEach hook timed out for this test.
+
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [5.15s]
+SUITE_RED_END test/mcp-client.test.ts
+SUITE_ROW	test/mcp-dispatch-summarize.test.ts	7	0	0
+SUITE_ROW	test/mcp-eval-capture.test.ts	12	0	0
+SUITE_ROW	test/mcp-tool-defs.test.ts	9	0	0
+SUITE_ROW	test/metric-glossary.test.ts	18	0	0
+SUITE_ROW	test/migrate-engine-page-copy-failure.serial.test.ts	5	0	0
+SUITE_ROW	test/migrate-engine-resume.test.ts	2	0	0
+SUITE_ROW	test/migrate-extensions.test.ts	8	0	0
+SUITE_ROW	test/migrate-retry.test.ts	14	0	0
+SUITE_ROW	test/migrate-stdout-clean.test.ts	2	0	0
+SUITE_ROW	test/migrate.test.ts	162	0	0
+SUITE_ROW	test/migration-in-process.serial.test.ts	7	0	0
+SUITE_ROW	test/migration-orchestrator-v0_21_0.test.ts	5	0	0
+SUITE_ROW	test/migration-orchestrator-v0_31_0.test.ts	4	0	0
+SUITE_ROW	test/migration-resume.test.ts	15	0	0
+SUITE_ROW	test/migration-v0-29-1.serial.test.ts	1	0	0
+SUITE_ROW	test/migration-v120.test.ts	2	0	0
+SUITE_ROW	test/migrations-cjk-wave.test.ts	5	0	0
+SUITE_ROW	test/migrations-registry.test.ts	9	0	0
+SUITE_ROW	test/migrations-v0_11_0.test.ts	18	0	0
+SUITE_ROW	test/migrations-v0_12_0.test.ts	5	0	0
+SUITE_ROW	test/migrations-v0_12_2.test.ts	4	0	0
+SUITE_ROW	test/migrations-v0_13_0.test.ts	7	0	0
+SUITE_ROW	test/migrations-v0_13_1-grandfather.test.ts	8	0	0
+SUITE_ROW	test/migrations-v0_13_1.test.ts	4	0	0
+SUITE_ROW	test/migrations-v0_14_0.test.ts	8	0	0
+SUITE_ROW	test/migrations-v0_16_0.test.ts	10	0	0
+SUITE_ROW	test/migrations-v0_19_0.test.ts	12	0	0
+SUITE_PROGRESS done=800 total=1304 red=16
+SUITE_ROW	test/migrations-v0_21_0.test.ts	17	0	0
+SUITE_ROW	test/migrations-v0_22_4.test.ts	9	0	0
+SUITE_ROW	test/migrations-v0_27_1.test.ts	8	0	0
+SUITE_ROW	test/migrations-v0_32_2.test.ts	17	0	0
+SUITE_ROW	test/migrations-v48-takes-weight-backfill.test.ts	3	0	0
+SUITE_ROW	test/migrations-v94.test.ts	12	0	0
+SUITE_ROW	test/migrations-v99.test.ts	7	0	0
+SUITE_ROW	test/minions-lease-full-retry.test.ts	7	0	0
+SUITE_ROW	test/minions-quiet-hours.test.ts	25	0	0
+SUITE_ROW	test/minions-shell-inherit.test.ts	38	0	0
+SUITE_ROW	test/minions-shell-redact.test.ts	10	0	0
+SUITE_ROW	test/minions-shell-validate.test.ts	29	0	0
+SUITE_ROW	test/minions-shell.test.ts	40	0	0
+SUITE_ROW	test/minions.test.ts	185	0	0
+SUITE_ROW	test/minions/agent-audit.test.ts	7	0	0
+SUITE_ROW	test/minions/budget-meter.test.ts	22	0	0
+SUITE_ROW	test/mode-switch-ux.test.ts	18	0	0
+SUITE_ROW	test/model-config.serial.test.ts	20	0	0
+SUITE_ROW	test/model-id.test.ts	30	0	0
+SUITE_ROW	test/model-pricing.test.ts	18	0	0
+SUITE_ROW	test/models-doctor-embed.test.ts	3	0	0
+SUITE_ROW	test/models-doctor-reranker.test.ts	5	0	0
+SUITE_ROW	test/mounts-cache.test.ts	23	0	0
+SUITE_ROW	test/mounts-cli.test.ts	26	0	0
+SUITE_ROW	test/multi-source-drift.test.ts	7	0	0
+SUITE_ROW	test/multi-source-integration.test.ts	16	0	0
+SUITE_ROW	test/niceness.test.ts	10	0	0
+SUITE_ROW	test/nightly-probe-config-plane.test.ts	9	0	0
+SUITE_ROW	test/nightly-quality-probe.test.ts	25	0	0
+SUITE_ROW	test/notability-eval.test.ts	13	0	0
+SUITE_ROW	test/nudge.test.ts	22	0	0
+SUITE_ROW	test/oauth-authorize-scope-default.test.ts	5	0	0
+SUITE_ROW	test/oauth-confidential-client.test.ts	7	0	0
+SUITE_ROW	test/oauth-scope-probe.test.ts	8	0	0
+SUITE_ROW	test/oauth.test.ts	99	0	0
+SUITE_ROW	test/onboard-pack-upgrade-checks.test.ts	8	0	0
+SUITE_ROW	test/op-checkpoint-mentions-fingerprint.test.ts	7	0	0
+SUITE_ROW	test/op-checkpoint.test.ts	30	0	0
+SUITE_ROW	test/openai-compat-multimodal.test.ts	11	0	0
+SUITE_ROW	test/openclaw-plugin-manifest.test.ts	1	0	0
+SUITE_ROW	test/openrouter-reranker-recipe.test.ts	6	0	0
+SUITE_ROW	test/operation-context-sourceid-required.test.ts	6	0	0
+SUITE_ROW	test/operations-allow-list.test.ts	11	0	0
+SUITE_ROW	test/operations-descriptions.test.ts	27	0	0
+SUITE_ROW	test/operations-embedding-column.test.ts	6	0	0
+SUITE_ROW	test/operations-find-trajectory.test.ts	9	0	0
+SUITE_ROW	test/operations-fuzzy-source-scope.test.ts	6	0	0
+SUITE_ROW	test/operations-schema-pack.test.ts	23	0	0
+SUITE_ROW	test/operations-trust-boundary.test.ts	14	0	0
+SUITE_ROW	test/orphans-pure-fn.test.ts	22	0	0
+SUITE_ROW	test/orphans-source-scope.test.ts	10	0	0
+SUITE_ROW	test/orphans.test.ts	43	0	0
+SUITE_ROW	test/owner-holder.test.ts	5	0	0
+SUITE_ROW	test/pace-mode.test.ts	14	0	0
+SUITE_ROW	test/page-generation-counter.test.ts	15	0	0
+SUITE_ROW	test/page-lock.test.ts	10	0	0
+SUITE_ROW	test/page-search-vector-overflow.test.ts	3	0	0
+SUITE_ROW	test/page-type-exhaustive.test.ts	4	0	0
+SUITE_ROW	test/pages-soft-delete.test.ts	15	0	0
+SUITE_ROW	test/parallel.test.ts	8	0	0
+SUITE_ROW	test/parent-scope.test.ts	9	0	0
+SUITE_ROW	test/parity.test.ts	10	0	0
+SUITE_ROW	test/path-confine.test.ts	35	0	0
+SUITE_ROW	test/performfullsync-source-id.test.ts	2	0	0
+SUITE_ROW	test/pglite-engine-disconnect.serial.test.ts	7	0	0
+SUITE_ROW	test/pglite-engine.test.ts	109	0	0
+SUITE_ROW	test/pglite-init-classifier.test.ts	20	0	0
+SUITE_ROW	test/pglite-lock.test.ts	16	0	0
+SUITE_ROW	test/pglite-reconnect.serial.test.ts	2	0	0
+SUITE_ROW	test/pglite-workers-clamp.test.ts	10	0	0
+SUITE_ROW	test/phantom-redirect-engine-parity.test.ts	6	0	0
+SUITE_ROW	test/phantom-redirect-per-source-lock.test.ts	3	0	0
+SUITE_ROW	test/phantom-redirect.test.ts	38	0	0
+SUITE_ROW	test/phase-scope-coverage.test.ts	6	0	0
+SUITE_ROW	test/plugin-loader.test.ts	22	0	0
+SUITE_ROW	test/post-install-advisory.test.ts	10	0	0
+SUITE_ROW	test/post-write-lint.test.ts	11	0	0
+SUITE_ROW	test/postgres-disconnect-bounded.test.ts	3	0	0
+SUITE_ROW	test/postgres-engine-config-reconnect.test.ts	5	0	0
+SUITE_ROW	test/postgres-engine-getter-selfheal.test.ts	3	0	0
+SUITE_ROW	test/postgres-engine-rls-scope.test.ts	9	0	0
+SUITE_ROW	test/postgres-engine-singleton-ownership.test.ts	7	0	0
+SUITE_ROW	test/postgres-engine.test.ts	8	0	0
+SUITE_ROW	test/postgres-execute-raw-direct.test.ts	4	0	0
+SUITE_ROW	test/preferences.test.ts	21	0	0
+SUITE_ROW	test/privacy-script-wired.test.ts	5	0	0
+SUITE_ROW	test/privacy-strip-and-forget.test.ts	15	0	0
+SUITE_ROW	test/process-cleanup.test.ts	13	0	0
+SUITE_ROW	test/process-watchdog.serial.test.ts	3	0	0
+SUITE_ROW	test/process-watchdog.test.ts	7	0	0
+SUITE_ROW	test/progress-tail.test.ts	7	0	0
+SUITE_ROW	test/progress.test.ts	17	0	0
+SUITE_ROW	test/progressive-batch/orchestrator.test.ts	39	0	0
+SUITE_ROW	test/progressive-batch/retrofit-wrap.test.ts	4	0	0
+SUITE_ROW	test/propose-takes-per-claim.test.ts	2	0	0
+SUITE_ROW	test/propose-takes.test.ts	48	0	0
+SUITE_ROW	test/providers-test-model-base-url.test.ts	2	0	0
+SUITE_ROW	test/providers.test.ts	10	0	0
+SUITE_ROW	test/public-exports.test.ts	36	0	0
+SUITE_ROW	test/publish.test.ts	34	0	0
+SUITE_PROGRESS done=900 total=1304 red=16
+SUITE_ROW	test/put-page-empty-guard.test.ts	7	0	0
+SUITE_ROW	test/put-page-namespace.test.ts	12	0	0
+SUITE_ROW	test/put-page-provenance.test.ts	11	0	0
+SUITE_ROW	test/qualified-names.test.ts	10	0	0
+SUITE_ROW	test/quarantine-cli.test.ts	7	0	0
+SUITE_ROW	test/quarantine.test.ts	9	0	0
+SUITE_ROW	test/query-cache-gate.test.ts	17	0	0
+SUITE_ROW	test/query-cache-knobs-hash.serial.test.ts	11	0	0
+SUITE_ROW	test/query-cache.test.ts	12	0	0
+SUITE_ROW	test/query-image-flag.serial.test.ts	3	0	0
+SUITE_ROW	test/query-intent-legacy.test.ts	35	0	0
+SUITE_ROW	test/query-intent.test.ts	21	0	0
+SUITE_ROW	test/query-sanitization.test.ts	19	0	0
+SUITE_ROW	test/queue-child-done.test.ts	13	0	0
+SUITE_ROW	test/queue-getstats-wedge.test.ts	4	0	0
+SUITE_ROW	test/queue-lock-retry.test.ts	2	0	0
+SUITE_ROW	test/rate-leases-uncapped.test.ts	15	0	0
+SUITE_ROW	test/rate-leases.test.ts	12	0	0
+SUITE_ROW	test/readme-hero-anchors.test.ts	5	0	0
+SUITE_ROW	test/recall-extensions.test.ts	17	0	0
+SUITE_ROW	test/recall-footer.test.ts	14	0	0
+SUITE_ROW	test/recall-rollup.test.ts	7	0	0
+SUITE_ROW	test/recency-decay.test.ts	25	0	0
+SUITE_ROW	test/recompute-emotional-weight.test.ts	7	0	0
+SUITE_ROW	test/reconcile-links-cli-reachability.test.ts	1	0	0
+SUITE_ROW	test/reconcile-links.serial.test.ts	6	0	0
+SUITE_ROW	test/redos-hardening.test.ts	9	0	0
+SUITE_ROW	test/regression-strict-source-id.test.ts	9	0	0
+SUITE_ROW	test/regression-v0_16_4.test.ts	3	0	0
+SUITE_ROW	test/regressions/gbrain-base-equivalence.test.ts	8	0	0
+SUITE_ROW	test/regressions/v0.36.1.0-iron-rule.test.ts	7	0	0
+SUITE_ROW	test/regressions/v0_36_frontier_cap.test.ts	4	0	0
+SUITE_ROW	test/regressions/v0_40_2_0-trajectory-backcompat.test.ts	4	0	0
+SUITE_ROW	test/reindex-code-max-cost.serial.test.ts	3	0	0
+SUITE_ROW	test/reindex-code-model-source.serial.test.ts	3	0	0
+SUITE_ROW	test/reindex-code-nudge.serial.test.ts	11	0	0
+SUITE_ROW	test/reindex-code.test.ts	5	0	0
+SUITE_ROW	test/reindex-cost-refusal.test.ts	2	0	0
+SUITE_ROW	test/reindex-frontmatter-connect.test.ts	2	0	0
+SUITE_ROW	test/reindex-preserve-tags.test.ts	4	0	0
+SUITE_ROW	test/reindex-search-vector.serial.test.ts	6	0	0
+SUITE_ROW	test/reindex.test.ts	6	0	0
+SUITE_ROW	test/relational-ab.test.ts	4	0	0
+SUITE_ROW	test/relational-fanout.test.ts	7	0	0
+SUITE_ROW	test/relational-intent.test.ts	15	0	0
+SUITE_ROW	test/relational-recall.test.ts	4	0	0
+SUITE_ROW	test/remediation-run-extras.serial.test.ts	1	0	0
+SUITE_ROW	test/remediation-run-loop.serial.test.ts	1	0	0
+SUITE_ROW	test/remediation-step.test.ts	17	0	0
+SUITE_ROW	test/remote-ping-status-field.test.ts	4	0	0
+SUITE_ROW	test/repair-jsonb.test.ts	1	0	0
+SUITE_ROW	test/repo-root.test.ts	24	0	0
+SUITE_ROW	test/report.test.ts	3	0	0
+SUITE_ROW	test/repos-alias.test.ts	2	0	0
+SUITE_ROW	test/rerank-audit.test.ts	8	0	0
+SUITE_ROW	test/resolve-prepare.test.ts	11	0	0
+SUITE_ROW	test/resolver-merge.test.ts	9	0	0
+SUITE_ROW	test/resolver.test.ts	105	0	0
+SUITE_ROW	test/resolvers.test.ts	58	0	0
+SUITE_ROW	test/restart-sweep.test.ts	27	0	0
+SUITE_ROW	test/retrieval-quality-harness.test.ts	10	0	0
+SUITE_ROW	test/retrieval-reflex.test.ts	20	2	1
+SUITE_RED_BEGIN test/retrieval-reflex.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/retrieval-reflex.test.ts:
+  Schema version 1 → 125 (120 migration(s) pending)
+  [2] slugify_existing_pages...
+  [2] ✓ slugify_existing_pages
+  [3] unique_chunk_index...
+  [3] ✓ unique_chunk_index
+  [4] access_tokens_and_mcp_log...
+  [4] ✓ access_tokens_and_mcp_log
+  [5] minion_jobs_table...
+  [5] ✓ minion_jobs_table
+  [6] agent_orchestration_primitives...
+  [6] ✓ agent_orchestration_primitives
+  [7] agent_parity_layer...
+  [7] ✓ agent_parity_layer
+  [8] multi_type_links_constraint...
+  [8] ✓ multi_type_links_constraint
+  [9] timeline_dedup_index...
+  [9] ✓ timeline_dedup_index
+  [10] drop_timeline_search_trigger...
+  [10] ✓ drop_timeline_search_trigger
+  [11] links_provenance_columns...
+  [11] ✓ links_provenance_columns
+  [12] budget_ledger...
+  [12] ✓ budget_ledger
+  [13] minion_quiet_hours_stagger...
+  [13] ✓ minion_quiet_hours_stagger
+  [14] pages_updated_at_index...
+  [14] ✓ pages_updated_at_index
+  [15] minion_jobs_max_stalled_default_5...
+  [15] ✓ minion_jobs_max_stalled_default_5
+  [16] cycle_locks_table...
+  [16] ✓ cycle_locks_table
+  [20] sources_table_additive...
+  [20] ✓ sources_table_additive
+  [21] pages_source_id_composite_unique...
+  [21] ✓ pages_source_id_composite_unique
+  [22] links_resolution_type...
+  [22] ✓ links_resolution_type
+  [23] files_source_id_page_id_ledger...
+  [23] ✓ files_source_id_page_id_ledger
+  [24] rls_backfill_missing_tables...
+  [24] ✓ rls_backfill_missing_tables
+  [25] pages_page_kind...
+  [25] ✓ pages_page_kind
+  [26] content_chunks_code_metadata...
+  [26] ✓ content_chunks_code_metadata
+  [27] cathedral_ii_foundation...
+  [27] ✓ cathedral_ii_foundation
+  [28] cathedral_ii_chunk_fts_backfill...
+  [28] ✓ cathedral_ii_chunk_fts_backfill
+  [29] cathedral_ii_code_edges_rls...
+  [29] ✓ cathedral_ii_code_edges_rls
+  [30] dream_verdicts_table...
+  [30] ✓ dream_verdicts_table
+  [31] eval_capture_tables...
+  [31] ✓ eval_capture_tables
+  [32] oauth_infrastructure...
+  [32] ✓ oauth_infrastructure
+  [33] admin_dashboard_columns_v0_26_3...
+  [33] ✓ admin_dashboard_columns_v0_26_3
+  [34] destructive_guard_columns...
+  [34] ✓ destructive_guard_columns
+  [35] auto_rls_event_trigger...
+  [35] ✓ auto_rls_event_trigger
+  [36] subagent_provider_neutral_persistence_v0_27...
+  [36] ✓ subagent_provider_neutral_persistence_v0_27
+  [37] takes_and_synthesis_evidence...
+  [37] ✓ takes_and_synthesis_evidence
+  [38] access_tokens_permissions...
+  [38] ✓ access_tokens_permissions
+  [39] multimodal_dual_column_v0_27_1...
+  [39] ✓ multimodal_dual_column_v0_27_1
+  [40] pages_emotional_weight...
+  [40] ✓ pages_emotional_weight
+  [41] pages_recency_columns...
+  [41] ✓ pages_recency_columns
+  [42] eval_candidates_recency_capture...
+  [42] ✓ eval_candidates_recency_capture
+  [43] takes_resolved_quality_and_drift_decisions...
+  [43] ✓ takes_resolved_quality_and_drift_decisions
+  [44] pages_emotional_weight_recomputed_at...
+  [44] ✓ pages_emotional_weight_recomputed_at
+  [45] facts_hot_memory_v0_31...
+  [45] ✓ facts_hot_memory_v0_31
+  [46] mcp_request_log_params_jsonb_normalize...
+  [46] ✓ mcp_request_log_params_jsonb_normalize
+  [47] facts_notability_alter...
+  [47] ✓ facts_notability_alter
+  [48] takes_weight_round_to_grid...
+  [48] ✓ takes_weight_round_to_grid
+  [49] eval_takes_quality_runs...
+  [49] ✓ eval_takes_quality_runs
+  [50] ingest_log_source_id...
+  [50] ✓ ingest_log_source_id
+  [51] facts_fence_columns...
+  [51] ✓ facts_fence_columns
+  [52] eval_contradictions_cache...
+  [52] ✓ eval_contradictions_cache
+  [53] eval_contradictions_runs...
+  [53] ✓ eval_contradictions_runs
+  [54] cjk_wave_pages_chunker_version_and_source_path...
+  [54] ✓ cjk_wave_pages_chunker_version_and_source_path
+  [55] query_cache_search_lite...
+  [55] ✓ query_cache_search_lite
+  [56] query_cache_knobs_hash...
+  [56] ✓ query_cache_knobs_hash
+  [57] search_telemetry_rollup...
+  [57] ✓ search_telemetry_rollup
+  [58] edges_backfilled_at_v0_33_2...
+  [58] ✓ edges_backfilled_at_v0_33_2
+  [59] code_traversal_cache_v0_34...
+  [59] ✓ code_traversal_cache_v0_34
+  [60] oauth_clients_source_id_fk...
+  [60] ✓ oauth_clients_source_id_fk
+  [61] oauth_clients_federated_read_column...
+  [61] ✓ oauth_clients_federated_read_column
+  [62] oauth_clients_federated_read_backfill...
+  [62] ✓ oauth_clients_federated_read_backfill
+  [63] oauth_clients_federated_read_validate...
+  [63] ✓ oauth_clients_federated_read_validate
+  [64] oauth_clients_source_id_fk_restrict...
+  [64] ✓ oauth_clients_source_id_fk_restrict
+  [65] oauth_clients_federated_read_gin_index...
+  [65] ✓ oauth_clients_federated_read_gin_index
+  [66] embed_stale_partial_index...
+  [66] ✓ embed_stale_partial_index
+  [67] facts_typed_claim_columns...
+  [67] ✓ facts_typed_claim_columns
+  [68] calibration_profiles_v0_36...
+  [68] ✓ calibration_profiles_v0_36
+  [69] take_proposals_v0_36...
+  [69] ✓ take_proposals_v0_36
+  [70] take_grade_cache_v0_36...
+  [70] ✓ take_grade_cache_v0_36
+  [71] take_nudge_log_v0_36...
+  [71] ✓ take_nudge_log_v0_36
+  [72] takes_resolved_at_trend_idx_v0_36...
+  [72] ✓ takes_resolved_at_trend_idx_v0_36
+  [73] think_ab_results_v0_36...
+  [73] ✓ think_ab_results_v0_36
+  [74] eval_candidates_embedding_column...
+  [74] ✓ eval_candidates_embedding_column
+  [75] op_checkpoints_table...
+  [75] ✓ op_checkpoints_table
+  [76] minion_jobs_doctor_run_id_index...
+  [76] ✓ minion_jobs_doctor_run_id_index
+  [77] mcp_spend_log...
+  [77] ✓ mcp_spend_log
+  [78] embedding_multimodal_column...
+  [78] ✓ embedding_multimodal_column
+  [79] pages_last_retrieved_at...
+  [79] ✓ pages_last_retrieved_at
+  [80] takes_unresolvable_quality_v0_37_2_0...
+  [80] ✓ takes_unresolvable_quality_v0_37_2_0
+  [81] pages_provenance_columns...
+  [81] ✓ pages_provenance_columns
+  [82] subagent_tool_executions_stable_id...
+  [82] ✓ subagent_tool_executions_stable_id
+  [83] mcp_spend_reservations...
+  [83] ✓ mcp_spend_reservations
+  [84] oauth_clients_budget_usd_per_day...
+  [84] ✓ oauth_clients_budget_usd_per_day
+  [85] oauth_clients_agent_binding...
+  [85] ✓ oauth_clients_agent_binding
+  [86] page_links_view_alias...
+  [86] ✓ page_links_view_alias
+  [87] takes_kind_drop_check...
+  [87] ✓ takes_kind_drop_check
+  [88] eval_candidates_schema_pack_per_source...
+  [88] ✓ eval_candidates_schema_pack_per_source
+  [89] facts_event_type_column...
+  [89] ✓ facts_event_type_column
+  [90] contextual_retrieval_columns...
+  [90] ✓ contextual_retrieval_columns
+  [91] pages_generation_trigger_and_bookmark...
+  [91] ✓ pages_generation_trigger_and_bookmark
+  [92] sources_github_repo_index...
+  [92] ✓ sources_github_repo_index
+  [93] minions_v0_41_audit_and_budget...
+  [93] ✓ minions_v0_41_audit_and_budget
+  [94] take_domain_assignments...
+  [94] ✓ take_domain_assignments
+  [95] links_link_source_check_includes_mentions...
+  [95] ✓ links_link_source_check_includes_mentions
+  [96] facts_extract_conversation_session_index...
+  [96] ✓ facts_extract_conversation_session_index
+  [97] pages_dedup_partial_index...
+  [97] ✓ pages_dedup_partial_index
+  [98] gbrain_cycle_locks_last_refreshed_at...
+  [98] ✓ gbrain_cycle_locks_last_refreshed_at
+  [99] conversation_parser_llm_cache_table...
+  [99] ✓ conversation_parser_llm_cache_table
+  [101] links_link_kind_column...
+  [101] ✓ links_link_kind_column
+  [102] timeline_entries_source_in_dedup...
+  [102] ✓ timeline_entries_source_in_dedup
+  [103] migration_impact_log_and_priority_recent_idx...
+  [103] ✓ migration_impact_log_and_priority_recent_idx
+  [104] pages_atom_source_hash_idx...
+  [104] ✓ pages_atom_source_hash_idx
+  [105] slug_aliases...
+  [105] ✓ slug_aliases
+  [106] extract_rollup_7d_table...
+  [106] ✓ extract_rollup_7d_table
+  [107] page_generation_clock_and_statement_trigger...
+  [107] ✓ page_generation_clock_and_statement_trigger
+  [108] pages_embedding_signature...
+  [108] ✓ pages_embedding_signature
+  [109] sources_newest_content_at...
+  [109] ✓ sources_newest_content_at
+  [110] page_aliases...
+  [110] ✓ page_aliases
+  [111] search_telemetry_rank1_columns...
+  [111] ✓ search_telemetry_rank1_columns
+  [112] pages_links_extracted_at...
+  [112] ✓ pages_links_extracted_at
+  [113] links_link_source_widen_for_wikilink_basename...
+  [113] ✓ links_link_source_widen_for_wikilink_basename
+  [114] links_link_source_check_kebab_regex...
+  [114] ✓ links_link_source_check_kebab_regex
+  [115] op_checkpoint_paths_append_table...
+  [115] ✓ op_checkpoint_paths_append_table
+  [116] code_edges_source_backfill_and_callee_index...
+  [116] ✓ code_edges_source_backfill_and_callee_index
+  [117] context_volunteer_events_table...
+  [117] ✓ context_volunteer_events_table
+  [118] page_generation_clock_sequence_swap...
+  [118] ✓ page_generation_clock_sequence_swap
+  [119] op_checkpoints_completed_keys_array_check...
+  [119] ✓ op_checkpoints_completed_keys_array_check
+  [120] schema_lint_hardening_search_path_security_invoker...
+  [120] ✓ schema_lint_hardening_search_path_security_invoker
+  [121] timeline_entries_event_page_id...
+  [121] ✓ timeline_entries_event_page_id
+  [122] facts_ontology_dimension...
+  [122] ✓ facts_ontology_dimension
+  [123] configurable_fts_language...
+  v123: trigger functions recreated with language='english' (default — no backfill needed)
+  [123] ✓ configurable_fts_language
+  [124] page_search_vector_drop_compiled_truth...
+  v124: update_page_search_vector() no longer indexes compiled_truth (was overflowing tsvector on large pages, #2704)
+  [124] ✓ page_search_vector_drop_compiled_truth
+  [125] take_proposals_per_claim_idempotency...
+  [125] ✓ take_proposals_per_claim_idempotency
+  120 migration(s) applied
+(pass) resolveEntitiesToPointers > namespaced slug resolves from a bare title (the recall fix, D6) [7.55ms]
+(pass) resolveEntitiesToPointers > alias arm resolves an unambiguous single-slug hit [5.47ms]
+(pass) resolveEntitiesToPointers > privacy (D5): takes-fence content never leaks into the synopsis [2.75ms]
+(pass) resolveEntitiesToPointers > suppression: a slug already in PRIOR context is dropped [2.64ms]
+(pass) resolveEntitiesToPointers > empty candidates → null [1.04ms]
+(pass) resolveEntitiesToPointers > cap to maxPointers [3.18ms]
+(pass) resolveEntitiesToPointers > pre-v110 brains: alias-table absence does not break the slug arm [54.84ms]
+(pass) context-engine assemble() — Retrieval Reflex integration > regression: a named entity with a page surfaces a pointer (host resolver path) [6.34ms]
+(pass) context-engine assemble() — Retrieval Reflex integration > no resolver available (PGLite, no serve/host) → no throw, live context still present [0.91ms]
+(pass) context-engine assemble() — Retrieval Reflex integration > zero salient candidates → no brain touch, no pointer block [0.62ms]
+(pass) context-engine assemble() — Retrieval Reflex integration > suppression uses PRIOR turns only, not the current message [2.26ms]
+(pass) v0.43 (#2095) — rolling window extraction through assemble() > entity named ONLY in a previous assistant turn yields a pointer now [2.01ms]
+(pass) v0.43 (#2095) — rolling window extraction through assemble() > window=1 reproduces the legacy current-turn-only behavior [1.19ms]
+(pass) v0.43 (#2095) — rolling window extraction through assemble() > windowed suppression is slug-only: a prior-turn MENTION does not suppress (codex D7) [2.28ms]
+(pass) v0.43 (#2095) — rolling window extraction through assemble() > windowed suppression still drops an already-surfaced page (slug in prior context) [2.18ms]
+(pass) v0.43 (#2095) — rolling window extraction through assemble() > fail-open: a throwing resolver under windowing never breaks the turn [1.09ms]
+311 |     expect(unfinished).toBe(0);
+312 |     const rows = await engine.executeRaw<{ channel: string; slug: string; match_arm: string }>(
+313 |       'SELECT channel, slug, match_arm FROM context_volunteer_events',
+314 |       [],
+315 |     );
+316 |     expect(rows.length).toBe(1);
+                              ^
+error: expect(received).toBe(expected)
+
+Expected: 1
+Received: 0
+
+      at <anonymous> (/workspace/test/retrieval-reflex.test.ts:316:25)
+(fail) ambient-channel event logging (codex D11 — accept-side logDeliveredReflexPointers) > logDeliveredReflexPointers logs channel=reflex events through the drained sink [4.77ms]
+(pass) ambient-channel event logging (codex D11 — accept-side logDeliveredReflexPointers) > the bare resolver logs nothing — delivery is the only logging seam [1.70ms]
+(pass) ambient-channel event logging (codex D11 — accept-side logDeliveredReflexPointers) > logDeliveredReflexPointers with an empty pointer list is a no-op [0.77ms]
+374 |           maxPointers: req.maxPointers,
+375 |           suppression: req.suppression,
+376 |         }),
+377 |       (block) => logDeliveredReflexPointers(engine, block.pointers),
+378 |     );
+379 |     expect(server).not.toBeNull();
+                             ^
+error: expect(received).not.toBeNull()
+
+Received: null
+
+      at <anonymous> (/workspace/test/retrieval-reflex.test.ts:379:24)
+(fail) serve IPC wiring — suppression passthrough + reflex-channel logging (review hardening) > the IPC round-trip honors slug-only suppression and logs channel=reflex [3.45ms]
+(pass) windowTurnCount — knob edge semantics > 0, negative, NaN, and absent all fall back to the default of 4 (1 = legacy off) [0.61ms]
+(pass) windowTurnCount — knob edge semantics > the env escape hatch is honored even when config is null (no config file / DB) [0.47ms]
+
+ 20 pass
+ 2 fail
+ 45 expect() calls
+Ran 22 tests across 1 file. [1476.00ms]
+SUITE_RED_END test/retrieval-reflex.test.ts
+SUITE_ROW	test/retrieval-upgrade-planner.test.ts	27	0	0
+SUITE_ROW	test/retry-matcher.test.ts	23	0	0
+SUITE_ROW	test/routing-eval-cli.test.ts	4	0	0
+SUITE_ROW	test/routing-eval.test.ts	35	0	0
+SUITE_ROW	test/rrf-source-key.test.ts	5	0	0
+SUITE_ROW	test/rss-default.test.ts	12	0	0
+SUITE_ROW	test/salience.test.ts	2	0	0
+SUITE_ROW	test/scenarios.test.ts	12	0	0
+SUITE_ROW	test/schema-bootstrap-coverage.test.ts	9	0	0
+SUITE_ROW	test/schema-cli-contract.test.ts	7	0	0
+SUITE_ROW	test/schema-cli-database-path.serial.test.ts	1	0	0
+SUITE_ROW	test/schema-cli.test.ts	15	0	0
+SUITE_ROW	test/schema-migrate-link-source-mentions.test.ts	7	0	0
+SUITE_ROW	test/schema-pack-best-effort.test.ts	4	0	0
+SUITE_ROW	test/schema-pack-expand-type-filter.test.ts	9	0	0
+SUITE_ROW	test/schema-pack-find-pack-successors.serial.test.ts	9	0	0
+SUITE_ROW	test/schema-pack-infer-type-and-subtype.test.ts	9	0	0
+SUITE_ROW	test/schema-pack-lint-rules.test.ts	35	0	0
+SUITE_ROW	test/schema-pack-load-active.serial.test.ts	9	0	0
+SUITE_ROW	test/schema-pack-loader.test.ts	41	0	0
+SUITE_ROW	test/schema-pack-manifest-v041_2.test.ts	20	0	0
+SUITE_ROW	test/schema-pack-merge.test.ts	25	0	0
+SUITE_ROW	test/schema-pack-mutate-audit.test.ts	13	0	0
+SUITE_ROW	test/schema-pack-mutate.test.ts	35	0	0
+SUITE_ROW	test/schema-pack-pack-lock.test.ts	20	0	0
+SUITE_ROW	test/schema-pack-page-to-alias.test.ts	5	0	0
+SUITE_ROW	test/schema-pack-page-to-link.test.ts	7	0	0
+SUITE_ROW	test/schema-pack-query-cache-invalidator.test.ts	4	0	0
+SUITE_ROW	test/schema-pack-registry-reload.test.ts	13	0	0
+SUITE_ROW	test/schema-pack-registry.test.ts	9	0	0
+SUITE_ROW	test/schema-pack-retype.test.ts	12	0	0
+SUITE_ROW	test/schema-pack-rewrite-links-batch.test.ts	3	0	0
+SUITE_ROW	test/schema-pack-stats.test.ts	18	0	0
+SUITE_ROW	test/schema-pack-sync.test.ts	13	0	0
+SUITE_ROW	test/schema-pack-trust-boundary.test.ts	8	0	0
+SUITE_ROW	test/schema-pack-unify-types-handler.test.ts	6	0	0
+SUITE_ROW	test/schema-pack/scaffold-extractable.test.ts	15	0	0
+SUITE_ROW	test/schema-verify.test.ts	12	0	0
+SUITE_PROGRESS done=1000 total=1304 red=17
+SUITE_ROW	test/scope-agent-isolation.test.ts	9	0	0
+SUITE_ROW	test/scope-normalize.test.ts	28	0	0
+SUITE_ROW	test/scope.test.ts	35	0	0
+SUITE_ROW	test/scripts/check-key-files-current-state.test.ts	7	0	0
+SUITE_ROW	test/scripts/check-proposal-pii.test.ts	15	0	0
+SUITE_ROW	test/scripts/check-test-isolation.test.ts	16	0	0
+SUITE_ROW	test/scripts/check-worker-lock-renewal-shape.test.ts	5	0	0
+SUITE_ROW	test/scripts/check-worker-pool-atomicity.test.ts	9	0	0
+SUITE_ROW	test/scripts/ci-cache-hash.test.ts	27	0	0
+SUITE_ROW	test/scripts/mine-shard-weights.test.ts	15	0	0
+SUITE_ROW	test/scripts/run-unit-parallel.test.ts	8	0	0
+SUITE_ROW	test/scripts/run-unit-shard.test.ts	4	0	0
+SUITE_ROW	test/scripts/run-verify-parallel.test.ts	8	0	0
+SUITE_ROW	test/scripts/serial-files.test.ts	3	0	0
+SUITE_ROW	test/scripts/sharding.test.ts	23	0	0
+SUITE_ROW	test/scripts/test-shard.slow.test.ts	8	0	0
+SUITE_ROW	test/search-alias-resolved-boost.test.ts	4	0	0
+SUITE_ROW	test/search-by-image-op.test.ts	8	0	0
+SUITE_ROW	test/search-image-column.test.ts	4	0	0
+SUITE_ROW	test/search-lang-symbol-kind.test.ts	9	0	0
+SUITE_ROW	test/search-limit.test.ts	16	0	0
+SUITE_ROW	test/search-mode.test.ts	69	0	0
+SUITE_ROW	test/search-telemetry-cache-wiring.serial.test.ts	4	0	0
+SUITE_ROW	test/search-telemetry.test.ts	16	0	0
+SUITE_ROW	test/search-types-filter.test.ts	9	0	0
+SUITE_ROW	test/search.test.ts	49	0	0
+SUITE_ROW	test/search/alias-hop.test.ts	9	0	0
+SUITE_ROW	test/search/alias-normalize.test.ts	10	0	0
+SUITE_ROW	test/search/attribution-stamping.test.ts	16	0	0
+SUITE_ROW	test/search/autocut-eval.test.ts	6	0	0
+SUITE_ROW	test/search/autocut-integration.serial.test.ts	7	0	0
+SUITE_ROW	test/search/autocut.test.ts	27	0	0
+SUITE_ROW	test/search/call-receipt-wiring.serial.test.ts	19	0	0
+SUITE_ROW	test/search/call-receipt.test.ts	17	0	0
+SUITE_ROW	test/search/embedding-column.serial.test.ts	50	0	0
+SUITE_ROW	test/search/evidence.test.ts	12	0	0
+SUITE_ROW	test/search/explain-formatter.test.ts	26	0	0
+SUITE_ROW	test/search/graph-signals-wire-integration.test.ts	3	0	0
+SUITE_ROW	test/search/graph-signals.test.ts	30	0	0
+SUITE_ROW	test/search/hybrid-reranker-integration.serial.test.ts	7	0	0
+SUITE_ROW	test/search/knobs-hash-reranker.test.ts	21	0	0
+SUITE_ROW	test/search/page-aliases-engine.test.ts	7	0	0
+SUITE_ROW	test/search/per-call-mode.test.ts	5	0	0
+SUITE_ROW	test/search/per-call-use-cache.test.ts	8	0	0
+SUITE_ROW	test/search/pre-migration-failopen.test.ts	3	0	0
+SUITE_ROW	test/search/query-embed-deadline.test.ts	3	0	0
+SUITE_ROW	test/search/query-op-adaptive-return.test.ts	3	0	0
+SUITE_ROW	test/search/query-op-autocut.test.ts	4	0	0
+SUITE_ROW	test/search/reindex-aliases.test.ts	4	0	0
+SUITE_ROW	test/search/rerank.test.ts	16	0	0
+SUITE_ROW	test/search/return-policy.test.ts	19	0	0
+SUITE_ROW	test/search/search-diagnose.test.ts	2	0	0
+SUITE_ROW	test/search/search-stats-graph-signals.test.ts	6	0	0
+SUITE_ROW	test/search/searchvector-maxpool.test.ts	4	0	0
+SUITE_ROW	test/search/telemetry-rank1.test.ts	3	0	0
+SUITE_ROW	test/search/title-boost-stage.test.ts	5	0	0
+SUITE_ROW	test/search/title-match.test.ts	14	0	0
+SUITE_ROW	test/search/title-retrieval-arm.test.ts	18	0	0
+SUITE_ROW	test/seed-pglite.serial.test.ts	11	0	0
+SUITE_ROW	test/select-e2e.test.ts	24	0	0
+SUITE_ROW	test/self-fix.test.ts	16	0	0
+SUITE_ROW	test/self-upgrade-checkonly.serial.test.ts	4	0	0
+SUITE_ROW	test/self-upgrade.test.ts	36	0	0
+SUITE_ROW	test/serve-http-bootstrap-token.test.ts	14	0	0
+SUITE_ROW	test/serve-http-cors.test.ts	13	0	0
+SUITE_ROW	test/serve-http-embedding-width.test.ts	2	0	0
+SUITE_ROW	test/serve-http-health.test.ts	8	0	0
+SUITE_ROW	test/serve-http-oauth-token-rate-limit.test.ts	3	0	0
+SUITE_ROW	test/serve-http-trust-proxy.test.ts	15	0	0
+SUITE_ROW	test/serve-skills-publish-nudge.test.ts	6	0	0
+SUITE_ROW	test/serve-stdio-lifecycle.test.ts	34	0	0
+SUITE_ROW	test/setup-branching.test.ts	16	0	0
+SUITE_ROW	test/skill-brain-first.test.ts	56	0	0
+SUITE_ROW	test/skill-catalog-block-scalar.test.ts	7	0	0
+SUITE_ROW	test/skill-catalog-security.test.ts	17	0	0
+SUITE_ROW	test/skill-catalog-transports.test.ts	8	0	0
+SUITE_ROW	test/skill-catalog.test.ts	15	0	0
+SUITE_ROW	test/skill-manifest.test.ts	14	0	0
+SUITE_ROW	test/skill-trigger-index.test.ts	18	0	0
+SUITE_ROW	test/skillify-check.test.ts	6	0	0
+SUITE_ROW	test/skillify-scaffold.test.ts	19	0	0
+SUITE_ROW	test/skillopt/adversarial/concurrent-runs.serial.test.ts	5	0	0
+SUITE_ROW	test/skillopt/adversarial/malformed-markdown.test.ts	10	0	0
+SUITE_ROW	test/skillopt/adversarial/noisy-judge.test.ts	10	0	0
+SUITE_ROW	test/skillopt/adversarial/partial-write-crash.test.ts	5	0	0
+SUITE_ROW	test/skillopt/adversarial/resume-after-crash.test.ts	4	0	0
+SUITE_ROW	test/skillopt/adversarial/side-effecting-tool.test.ts	7	0	0
+SUITE_ROW	test/skillopt/apply-edits.test.ts	16	0	0
+SUITE_ROW	test/skillopt/audit.test.ts	4	0	0
+SUITE_ROW	test/skillopt/batch.test.ts	5	0	0
+SUITE_ROW	test/skillopt/benchmark.test.ts	20	0	0
+SUITE_ROW	test/skillopt/bootstrap-from-skill.test.ts	20	0	0
+SUITE_ROW	test/skillopt/held-out.test.ts	12	0	0
+SUITE_ROW	test/skillopt/lock.test.ts	5	0	0
+SUITE_ROW	test/skillopt/lr-schedule.test.ts	8	0	0
+SUITE_ROW	test/skillopt/reflect.test.ts	23	0	0
+SUITE_ROW	test/skillopt/rejected-buffer.test.ts	8	0	0
+SUITE_ROW	test/skillopt/rollout-schema.test.ts	2	0	0
+SUITE_ROW	test/skillopt/rollout.test.ts	5	0	0
+SUITE_ROW	test/skillopt/score.test.ts	22	0	0
+SUITE_PROGRESS done=1100 total=1304 red=17
+SUITE_ROW	test/skillopt/validate-gate-abort.test.ts	3	0	0
+SUITE_ROW	test/skillopt/version-store.test.ts	6	0	0
+SUITE_ROW	test/skillopt/write-capture.test.ts	8	0	0
+SUITE_ROW	test/skillpack-apply-hunks.test.ts	16	0	0
+SUITE_ROW	test/skillpack-bootstrap-display.test.ts	5	0	0
+SUITE_ROW	test/skillpack-brain-resident-locate.test.ts	7	0	0
+SUITE_ROW	test/skillpack-changed-since-version.test.ts	9	0	0
+SUITE_ROW	test/skillpack-check.test.ts	5	0	0
+SUITE_ROW	test/skillpack-copy.test.ts	16	0	0
+SUITE_ROW	test/skillpack-endorse.test.ts	10	0	0
+SUITE_ROW	test/skillpack-frontmatter-sources.test.ts	10	0	0
+SUITE_ROW	test/skillpack-harvest-lint.test.ts	11	0	0
+SUITE_ROW	test/skillpack-harvest.test.ts	9	0	0
+SUITE_ROW	test/skillpack-init-brain-pack.test.ts	7	0	0
+SUITE_ROW	test/skillpack-init-pack.test.ts	12	0	0
+SUITE_ROW	test/skillpack-install.test.ts	31	0	0
+SUITE_ROW	test/skillpack-manifest-v1.test.ts	37	0	0
+SUITE_ROW	test/skillpack-migrate-fence.test.ts	18	0	0
+SUITE_ROW	test/skillpack-nag-state.test.ts	12	0	0
+SUITE_ROW	test/skillpack-reference-apply.test.ts	8	0	0
+SUITE_ROW	test/skillpack-reference-pack-is-ten.test.ts	2	0	0
+SUITE_ROW	test/skillpack-reference.test.ts	9	0	0
+SUITE_ROW	test/skillpack-registry-client.test.ts	19	0	0
+SUITE_ROW	test/skillpack-registry-schema.test.ts	21	0	0
+SUITE_ROW	test/skillpack-remote-source.test.ts	18	0	0
+SUITE_ROW	test/skillpack-rubric-doctor.test.ts	21	0	0
+SUITE_ROW	test/skillpack-scaffold-third-party.test.ts	11	0	0
+SUITE_ROW	test/skillpack-scaffold.test.ts	12	0	0
+SUITE_ROW	test/skillpack-scrub-legacy.test.ts	8	0	0
+SUITE_ROW	test/skillpack-state.test.ts	18	0	0
+SUITE_ROW	test/skillpack-tarball.test.ts	14	0	0
+SUITE_ROW	test/skillpack-trust-prompt.test.ts	12	0	0
+SUITE_ROW	test/skills-conformance.test.ts	264	0	0
+SUITE_ROW	test/slug-validation.test.ts	54	0	0
+SUITE_ROW	test/sort-newest-first.test.ts	5	0	0
+SUITE_ROW	test/source-config-redact.test.ts	8	0	0
+SUITE_ROW	test/source-health.test.ts	28	0	0
+SUITE_ROW	test/source-id-routing.test.ts	6	0	0
+SUITE_ROW	test/source-id-tx-regression.test.ts	27	0	0
+SUITE_ROW	test/source-id.test.ts	19	0	0
+SUITE_ROW	test/source-resolver-silent-fallback.test.ts	12	0	0
+SUITE_ROW	test/source-resolver-sole-non-default.test.ts	14	0	0
+SUITE_ROW	test/source-resolver-with-tier.test.ts	11	0	0
+SUITE_ROW	test/source-resolver.test.ts	19	0	0
+SUITE_ROW	test/source-scope-resolver.test.ts	18	0	0
+SUITE_ROW	test/sources-archive-idempotent.test.ts	3	0	0
+SUITE_ROW	test/sources-load.test.ts	18	0	0
+SUITE_ROW	test/sources-mcp.test.ts	21	0	0
+SUITE_ROW	test/sources-ops.test.ts	51	0	0
+SUITE_ROW	test/sources-resync-recovery.test.ts	13	0	0
+SUITE_ROW	test/sources-set-cr-mode.test.ts	10	0	0
+SUITE_ROW	test/sources-webhook.test.ts	12	0	0
+SUITE_ROW	test/sources.test.ts	17	0	0
+SUITE_ROW	test/spawn-helpers.test.ts	4	0	0
+SUITE_ROW	test/spend-off-switch.test.ts	5	0	0
+SUITE_ROW	test/sql-query.test.ts	8	0	0
+SUITE_ROW	test/sql-ranking.test.ts	52	0	0
+SUITE_ROW	test/ssrf-validate.test.ts	20	0	0
+SUITE_ROW	test/status-sections.test.ts	17	0	0
+SUITE_ROW	test/storage-backfill.test.ts	8	0	0
+SUITE_ROW	test/storage-config.test.ts	21	0	0
+SUITE_ROW	test/storage-export.test.ts	5	0	0
+SUITE_ROW	test/storage-pglite.test.ts	6	0	0
+SUITE_ROW	test/storage-status.test.ts	9	0	0
+SUITE_ROW	test/storage-sync.test.ts	14	0	0
+SUITE_ROW	test/storage.test.ts	20	0	0
+SUITE_ROW	test/stub-guard-audit.test.ts	9	0	0
+SUITE_ROW	test/subagent-aggregator.test.ts	13	0	0
+SUITE_ROW	test/subagent-audit.test.ts	11	0	0
+SUITE_ROW	test/subagent-handler.test.ts	28	0	0
+SUITE_ROW	test/subagent-prompt-too-long.test.ts	9	0	0
+SUITE_ROW	test/subagent-transcript.test.ts	10	0	0
+SUITE_ROW	test/subagent-v1-v2-shim.test.ts	16	0	0
+SUITE_ROW	test/submit-agent.test.ts	17	0	0
+SUITE_ROW	test/sum-stale-chunk-chars.test.ts	5	0	0
+SUITE_ROW	test/supabase-admin.test.ts	7	0	0
+SUITE_ROW	test/supervisor-audit.test.ts	18	0	0
+SUITE_ROW	test/supervisor-build-worker-args.test.ts	6	0	0
+SUITE_ROW	test/supervisor-db-lock.test.ts	17	0	0
+SUITE_ROW	test/supervisor-pid.test.ts	4	0	0
+SUITE_ROW	test/supervisor-tini.test.ts	2	0	0
+SUITE_ROW	test/supervisor-wedge.test.ts	12	0	0
+SUITE_ROW	test/supervisor.test.ts	20	0	0
+SUITE_ROW	test/svg-renderer.test.ts	19	0	0
+SUITE_ROW	test/sync-all-parallel.test.ts	17	0	0
+SUITE_ROW	test/sync-break-lock-all.test.ts	16	0	0
+SUITE_ROW	test/sync-classifier-widening.test.ts	21	0	0
+SUITE_ROW	test/sync-concurrency.test.ts	17	0	0
+SUITE_ROW	test/sync-cost-estimate.test.ts	8	0	0
+SUITE_ROW	test/sync-cost-gate.serial.test.ts	9	0	0
+SUITE_ROW	test/sync-cost-preview.test.ts	27	0	0
+SUITE_ROW	test/sync-delete-batch.slow.test.ts	1	0	0
+SUITE_ROW	test/sync-delete-batch.test.ts	10	0	0
+SUITE_ROW	test/sync-deleted-slug-embed.test.ts	1	0	0
+SUITE_ROW	test/sync-delta.test.ts	8	0	0
+SUITE_ROW	test/sync-discover-git-root-stderr.test.ts	2	0	0
+SUITE_ROW	test/sync-failure-ledger.serial.test.ts	23	0	0
+SUITE_ROW	test/sync-failures.test.ts	60	0	0
+SUITE_ROW	test/sync-git-autoinit.test.ts	14	0	0
+SUITE_ROW	test/sync-hard-deadline.test.ts	18	0	0
+SUITE_PROGRESS done=1200 total=1304 red=17
+SUITE_ROW	test/sync-inline-extract-stamps.serial.test.ts	2	0	0
+SUITE_ROW	test/sync-isSyncable-shape.test.ts	18	0	0
+SUITE_ROW	test/sync-metafile-skip.serial.test.ts	3	0	0
+SUITE_ROW	test/sync-monorepo.test.ts	13	0	0
+SUITE_ROW	test/sync-no-embed-sentinel.test.ts	4	0	0
+SUITE_ROW	test/sync-nudge-status-gate.test.ts	6	0	0
+SUITE_ROW	test/sync-ops-pages.serial.test.ts	3	0	0
+SUITE_ROW	test/sync-parallel.test.ts	7	0	0
+SUITE_ROW	test/sync-pull-failed-anchor.serial.test.ts	3	0	0
+SUITE_ROW	test/sync-reconcile-db-only.serial.test.ts	2	0	0
+SUITE_ROW	test/sync-reconcile-mass-delete.test.ts	13	0	0
+SUITE_ROW	test/sync-rename-batch.test.ts	3	0	0
+SUITE_ROW	test/sync-resumable-import.serial.test.ts	13	0	0
+SUITE_ROW	test/sync-sole-non-default-routing.test.ts	3	0	0
+SUITE_ROW	test/sync-strategy.test.ts	16	0	0
+SUITE_ROW	test/sync-timeout.test.ts	15	0	0
+SUITE_ROW	test/sync-trigger-cli.test.ts	7	0	0
+SUITE_ROW	test/sync-walker-submodule.test.ts	5	0	0
+SUITE_ROW	test/sync-walker-symlink.test.ts	7	0	0
+SUITE_ROW	test/sync.test.ts	68	0	0
+SUITE_ROW	test/synth-enabled-default.test.ts	5	0	0
+SUITE_ROW	test/system-prompt.test.ts	13	0	0
+SUITE_ROW	test/take-forecast.test.ts	14	0	0
+SUITE_ROW	test/takes-command-source-scope.test.ts	4	0	0
+SUITE_ROW	test/takes-engine.test.ts	27	0	0
+SUITE_ROW	test/takes-fence-read-ops.serial.test.ts	5	0	0
+SUITE_ROW	test/takes-fence.test.ts	25	0	0
+SUITE_ROW	test/takes-holder-semantics.test.ts	6	0	0
+SUITE_ROW	test/takes-holder-validation.test.ts	31	0	0
+SUITE_ROW	test/takes-mcp-allowlist.serial.test.ts	13	0	0
+SUITE_ROW	test/takes-resolution.test.ts	22	0	0
+SUITE_ROW	test/takes-source-scope.test.ts	8	0	0
+SUITE_ROW	test/takes-weight-rounding.test.ts	18	0	0
+SUITE_ROW	test/text-safe.test.ts	26	0	0
+SUITE_ROW	test/thin-client-routing-audit.test.ts	25	0	0
+SUITE_ROW	test/thin-client-source-scope.test.ts	13	0	0
+SUITE_ROW	test/thin-client-upgrade-prompt.test.ts	49	0	0
+SUITE_ROW	test/think-ab.test.ts	12	0	0
+SUITE_ROW	test/think-entity-extract.test.ts	10	0	0
+SUITE_ROW	test/think-gaps.test.ts	12	0	0
+SUITE_ROW	test/think-gateway-adapter.test.ts	16	0	0
+SUITE_ROW	test/think-intent.test.ts	10	0	0
+SUITE_ROW	test/think-max-output-tokens.test.ts	2	0	0
+SUITE_ROW	test/think-pages-block.test.ts	16	0	0
+SUITE_ROW	test/think-pipeline.serial.test.ts	30	0	0
+SUITE_ROW	test/think-sanitize-trajectory.test.ts	18	0	0
+SUITE_ROW	test/think-trajectory-injection.test.ts	11	0	0
+SUITE_ROW	test/think-with-calibration.test.ts	11	0	0
+SUITE_ROW	test/timeline-date-batch.test.ts	2	0	0
+SUITE_ROW	test/timeline-dedup-repair.test.ts	4	0	0
+SUITE_ROW	test/timeline-entry-subagent-fence.test.ts	9	0	0
+SUITE_ROW	test/timeout.test.ts	9	0	0
+SUITE_ROW	test/timing-safe.test.ts	6	0	0
+SUITE_ROW	test/token-budget.test.ts	10	0	0
+SUITE_ROW	test/trajectory-format.test.ts	17	0	0
+SUITE_ROW	test/trajectory.test.ts	3	0	0
+SUITE_ROW	test/transcript-capture.test.ts	9	0	0
+SUITE_ROW	test/transcription-injection.test.ts	2	0	0
+SUITE_ROW	test/transcription.test.ts	6	0	0
+SUITE_ROW	test/transcripts.test.ts	11	0	0
+SUITE_ROW	test/traverse-graph-dedup.test.ts	2	0	0
+SUITE_ROW	test/trust-boundary-contract.test.ts	4	0	0
+SUITE_ROW	test/two-pass.test.ts	8	0	0
+SUITE_ROW	test/undo-wave.test.ts	8	0	0
+SUITE_ROW	test/unified-multimodal.serial.test.ts	8	0	0
+SUITE_ROW	test/upgrade-checkpoint.serial.test.ts	18	0	0
+SUITE_ROW	test/upgrade-reembed-prompt.test.ts	11	0	0
+SUITE_ROW	test/upgrade-reference-sweep.test.ts	6	0	0
+SUITE_ROW	test/upgrade.serial.test.ts	19	0	0
+SUITE_ROW	test/url-redact.test.ts	12	0	0
+SUITE_ROW	test/utils.test.ts	26	0	0
+SUITE_ROW	test/v0_29-tool-surfaces.test.ts	9	0	0
+SUITE_ROW	test/v0_37_fix_wave.serial.test.ts	19	0	0
+SUITE_ROW	test/v0_37_gap_fill.serial.test.ts	12	0	0
+SUITE_ROW	test/v81-v82-smoke.test.ts	3	0	0
+SUITE_ROW	test/vector-index-lifecycle.test.ts	18	0	0
+SUITE_ROW	test/voice-gate.test.ts	24	0	0
+SUITE_ROW	test/volunteer-context.test.ts	32	0	0
+SUITE_ROW	test/voyage-multimodal.test.ts	22	0	0
+SUITE_ROW	test/voyage-response-cap.test.ts	6	0	0
+SUITE_ROW	test/wait-for-completion.test.ts	9	0	0
+SUITE_ROW	test/watch-command.test.ts	14	0	0
+SUITE_ROW	test/watch-sigint.serial.test.ts	0	1	1
+SUITE_RED_BEGIN test/watch-sigint.serial.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/watch-sigint.serial.test.ts:
+30 |         stdin: 'pipe',
+31 |         stdout: 'pipe',
+32 |         stderr: 'pipe',
+33 |       });
+34 |       proc.stdin.write('user: nothing relevant here\n');
+35 |       await proc.stdin.flush();
+                            ^
+EPERM: operation not permitted, send
+      fd: 410,
+ syscall: "send",
+   errno: -1,
+    code: "EPERM"
+
+      at <anonymous> (/workspace/test/watch-sigint.serial.test.ts:35:24)
+(fail) gbrain watch — SIGINT lifecycle (real subprocess) > SIGINT mid-stream closes the stream and exits cleanly (drain path, exit 0) [1.31ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [96.00ms]
+SUITE_RED_END test/watch-sigint.serial.test.ts
+SUITE_ROW	test/whoami.test.ts	15	0	0
+SUITE_ROW	test/whoknows-doctor.test.ts	7	0	0
+SUITE_ROW	test/whoknows.test.ts	16	0	0
+SUITE_ROW	test/worker-lock-renewal-e2e.serial.test.ts	1	0	0
+SUITE_ROW	test/worker-lock-renewal-shape.test.ts	18	0	0
+SUITE_ROW	test/worker-lock-renewal.test.ts	23	0	0
+SUITE_ROW	test/worker-pool.test.ts	23	0	0
+SUITE_ROW	test/worker-promote-reconnect.test.ts	1	0	0
+SUITE_ROW	test/worker-registry.serial.test.ts	6	0	0
+SUITE_ROW	test/worker-rss.test.ts	11	0	0
+SUITE_ROW	test/worker-shutdown-disconnect.test.ts	2	0	0
+SUITE_ROW	test/worker-supervised-db-probe.test.ts	3	0	0
+SUITE_ROW	test/worker-watchdog-trigger.test.ts	2	0	0
+SUITE_ROW	test/write-through-commit.serial.test.ts	2	0	0
+SUITE_ROW	test/write-through.test.ts	9	0	0
+SUITE_ROW	test/write-verify-guard.test.ts	4	0	0
+SUITE_ROW	test/writer.test.ts	60	0	0
+SUITE_PROGRESS done=1300 total=1304 red=18
+SUITE_ROW	test/yaml-lite.test.ts	9	0	0
+SUITE_ROW	test/ze-switch-cli.test.ts	11	0	0
+SUITE_ROW	test/ze-switch-env-override.test.ts	17	0	0
+SUITE_ROW	test/zombie-reap.test.ts	2	0	0
+SUITE_SUMMARY files=1304 green_files=1286 red_files=18 tests_pass=15923 tests_fail=44 unknown=0

@@ -1,0 +1,31 @@
+NETNS_INIT_PRIVILEGE uid=0 gid=0 user=user:[4026533917] net=net:[4026533919] current==ep cap_net_admin=present host_user_distinct=true host_net_distinct=true
+Cannot open netlink socket: Operation not permitted
+NETNS_INIT loopback=down mode=DEGRADADO reason=ip-netlink-denied
+ATTACK_START config_unicode
+ATTACK_RESULT {"case":"config_unicode","injection_observed":"JSON.parse(database\\u005furl)","target":"postgresql://u:p@127.0.0.1:45678/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:45678"}
+ATTACK_OBSERVED_CONFOUNDED config_unicode outer_seccomp=true
+ATTACK_START database_url
+ATTACK_RESULT {"case":"database_url","injection_observed":"process.env.DATABASE_URL","target":"postgresql://u:p@127.0.0.1:45678/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:45678"}
+ATTACK_OBSERVED_CONFOUNDED database_url outer_seccomp=true
+ATTACK_START gbrain_database_url
+ATTACK_RESULT {"case":"gbrain_database_url","injection_observed":"effectiveEnvDatabaseUrl(GBRAIN_DATABASE_URL)","target":"postgresql://u:p@127.0.0.1:45678/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:45678"}
+ATTACK_OBSERVED_CONFOUNDED gbrain_database_url outer_seccomp=true
+ATTACK_START e2e_allow_db
+ATTACK_RESULT {"case":"e2e_allow_db","injection_observed":"assertSafeE2eDatabaseUrl accepted exact opt-in","target":"postgresql://u:p@127.0.0.1:45678/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:45678"}
+ATTACK_OBSERVED_CONFOUNDED e2e_allow_db outer_seccomp=true
+ATTACK_START dotenv
+ATTACK_RESULT {"case":"dotenv","injection_observed":".env export syntax + .env.testing helper","target":"postgresql://u:p@127.0.0.1:45678/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:45678"}
+ATTACK_OBSERVED_CONFOUNDED dotenv outer_seccomp=true
+ATTACK_START path_shim
+ATTACK_RESULT {"case":"path_shim","injection_observed":"bun shim injected after env -i","target":"postgresql://u:p@127.0.0.1:45678/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:45678"}
+ATTACK_OBSERVED_CONFOUNDED path_shim outer_seccomp=true
+ATTACK_START bunfig_preload
+ATTACK_RESULT {"case":"bunfig_preload","injection_observed":"[test].preload ran before test","target":"postgresql://u:p@127.0.0.1:45678/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:45678"}
+ATTACK_OBSERVED_CONFOUNDED bunfig_preload outer_seccomp=true
+ATTACK_START direct_literal
+ATTACK_RESULT {"case":"direct_literal","injection_observed":"direct socket call; no product resolver","target":"postgresql://u:p@127.0.0.1:45678/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:45678"}
+ATTACK_OBSERVED_CONFOUNDED direct_literal outer_seccomp=true
+ATTACK_START direct_unix_socket
+ATTACK_RESULT {"case":"direct_unix_socket","injection_observed":"direct AF_UNIX connect; no URL or environment resolver","target":"/tmp/host-canary-unreachable.sock","connected":false,"code":"ENOENT","message":"Failed to connect"}
+ATTACK_OBSERVED_CONFOUNDED direct_unix_socket outer_seccomp=true
+ATTACK_SUMMARY total=9 observed=9 security_pass=0 confounded=outer-seccomp

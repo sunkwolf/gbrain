@@ -1,0 +1,5 @@
+Cannot open netlink socket: Operation not permitted
+NETNS_INIT loopback=down mode=DEGRADADO reason=ip-netlink-denied
+SUITE_START head=0a1ecb6b9811ee6d676dc3ca46fab0294d5fa8ba files=1 home=/tmp/gb-diff-home
+SUITE_ROW	test/e2e/init-fresh-pglite.test.ts	14	0	0
+SUITE_SUMMARY files=1 green_files=1 red_files=0 tests_pass=14 tests_fail=0 unknown=0

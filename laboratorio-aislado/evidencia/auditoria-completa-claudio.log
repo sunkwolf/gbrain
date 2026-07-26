@@ -1,0 +1,52 @@
+HOST_CONTROL_PASS kind=tcp reply=HOST_CANARY_REACHED
+HOST_CONTROL_PASS kind=unix reply=HOST_CANARY_REACHED
+NETNS_INIT_PRIVILEGE uid=0 gid=0 user=user:[4026533917] net=net:[4026533918] Current:=ep cap_net_admin=present host_user_distinct=true host_net_distinct=true
+NETNS_INIT loopback=up external_interfaces=0
+STRUCT_NAMESPACE net host=net:[4026531833] lab=net:[4026533918] distinct=true
+STRUCT_NAMESPACE user host=user:[4026531837] lab=user:[4026534133] distinct=true
+STRUCT_NAMESPACE pid host=pid:[4026531836] lab=pid:[4026534131] distinct=true
+STRUCT_NAMESPACE ipc host=ipc:[4026531839] lab=ipc:[4026534130] distinct=true
+STRUCT_NAMESPACE uts host=uts:[4026531838] lab=uts:[4026534129] distinct=true
+STRUCT_NAMESPACE cgroup host=cgroup:[4026531835] lab=cgroup:[4026534132] distinct=true
+STRUCT_NAMESPACE mnt host=mnt:[4026531832] lab=mnt:[4026534128] distinct=true
+STRUCT_NAMESPACE_CHAIN user_parent=user:[4026533917] user_inner=user:[4026534133] nested=true net_parent=net:[4026533918] net_inner=net:[4026533918] inherited=true
+STRUCT_IDENTITY uid=1000 gid=1000
+STRUCT_NETWORK interfaces=lo external_routes=0 loopback=up
+STRUCT_FILESYSTEM host_postgres_socket=absent host_home=absent
+STRUCT_CAPABILITIES Current:= cap_net_admin=absent
+STRUCT_WRITES workspace=allowed host_clone=denied rc=1 diagnostic=touch:\ cannot\ touch\ \'/input/repo/.lab-host-write-probe\':\ Read-only\ file\ system
+STRUCT_NESTED_USERNS disabled=true rc=1 diagnostic=unshare:\ unshare\ failed:\ No\ space\ left\ on\ device
+STRUCT_INHERITED_FD fd=9 closed=true
+STRUCT_SUMMARY pass=true
+NETNS_INIT_PRIVILEGE uid=0 gid=0 user=user:[4026533918] net=net:[4026533919] Current:=ep cap_net_admin=present host_user_distinct=true host_net_distinct=true
+NETNS_INIT loopback=up external_interfaces=0
+ATTACK_START config_unicode
+ATTACK_RESULT {"case":"config_unicode","injection_observed":"JSON.parse(database\\u005furl)","target":"postgresql://u:p@127.0.0.1:44055/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:44055"}
+ATTACK_PASS config_unicode
+ATTACK_START database_url
+ATTACK_RESULT {"case":"database_url","injection_observed":"process.env.DATABASE_URL","target":"postgresql://u:p@127.0.0.1:44055/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:44055"}
+ATTACK_PASS database_url
+ATTACK_START gbrain_database_url
+ATTACK_RESULT {"case":"gbrain_database_url","injection_observed":"effectiveEnvDatabaseUrl(GBRAIN_DATABASE_URL)","target":"postgresql://u:p@127.0.0.1:44055/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:44055"}
+ATTACK_PASS gbrain_database_url
+ATTACK_START e2e_allow_db
+ATTACK_RESULT {"case":"e2e_allow_db","injection_observed":"assertSafeE2eDatabaseUrl accepted exact opt-in","target":"postgresql://u:p@127.0.0.1:44055/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:44055"}
+ATTACK_PASS e2e_allow_db
+ATTACK_START dotenv
+ATTACK_RESULT {"case":"dotenv","injection_observed":".env export syntax + .env.testing helper","target":"postgresql://u:p@127.0.0.1:44055/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:44055"}
+ATTACK_PASS dotenv
+ATTACK_START path_shim
+ATTACK_RESULT {"case":"path_shim","injection_observed":"bun shim injected after env -i","target":"postgresql://u:p@127.0.0.1:44055/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:44055"}
+ATTACK_PASS path_shim
+ATTACK_START bunfig_preload
+ATTACK_RESULT {"case":"bunfig_preload","injection_observed":"[test].preload ran before test","target":"postgresql://u:p@127.0.0.1:44055/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:44055"}
+ATTACK_PASS bunfig_preload
+ATTACK_START direct_literal
+ATTACK_RESULT {"case":"direct_literal","injection_observed":"direct socket call; no product resolver","target":"postgresql://u:p@127.0.0.1:44055/prodbrain","connected":false,"code":"ECONNREFUSED","message":"connect ECONNREFUSED 127.0.0.1:44055"}
+ATTACK_PASS direct_literal
+ATTACK_START direct_unix_socket
+ATTACK_RESULT {"case":"direct_unix_socket","injection_observed":"direct AF_UNIX connect; no URL or environment resolver","target":"/tmp/gbrain-lab-canary.0N2k6l/host-canary.sock","connected":false,"code":"ENOENT","message":"Failed to connect"}
+ATTACK_PASS direct_unix_socket
+ATTACK_SUMMARY total=9 pass=9 fail=0
+AUDIT_CANARY host_connections=3 lab_connections=0
+AUDIT_SUMMARY structural=pass attacks=9/9 directions=both pass=true

@@ -1,0 +1,19 @@
+NETNS_INIT_PRIVILEGE uid=0 gid=0 user=user:[4026533917] net=net:[4026533919] Current:=ep cap_net_admin=present host_user_distinct=true host_net_distinct=true
+Cannot open netlink socket: Operation not permitted
+NETNS_INIT loopback=down mode=DEGRADADO reason=ip-netlink-denied
+STRUCT_NAMESPACE net host=net:[4026534132] lab=net:[4026533919] distinct=true
+STRUCT_NAMESPACE user host=user:[4026534128] lab=user:[4026534190] distinct=true
+STRUCT_NAMESPACE pid host=pid:[4026534131] lab=pid:[4026534188] distinct=true
+STRUCT_NAMESPACE ipc host=ipc:[4026531839] lab=ipc:[4026534187] distinct=true
+STRUCT_NAMESPACE uts host=uts:[4026531838] lab=uts:[4026534186] distinct=true
+STRUCT_NAMESPACE cgroup host=cgroup:[4026531835] lab=cgroup:[4026534189] distinct=true
+STRUCT_NAMESPACE mnt host=mnt:[4026534130] lab=mnt:[4026534185] distinct=true
+STRUCT_NAMESPACE_CHAIN user_parent=user:[4026533917] user_inner=user:[4026534190] nested=true net_parent=net:[4026533919] net_inner=net:[4026533919] inherited=true
+STRUCT_IDENTITY uid=1000 gid=1000
+STRUCT_NETWORK interfaces=lo external_routes=0 loopback=down-degraded
+STRUCT_FILESYSTEM host_postgres_socket=absent host_home=absent
+STRUCT_CAPABILITIES Current:= cap_net_admin=absent
+STRUCT_WRITES workspace=allowed host_clone=denied rc=1 diagnostic=touch:\ cannot\ touch\ \'/input/repo/.lab-host-write-probe\':\ Read-only\ file\ system
+STRUCT_NESTED_USERNS disabled=true rc=1 diagnostic=unshare:\ unshare\ failed:\ No\ space\ left\ on\ device
+STRUCT_INHERITED_FD fd=9 closed=true
+STRUCT_SUMMARY pass=true

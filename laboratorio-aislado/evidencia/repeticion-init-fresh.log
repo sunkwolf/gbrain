@@ -1,0 +1,27 @@
+Cannot open netlink socket: Operation not permitted
+NETNS_INIT loopback=down mode=DEGRADADO reason=ip-netlink-denied
+SUITE_START head=0a1ecb6b9811ee6d676dc3ca46fab0294d5fa8ba files=1 home=/tmp/gb-diff-home
+SUITE_ROW	test/e2e/init-fresh-pglite.test.ts	9	1	1
+SUITE_RED_BEGIN test/e2e/init-fresh-pglite.test.ts
+bun test v1.3.14-canary.1 (0d9b296a)
+
+test/e2e/init-fresh-pglite.test.ts:
+(pass) v0.37 T12 — fresh init env-detection (D1, D2, D3) + persistence (D5) > OPENAI_API_KEY auto-picks OpenAI, persists embedding_model + embedding_dimensions [6917.71ms]
+(pass) v0.37 T12 — D3 non-TTY no-key fail-loud > --non-interactive with zero provider keys → exit 1 + paste-ready hint [203.02ms]
+(pass) v0.37 T12 — D3 non-TTY no-key fail-loud > --non-interactive with env-key typo surfaces Levenshtein hint [200.87ms]
+killed 1 dangling process
+(fail) v0.37 T12 — D6 regression: bug-reporter no-op keys exit 1 with Levenshtein > (unnamed) [5001.74ms]
+  ^ a beforeEach/afterEach hook timed out for this test.
+(pass) v0.37 T12 — D9 --no-embedding deferred-setup mode > init --pglite --no-embedding succeeds with embedding_disabled sentinel [1882.87ms]
+(pass) v0.37 T12 — D9 --no-embedding deferred-setup mode > gbrain import refuses with config-set hint after --no-embedding init [389.00ms]
+(pass) v0.37 T12 — D9 --no-embedding deferred-setup mode > gbrain import --no-embed flag bypasses the refusal (chunks land without vectors) [729.73ms]
+(pass) v0.37 T12 — D11 preflight refuses BEFORE disk writes > --embedding-dimensions 9999 (invalid for OpenAI text-3-large) refuses early [216.19ms]
+(pass) v0.37 T12 — D11 preflight refuses BEFORE disk writes > --embedding-dimensions 99999 (above pgvector cap) refuses [205.71ms]
+(pass) v0.37 T12 — happy path with picker-bypassing explicit flag > explicit --embedding-model wins over env detection [6921.22ms]
+
+ 9 pass
+ 1 fail
+ 30 expect() calls
+Ran 10 tests across 1 file. [22.80s]
+SUITE_RED_END test/e2e/init-fresh-pglite.test.ts
+SUITE_SUMMARY files=1 green_files=0 red_files=1 tests_pass=9 tests_fail=1 unknown=0
