@@ -45,8 +45,15 @@ import { appendFileSync } from 'fs';
 export interface ReceiptResolution {
   /** Which of the two resolutions this is. */
   stage: 'outer' | 'inner';
-  /** The effective knobs hash. The harness seeds cache rows under this value. */
-  knobs_hash: string;
+  /**
+   * The effective knobs hash. The harness seeds cache rows under this value.
+   *
+   * OPTIONAL because only the outer resolution computes one as part of its
+   * normal work; the inner one is derived for the receipt and may fail. An
+   * ABSENT hash means "could not be determined", never "matched" — a control
+   * that compares hashes must treat absence as unverifiable, not as agreement.
+   */
+  knobs_hash?: string;
   /** Effective cache decision for this call. */
   cache_enabled: boolean;
   /**
@@ -55,6 +62,12 @@ export interface ReceiptResolution {
    * indistinguishable from an honest default unless we say so here.
    */
   config_read: 'ok' | 'fallback';
+  /**
+   * WHICH reads were swallowed, when `config_read` is `fallback`. Without the
+   * key names a fallback says "something was masked" and leaves the harness to
+   * guess whether it was the one that matters (`search.cache.enabled`).
+   */
+  config_read_failures?: string[];
   /** Effective source scope for this call. */
   scope?: string;
   /** Embedding column actually resolved (not the configured default). */
@@ -62,11 +75,24 @@ export interface ReceiptResolution {
   /** Cache similarity threshold and TTL in force. */
   similarity_threshold?: number;
   ttl_seconds?: number;
+  /**
+   * Resolved search limit. Not a cache knob — it is in here because it decides
+   * WHICH result comes first, not just how many: `innerLimit = limit * 2` is
+   * applied before candidate generation in both arms. Two runs with different
+   * limits are not comparable, and the receipt is where that becomes visible.
+   */
+  search_limit?: number;
   /** Why the cache was skipped, if it was. Empty array = not skipped. */
   skip_reasons: string[];
   /** Whether a cache lookup was attempted, and how it went. */
   lookup_attempted: boolean;
   lookup_outcome?: 'hit' | 'miss' | 'not_attempted';
+  /**
+   * When no lookup was attempted, WHY. "The cache was off" and "the query
+   * embed timed out" both produce zero lookups and identical results; only
+   * the first one means the run proved anything about the cache.
+   */
+  lookup_blocked_by?: 'skip_cache' | 'no_embedding_provider' | 'embed_failed' | 'no_embedding';
 }
 
 export interface CallReceipt {
@@ -76,6 +102,32 @@ export interface CallReceipt {
   query: string;
   /** Measured BEFORE the receipt is emitted, so the sink can't inflate it. */
   latency_ms?: number;
+  /**
+   * How the call ended. This is what makes the three `inner` states decidable
+   * without inference:
+   *
+   *   `hit`   + no inner → expected, the hit short-circuited
+   *   `fresh` + no inner → ANOMALY
+   *   `error`           → the call threw; the receipt is the only trace left
+   */
+  call_outcome?: 'hit' | 'fresh' | 'error';
+  /** Error message when `call_outcome` is `error`. The call still throws. */
+  error?: string;
+  /**
+   * Whether the fresh path tried to write the result back to the cache, and
+   * which guard stopped it if not. The harness's first control seeds a cache
+   * row by running a normal query and watching the row count go 0 → 1; when
+   * no row appears, this is what separates "the detector is blind" from "the
+   * probe was never eligible to be cached" — a diagnosis that otherwise gets
+   * made by guessing.
+   *
+   * `attempted: true` means the store call was issued, not that it succeeded:
+   * the write is fire-and-forget with its error swallowed.
+   */
+  writeback?: {
+    attempted: boolean;
+    blocked_by?: string[];
+  };
   resolutions: ReceiptResolution[];
 }
 

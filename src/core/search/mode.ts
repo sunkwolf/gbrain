@@ -1118,6 +1118,29 @@ export const SEARCH_MODE_CONFIG_KEYS: ReadonlyArray<string> = Object.freeze([
 export const SEARCH_MODE_KEY = 'search.mode';
 
 /**
+ * F2 measurement patch (2/2b) — read diagnostics for the mode config load.
+ *
+ * `safeGet` below turns BOTH a thrown read and a non-string value into
+ * `undefined`, which is indistinguishable from "the operator never set this
+ * key". That masking is the right *behavior* (an old brain without the config
+ * table must still search), but it makes an important failure invisible:
+ * `search.cache.enabled = false` that fails to read falls through to the mode
+ * bundle default, which is ON for all three bundles. The cache then serves
+ * rows on a run the operator believes is uncached — and nothing says so.
+ *
+ * This object records what was masked. It changes no behavior: the catch still
+ * returns `undefined`, the resolution is identical with or without it. It is
+ * OPTIONAL and only the measurement harness passes it; production leaves it
+ * undefined and allocates nothing.
+ */
+export interface SearchModeConfigReadDiag {
+  /** Keys whose read THREW. Swallowed to `undefined` — looks like "unset". */
+  readErrors: string[];
+  /** Keys whose stored value was not a string. Discarded — same masking. */
+  nonStringValues: string[];
+}
+
+/**
  * Load the live mode config (mode + per-key overrides) from the brain engine.
  * Runs ONE round-trip per knob currently — the BrainEngine.getConfig interface
  * is single-key. A future v0.34 batch loader can collapse this. Volume is
@@ -1126,9 +1149,13 @@ export const SEARCH_MODE_KEY = 'search.mode';
  * Errors are swallowed and fall through to mode-bundle defaults. The cache
  * config table predates v0.32.3 and may not exist on very old brains, so
  * silent fallback is the right shape.
+ *
+ * Pass `diag` (F2 measurement patch) to find out WHICH reads were swallowed;
+ * see `SearchModeConfigReadDiag`. Purely observational.
  */
 export async function loadSearchModeConfig(
   engine: { getConfig(key: string): Promise<string | null> },
+  diag?: SearchModeConfigReadDiag,
 ): Promise<ResolveSearchModeInput> {
   const safeGet = async (k: string): Promise<string | undefined> => {
     try {
@@ -1138,8 +1165,12 @@ export async function loadSearchModeConfig(
       // treated as "not set" so it falls through to the mode-bundle default,
       // matching the behavior of a missing key. Without this, downstream
       // parsing (e.g. ce.toLowerCase()) crashes on a non-string.
-      return typeof v === 'string' ? v : undefined;
+      if (typeof v === 'string') return v;
+      // `null` is an honest "not set"; anything else is junk that got masked.
+      if (v !== null && diag) diag.nonStringValues.push(k);
+      return undefined;
     } catch {
+      if (diag) diag.readErrors.push(k);
       return undefined;
     }
   };

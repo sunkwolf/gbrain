@@ -37,6 +37,13 @@ import { enforceTokenBudget } from './token-budget.ts';
 import { warnOncePerProcess } from '../utils.ts';
 import { recordSearchTelemetry } from './telemetry.ts';
 import {
+  receiptsEnabled,
+  newCallId,
+  emitCallReceipt,
+  type ReceiptResolution,
+} from './call-receipt.ts';
+import type { SearchModeConfigReadDiag } from './mode.ts';
+import {
   weightsForIntent,
   effectiveRrfK,
   applyExactMatchBoost,
@@ -762,6 +769,24 @@ export interface HybridSearchOpts extends SearchOpts {
    * public contract.
    */
   _telemetryCacheStatus?: 'miss' | 'disabled';
+
+  /**
+   * F2 measurement patch (2/2b) INTERNAL — collector threaded from
+   * `hybridSearchCached` into the inner `hybridSearch` so BOTH mode
+   * resolutions land in ONE receipt under ONE `call_id`. The inner function
+   * appends its resolution; the wrapper emits the receipt once, on every exit
+   * path (hit, fresh, throw).
+   *
+   * Why a collector instead of letting the inner emit its own line: one call
+   * must produce exactly one receipt. Two lines sharing a `call_id` would make
+   * a lost line indistinguishable from a resolution that never ran — the same
+   * ambiguous zero this instrument exists to remove.
+   *
+   * Direct `hybridSearch` callers (eval-replay, eval-longmemeval) leave it
+   * undefined and emit nothing: they never consult the cache, so there is no
+   * outer resolution to pair with. Not part of the public contract.
+   */
+  _callReceiptResolutions?: ReceiptResolution[];
 }
 
 /**
@@ -843,8 +868,14 @@ export async function hybridSearch(
   // because eval-replay and eval-longmemeval call bare hybridSearch — and
   // per-mode evals would not test production search if modes lived only in
   // the wrapper. See `[CDX-5+6]` in the plan.
-  const { loadSearchModeConfig, resolveSearchMode } = await import('./mode.ts');
-  const modeInput = await loadSearchModeConfig(engine);
+  const { loadSearchModeConfig, resolveSearchMode, knobsHash: knobsHashFn } = await import('./mode.ts');
+  // F2 measurement patch (2/2b) — collect read diagnostics ONLY when the cache
+  // wrapper is gathering a receipt. Nobody else allocates anything.
+  const receiptBox = opts?._callReceiptResolutions;
+  const modeDiag: SearchModeConfigReadDiag | undefined = receiptBox
+    ? { readErrors: [], nonStringValues: [] }
+    : undefined;
+  const modeInput = await loadSearchModeConfig(engine, modeDiag);
   const resolvedMode = resolveSearchMode({
     // T4/D5 — per-call mode selector (e.g. `--mode tokenmax`). The op layer
     // only passes this for trusted/local callers; remote callers leave it
@@ -894,6 +925,57 @@ export async function hybridSearch(
   const limit = opts?.limit || resolvedMode.searchLimit;
   const offset = opts?.offset || 0;
   const innerLimit = Math.min(limit * 2, MAX_SEARCH_LIMIT);
+
+  // F2 measurement patch (2/2b) — record the INNER resolution.
+  //
+  // This is the second, independent resolution of the same knobs: the loader
+  // re-reads config per call, so the inner values can differ from the outer's
+  // without anything failing loudly. Capturing both is the only way to see it.
+  //
+  // Everything here is derived from values this function ALREADY resolved —
+  // no config is re-read. The whole block is best-effort: if it throws, the
+  // search proceeds untouched and the receipt simply lacks its inner half.
+  //
+  // `skip_reasons` / `lookup_*` are outer-only concerns (the inner path IS the
+  // fresh search; it never consults the cache), so they are constants here.
+  if (receiptBox) {
+    try {
+      const failures = [
+        ...(modeDiag?.readErrors ?? []),
+        ...(modeDiag?.nonStringValues ?? []).map((k) => `${k} (non-string)`),
+      ];
+      // Both config planes failed and we fell through to the file plane (or to
+      // the bare default). Same masking class as a swallowed key read.
+      if (!cfgForColumn) failures.push('merged_config (unavailable)');
+      let innerHash: string | undefined;
+      try {
+        innerHash = knobsHashFn(resolvedMode, {
+          embeddingColumn: resolvedCol.name,
+          embeddingModel: resolvedCol.embeddingModel,
+          hardExcludes: resolveHardExcludes(opts?.exclude_slug_prefixes, opts?.include_slug_prefixes),
+        });
+      } catch {
+        // Leave it absent. An absent hash means "unverifiable", never "equal".
+      }
+      receiptBox.push({
+        stage: 'inner',
+        ...(innerHash ? { knobs_hash: innerHash } : {}),
+        cache_enabled: resolvedMode.cache_enabled,
+        config_read: failures.length > 0 ? 'fallback' : 'ok',
+        ...(failures.length > 0 ? { config_read_failures: failures } : {}),
+        scope: cacheScopeKey(opts),
+        embedding_column: resolvedCol.name,
+        similarity_threshold: resolvedMode.cache_similarity_threshold,
+        ttl_seconds: resolvedMode.cache_ttl_seconds,
+        search_limit: limit,
+        skip_reasons: [],
+        lookup_attempted: false,
+        lookup_outcome: 'not_attempted',
+      });
+    } catch {
+      // Swallowed on purpose: a receipt is evidence, not a dependency.
+    }
+  }
 
   // v0.32.x search-lite: classify intent once up front. Drives BOTH the
   // legacy auto-detail / salience / recency suggestions AND the new
@@ -1646,8 +1728,19 @@ export async function hybridSearchCached(
   // resolved knob set drives cache enable/threshold/TTL AND the knobs_hash
   // that scopes the cache row so a tokenmax write can't be served to a
   // conservative read. See [CDX-4] in the plan.
+  // F2 measurement patch (2/2b) — receipt state. Read the switch ONCE per
+  // call: with `GBRAIN_CALL_RECEIPT_PATH` unset (production) every branch
+  // below is a `false` test and nothing is allocated, computed or written.
+  const receiptOn = receiptsEnabled();
+  const callId = receiptOn ? newCallId() : '';
+  const callStartedAt = receiptOn ? Date.now() : 0;
+  const receiptResolutions: ReceiptResolution[] | undefined = receiptOn ? [] : undefined;
+  const outerModeDiag: SearchModeConfigReadDiag | undefined = receiptOn
+    ? { readErrors: [], nonStringValues: [] }
+    : undefined;
+
   const { loadSearchModeConfig, resolveSearchMode, knobsHash } = await import('./mode.ts');
-  const modeInputForCache = await loadSearchModeConfig(engine);
+  const modeInputForCache = await loadSearchModeConfig(engine, outerModeDiag);
   const resolvedForCache = resolveSearchMode({
     // T4/D5 — per-call mode folds into the cache key (resolved_mode is part
     // of knobsHash) so a per-call `--mode tokenmax` read can't be served a
@@ -1734,16 +1827,77 @@ export async function hybridSearchCached(
     opts?.adaptiveReturn,
     cfgCached as unknown as Record<string, unknown> | null,
   );
-  const skipCache =
-    !cache.isEnabled() ||
-    (opts?.walkDepth ?? 0) > 0 ||
-    Boolean(opts?.nearSymbol) ||
-    isNonDefaultColumn ||
-    adaptiveReturnOn;
+  // F2 measurement patch (2/2b) — the five reasons and the decision come from
+  // ONE list. The receipt has to report WHICH reason fired (a harness reading
+  // "disabled" cannot otherwise tell an operator's cache-off run from one
+  // silently skipped by a non-default embedding column), and the obvious way
+  // to get that — enumerate the five again next to the `||` — creates a second
+  // source of truth for the same decision. Add a sixth reason to the `||`
+  // later and forget the enumeration, and the receipt reports "skipped for no
+  // reason" while the search really did skip: an instrument lying with a
+  // straight face, which is the failure class this whole patch exists to kill.
+  // Deriving both from one list makes that drift impossible by construction
+  // rather than by vigilance.
+  //
+  // Cost of giving up the `||` short-circuit: all five predicates are always
+  // evaluated. Four are property reads and one is a field getter — all pure,
+  // no I/O — plus one small array per call. The resulting boolean is exactly
+  // the OR of the same five predicates it replaced.
+  const skipCacheReasons: string[] = [];
+  if (!cache.isEnabled()) skipCacheReasons.push('cache_disabled');
+  if ((opts?.walkDepth ?? 0) > 0) skipCacheReasons.push('walk_depth');
+  if (opts?.nearSymbol) skipCacheReasons.push('near_symbol');
+  if (isNonDefaultColumn) skipCacheReasons.push('non_default_column');
+  if (adaptiveReturnOn) skipCacheReasons.push('adaptive_return');
+  const skipCache = skipCacheReasons.length > 0;
 
   let cacheStatus: 'hit' | 'miss' | 'disabled' = skipCache ? 'disabled' : 'miss';
   let cacheSimilarity: number | undefined;
   let cacheAge: number | undefined;
+  // F2 measurement patch (2/2b) — lookup accounting. Zero lookups is the most
+  // ambiguous state in this function: cache off, no embedding provider, and a
+  // timed-out embed all produce it, and only the first says anything about the
+  // cache. These two carry the distinction into the receipt.
+  let lookupAttempted = false;
+  let lookupBlockedBy: ReceiptResolution['lookup_blocked_by'] | undefined = skipCache
+    ? 'skip_cache'
+    : undefined;
+
+  /**
+   * F2 measurement patch (2/2b) — the OUTER resolution, built from values this
+   * function already resolved. Nothing is re-read and no config is recomputed;
+   * `effectiveLimit` is passed in because the two exit paths genuinely use
+   * different ones (see the call sites).
+   */
+  const buildOuterResolution = (
+    lookupOutcome: 'hit' | 'miss' | 'not_attempted',
+    effectiveLimit: number,
+  ): ReceiptResolution => {
+    const failures = [
+      ...(outerModeDiag?.readErrors ?? []),
+      ...(outerModeDiag?.nonStringValues ?? []).map((k) => `${k} (non-string)`),
+    ];
+    // The DB-plane config load failed and we fell through to the file plane.
+    // Same masking class as a swallowed key read: the run used values the
+    // operator may not have set.
+    if (!mergedCfgCached) failures.push('merged_config (unavailable)');
+    return {
+      stage: 'outer',
+      knobs_hash: cacheKnobsHash,
+      cache_enabled: cacheEnabled,
+      config_read: failures.length > 0 ? 'fallback' : 'ok',
+      ...(failures.length > 0 ? { config_read_failures: failures } : {}),
+      scope: cacheScopeKey(opts),
+      embedding_column: resolvedColCached.name,
+      similarity_threshold: resolvedForCache.cache_similarity_threshold,
+      ttl_seconds: resolvedForCache.cache_ttl_seconds,
+      search_limit: effectiveLimit,
+      skip_reasons: skipCacheReasons,
+      lookup_attempted: lookupAttempted,
+      lookup_outcome: lookupOutcome,
+      ...(lookupBlockedBy ? { lookup_blocked_by: lookupBlockedBy } : {}),
+    };
+  };
 
   // We need a query embedding to consult the cache. We try to embed once
   // here so the same embedding can be threaded back into the search call
@@ -1775,14 +1929,19 @@ export async function hybridSearchCached(
         queryEmbedding = await embedQueryBounded(query, undefined, queryEmbedDl);
       } else {
         cacheStatus = 'disabled';
+        lookupBlockedBy = 'no_embedding_provider';
       }
     } catch {
       cacheStatus = 'disabled';
       queryEmbedding = null;
+      // The stalled-provider path. Indistinguishable from "cache off" in the
+      // returned meta (both read `disabled`) — separated here.
+      lookupBlockedBy = 'embed_failed';
     }
   }
 
   if (!skipCache && queryEmbedding && cacheStatus !== 'disabled') {
+    lookupAttempted = true;
     const hit = await cache.lookup(queryEmbedding, { sourceId: cacheScopeKey(opts), knobsHash: cacheKnobsHash });
     if (hit.hit && hit.results) {
       cacheStatus = 'hit';
@@ -1847,6 +2006,22 @@ export async function hybridSearchCached(
           : {}),
         rank1_score: budgeted[0] ? (budgeted[0].base_score ?? budgeted[0].score) : undefined,
       });
+      // F2 measurement patch (2/2b) — HIT exit: outer only, and that absence
+      // is the expected one. The hit returns here, before the inner hybrid
+      // search exists, so a receipt with no `inner` and `call_outcome: 'hit'`
+      // is correct; the same receipt with `'fresh'` would be an anomaly.
+      // `effectiveLimit` is the hit path's own `limit` (`opts.limit || 20`),
+      // which is what actually sliced these results.
+      if (receiptOn && receiptResolutions) {
+        emitCallReceipt({
+          call_id: callId,
+          ts_utc: new Date().toISOString(),
+          query,
+          latency_ms: Date.now() - callStartedAt,
+          call_outcome: 'hit',
+          resolutions: [buildOuterResolution('hit', limit), ...receiptResolutions],
+        });
+      }
       return budgeted;
     }
   }
@@ -1855,23 +2030,64 @@ export async function hybridSearchCached(
   // we can write back to the cache + emit the merged meta to the caller.
   // The closure-write pattern trips TS's narrowing (it infers `never`), so
   // we use a single-element box to keep the type stable.
+  // F2 measurement patch (2/2b) — we are on the fresh path with no lookup and
+  // no reason recorded yet: the embed returned nothing without throwing. Name
+  // it instead of leaving a blank the harness would have to guess about.
+  if (receiptOn && !lookupAttempted && !lookupBlockedBy) lookupBlockedBy = 'no_embedding';
+  // The limit the fresh path resolves — the same expression the inner search
+  // uses, so outer and inner are comparable on this field.
+  const freshEffectiveLimit = opts?.limit || resolvedForCache.searchLimit;
+
   const innerMetaBox: { current: HybridSearchMeta | null } = { current: null };
   const userOnMeta = opts?.onMeta;
-  const results = await hybridSearch(engine, query, {
-    ...opts,
-    // v0.42.20.0 (Fix 3) — share the query-embed deadline so the inner embed
-    // doesn't start a fresh 6s budget after the cache-lookup already spent it.
-    _queryEmbedDeadline: queryEmbedDl,
-    // #2952 — classify this search's telemetry record (emitted by the inner
-    // function) with the cache-consult outcome. 'hit' already returned above,
-    // so only miss/disabled reach this call.
-    _telemetryCacheStatus: cacheStatus === 'disabled' ? 'disabled' : 'miss',
-    onMeta: (m) => {
-      innerMetaBox.current = m;
-      // Do NOT call userOnMeta here — we'll emit a merged meta below
-      // that also carries cache + budget info.
-    },
-  });
+  let results: SearchResult[];
+  try {
+    results = await hybridSearch(engine, query, {
+      ...opts,
+      // F2 measurement patch (2/2b) — the inner resolution lands here, so ONE
+      // receipt carries both. Undefined in production (receipts off), which is
+      // exactly what a direct `hybridSearch` caller passes.
+      _callReceiptResolutions: receiptResolutions,
+      // v0.42.20.0 (Fix 3) — share the query-embed deadline so the inner embed
+      // doesn't start a fresh 6s budget after the cache-lookup already spent it.
+      _queryEmbedDeadline: queryEmbedDl,
+      // #2952 — classify this search's telemetry record (emitted by the inner
+      // function) with the cache-consult outcome. 'hit' already returned above,
+      // so only miss/disabled reach this call.
+      _telemetryCacheStatus: cacheStatus === 'disabled' ? 'disabled' : 'miss',
+      onMeta: (m) => {
+        innerMetaBox.current = m;
+        // Do NOT call userOnMeta here — we'll emit a merged meta below
+        // that also carries cache + budget info.
+      },
+    });
+  } catch (err) {
+    // F2 measurement patch (2/2b) — THROW exit. A call that dies leaves no
+    // meta, no telemetry row and no eval_candidates row; without this the
+    // harness sees a query that simply produced nothing, which is the same
+    // shape as a query that ran and found nothing. The receipt is the only
+    // trace, so it is emitted BEFORE rethrowing — and the error is rethrown
+    // untouched, so the caller's behavior is identical with receipts on or off.
+    if (receiptOn && receiptResolutions) {
+      try {
+        emitCallReceipt({
+          call_id: callId,
+          ts_utc: new Date().toISOString(),
+          query,
+          latency_ms: Date.now() - callStartedAt,
+          call_outcome: 'error',
+          error: err instanceof Error ? err.message : String(err),
+          resolutions: [
+            buildOuterResolution(lookupAttempted ? 'miss' : 'not_attempted', freshEffectiveLimit),
+            ...receiptResolutions,
+          ],
+        });
+      } catch {
+        // Never let the instrument replace the real error.
+      }
+    }
+    throw err;
+  }
   const innerMeta = innerMetaBox.current;
 
   // Token budget pass (no-op when not set).
@@ -1911,17 +2127,43 @@ export async function hybridSearchCached(
 
   // Best-effort writeback (skip when search returned empty so we don't
   // cache zero-result queries forever — they often indicate a typo).
-  if (
+  const writebackEligible =
     cacheStatus === 'miss' &&
     queryEmbedding &&
     results.length > 0 &&
-    (innerMeta?.vector_enabled ?? false)
-  ) {
+    (innerMeta?.vector_enabled ?? false);
+  if (writebackEligible) {
     trackCacheWrite(
       cache
         .store(query, queryEmbedding, results, finalMeta, { sourceId: cacheScopeKey(opts), knobsHash: cacheKnobsHash })
         .catch(() => { /* swallow */ }),
     );
+  }
+
+  // F2 measurement patch (2/2b) — FRESH exit: outer + inner, with the four
+  // writeback guards enumerated. `skipReasons`-style enumeration again: the
+  // combined `if` says a write did not happen, not which guard stopped it.
+  if (receiptOn && receiptResolutions) {
+    const writebackBlockedBy: string[] = [];
+    if (cacheStatus !== 'miss') writebackBlockedBy.push(`cache_status_${cacheStatus}`);
+    if (!queryEmbedding) writebackBlockedBy.push('no_query_embedding');
+    if (results.length === 0) writebackBlockedBy.push('empty_results');
+    if (!(innerMeta?.vector_enabled ?? false)) writebackBlockedBy.push('vector_disabled');
+    emitCallReceipt({
+      call_id: callId,
+      ts_utc: new Date().toISOString(),
+      query,
+      latency_ms: Date.now() - callStartedAt,
+      call_outcome: 'fresh',
+      writeback: {
+        attempted: Boolean(writebackEligible),
+        ...(writebackBlockedBy.length > 0 ? { blocked_by: writebackBlockedBy } : {}),
+      },
+      resolutions: [
+        buildOuterResolution(lookupAttempted ? 'miss' : 'not_attempted', freshEffectiveLimit),
+        ...receiptResolutions,
+      ],
+    });
   }
 
   return budgeted;
