@@ -47,6 +47,28 @@ export interface CacheLookupResult {
   similarity?: number;
   /** Age of the cached entry in seconds. Only set on hit. */
   ageSeconds?: number;
+  /**
+   * F2 measurement patch (2/2c) — the row that served this hit.
+   *
+   * A harness control that has to prove a second hit came from the SAME row
+   * (and not from a replacement written in between) cannot do it without an
+   * identity. The id was already selected and used internally to bump the hit
+   * counter; it was simply dropped before returning.
+   */
+  rowId?: string;
+  /**
+   * F2 measurement patch (2/2c) — the lookup FAILED and was degraded to a miss.
+   *
+   * Every exception in here becomes `{hit:false}` on purpose: a broken cache
+   * must never break a search. But that makes a genuine failure and an honest
+   * "nothing cached" byte-identical from outside — so a harness reading
+   * "miss" cannot tell "the cache was off" from "the cache exploded", which
+   * are opposite conclusions about the very thing it is measuring.
+   *
+   * Absent = the lookup really ran and really found nothing. Behavior is
+   * unchanged: the caller still gets `hit:false` and still proceeds fresh.
+   */
+  error?: string;
 }
 
 export interface CacheStats {
@@ -188,10 +210,14 @@ export class SemanticQueryCache {
         meta,
         similarity,
         ageSeconds: row.age_seconds,
+        // F2 (2/2c): the identity of the row that served this hit.
+        rowId: row.id,
       };
-    } catch {
+    } catch (e) {
       // Table missing, vector column missing, or any other failure: miss.
-      return { hit: false };
+      // Behavior unchanged — but say WHY, or a degraded lookup is
+      // indistinguishable from an empty cache. See CacheLookupResult.error.
+      return { hit: false, error: e instanceof Error ? e.message : String(e) };
     }
   }
 

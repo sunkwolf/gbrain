@@ -271,6 +271,118 @@ describe('call receipt — wired into hybridSearchCached', () => {
     expect(clean.lookup_attempted).toBe(true);
   });
 
+  test('use_cache override: shared hash MATCHES across stages while the effective hashes legitimately differ', async () => {
+    // This is the test the eighth audit said was missing, and its absence is
+    // what let a broken invalidation rule survive.
+    //
+    // The outer folds per-call `use_cache` into its resolution; the inner does
+    // NOT. So on any `use_cache` override the two EFFECTIVE hashes differ —
+    // legitimately, every single time. A harness rule reading "hashes differ ⇒
+    // invalid" would therefore discard exactly the condition the experiment
+    // needs. `shared_knobs_hash` normalizes the cache decision out so the two
+    // stages stay comparable on everything else, which is what that rule was
+    // actually trying to ask.
+    await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5, useCache: false });
+    const r = readReceipts()[0];
+    const outer = resolutionOf(r, 'outer')!;
+    const inner = resolutionOf(r, 'inner')!;
+
+    // The comparable half agrees...
+    expect(outer.shared_knobs_hash).toBeDefined();
+    expect(inner.shared_knobs_hash).toBe(outer.shared_knobs_hash!);
+    // ...while the effective hashes differ, and that difference is EXPECTED.
+    expect(outer.knobs_hash).not.toBe(inner.knobs_hash);
+    expect(outer.cache_enabled).toBe(false);
+    expect(inner.cache_enabled).toBe(true); // the inner never saw the override
+
+    // Control that the shared hash is not simply constant: a different limit
+    // is a different shared hash. Without this the assertion above would pass
+    // on an implementation that returned the same string for everything.
+    rmSync(sinkPath, { force: true });
+    await clearCache();
+    await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 7, useCache: false });
+    const other = resolutionOf(readReceipts()[0], 'outer')!;
+    expect(other.shared_knobs_hash).not.toBe(outer.shared_knobs_hash);
+  });
+
+  test('a lookup that THREW is reported as error, not as a healthy miss', async () => {
+    // The cache turns every exception into `{hit:false}`. Pre-fix the receipt
+    // copied that reading verbatim, so a control asserting "with the cache off
+    // the sentinel is not served" would PASS on a run where the cache was on
+    // and merely broken — the false green this instrument exists to prevent.
+    const realExec = engine.executeRaw.bind(engine);
+    (engine as unknown as { executeRaw: unknown }).executeRaw = async (sql: string, params?: unknown[]) => {
+      if (typeof sql === 'string' && sql.includes('FROM query_cache')) {
+        throw new Error('lookup exploded on purpose');
+      }
+      return realExec(sql, params as never);
+    };
+    try {
+      const results = await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
+      // The search still serves — the swallow is correct behavior, and stays.
+      expect(results.length).toBeGreaterThan(0);
+    } finally {
+      (engine as unknown as { executeRaw: unknown }).executeRaw = realExec;
+    }
+
+    const outer = resolutionOf(readReceipts()[0], 'outer')!;
+    expect(outer.lookup_attempted).toBe(true);
+    expect(outer.lookup_outcome).toBe('error');
+    expect(outer.lookup_error).toContain('exploded on purpose');
+
+    // NEGATIVE CONTROL: the same query with the lookup healthy reports a
+    // plain miss and carries no error. Without this, `lookup_outcome` could be
+    // hardwired to 'error' and the assertion above would still pass.
+    rmSync(sinkPath, { force: true });
+    await clearCache();
+    await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
+    const clean = resolutionOf(readReceipts()[0], 'outer')!;
+    expect(clean.lookup_outcome).toBe('miss');
+    expect(clean.lookup_error).toBeUndefined();
+  });
+
+  test('a hit carries the id of the row that served it', async () => {
+    // D″ has to prove the second hit came from the SAME row and not from a
+    // replacement written in between. Without an identity it cannot.
+    await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
+    await awaitPendingSearchCacheWrites();
+    rmSync(sinkPath, { force: true });
+
+    await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
+    const outer = resolutionOf(readReceipts()[0], 'outer')!;
+    expect(outer.lookup_outcome).toBe('hit');
+    expect(outer.cache_row_id).toBeDefined();
+
+    // Control: it is the row that is actually in the table, not a fabrication.
+    const rows = await engine.executeRaw<{ id: string }>('SELECT id FROM query_cache');
+    expect(rows.map((r) => r.id)).toContain(outer.cache_row_id!);
+  });
+
+  test('a throw BEFORE the inner search still emits exactly one receipt', async () => {
+    // The 2b fence only wrapped the inner call, so an early throw produced
+    // ZERO receipts with a healthy sink — indistinguishable from a lost one.
+    let threw: string | null = null;
+    try {
+      await hybridSearchCached(engine, 'alice receipt fixtures', {
+        limit: 5,
+        // Unknown column: the resolver throws on purpose, well before the
+        // inner search exists.
+        embeddingColumn: 'no_such_embedding_column_at_all',
+      });
+    } catch (e) {
+      threw = e instanceof Error ? e.message : String(e);
+    }
+    // The error must still reach the caller, untouched.
+    expect(threw).not.toBeNull();
+
+    const receipts = readReceipts();
+    expect(receipts.length).toBe(1);
+    expect(receipts[0].call_outcome).toBe('error');
+    expect(receipts[0].error).toBeDefined();
+    // No inner resolution: it never got there. That is the honest reading.
+    expect(resolutionOf(receipts[0], 'inner')).toBeUndefined();
+  });
+
   test('embed failure: separated from "the cache was off"', async () => {
     embedBehavior = async () => { throw new Error('embed provider down'); };
     const results = await hybridSearchCached(engine, 'bob receipt fixtures', { limit: 5 });
