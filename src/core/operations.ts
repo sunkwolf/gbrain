@@ -668,6 +668,30 @@ export function resolvePerCallMode(ctx: OperationContext, raw: unknown): string 
   return raw;
 }
 
+/**
+ * Per-call `use_cache`, asymmetric trust gate.
+ *
+ * The two directions of this knob are NOT equally safe:
+ *
+ *   false → forces a FRESH search. It can only make the caller do more work; it
+ *           can never surface a stale cached row. Anyone may ask for it, and it
+ *           is the only direction the measurement harness needs.
+ *
+ *   true  → opts the cache back IN "even when global config has it off"
+ *           (see SearchOpts.useCache in types.ts). That overrides an operator
+ *           decision, so it gets the same gate as per-call mode: local only.
+ *
+ * Without this gate a remote caller could re-enable a cache the operator had
+ * deliberately turned off — which is why declaring this parameter is NOT a
+ * purely observational change.
+ */
+export function resolvePerCallUseCache(ctx: OperationContext, raw: unknown): boolean | undefined {
+  if (typeof raw !== 'boolean') return undefined;
+  if (raw === false) return false; // safe direction: always allowed
+  if (ctx.remote !== false) return undefined; // remote can't re-enable the cache
+  return true;
+}
+
 /** T4 — stamp evidence/create_safety on a result set, fail-soft. */
 function stampEvidenceSafe(results: SearchResult[]): void {
   try { stampEvidence(results); } catch { /* non-fatal */ }
@@ -1668,6 +1692,15 @@ const query: Operation = {
     limit: { type: 'number', description: 'Max results (default 20)' },
     offset: { type: 'number', description: 'Skip first N results (for pagination)' },
     expand: { type: 'boolean', description: 'Enable multi-query expansion (default: true)' },
+    use_cache: {
+      type: 'boolean',
+      description:
+        'Per-call semantic query cache. `false` forces a FRESH search (always honored, any caller) — '
+        + 'this is what a measurement harness needs so a run cannot be served from a cached row. '
+        + '`true` opts the cache back in even when the operator disabled it globally, so it is '
+        + 'accepted from LOCAL callers only and silently ignored for remote ones. Omit to follow '
+        + 'the configured default (search.cache.enabled).',
+    },
     detail: { type: 'string', description: 'Result detail level: low (compiled truth only), medium (default, all with dedup), high (all chunks)' },
     mode: { type: 'string', description: 'Search mode (conservative|balanced|tokenmax). Local callers only; remote uses configured mode.' },
     // v0.20.0 Cathedral II Layer 10 C1/C2: language + symbol-kind filters.
@@ -1829,7 +1862,12 @@ const query: Operation = {
       until: typeof p.until === 'string' ? p.until : undefined,
       // v0.32.x search-lite: token budget + cache opt-outs.
       tokenBudget: typeof p.token_budget === 'number' ? (p.token_budget as number) : undefined,
-      useCache: typeof p.use_cache === 'boolean' ? (p.use_cache as boolean) : undefined,
+      // F2 measurement patch: `false` is open to all callers, `true` is local-only.
+      // See resolvePerCallUseCache — the raw `p.use_cache` had no gate at all.
+      ...((): { useCache?: boolean } => {
+        const u = resolvePerCallUseCache(ctx, p.use_cache);
+        return u === undefined ? {} : { useCache: u };
+      })(),
       intentWeighting: typeof p.intent_weighting === 'boolean' ? (p.intent_weighting as boolean) : undefined,
       // v0.36 cross-modal routing param.
       crossModal: p.cross_modal as 'text' | 'image' | 'both' | 'auto' | undefined,
