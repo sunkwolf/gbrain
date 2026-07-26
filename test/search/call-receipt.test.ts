@@ -15,6 +15,8 @@ import {
   emitCallReceipt,
   receiptsEnabled,
   newCallId,
+  rerankerDigest,
+  sharedKnobsDigest,
   type CallReceipt,
 } from '../../src/core/search/call-receipt.ts';
 
@@ -149,5 +151,106 @@ describe('call receipt', () => {
   test('call ids are unique — resolutions of one call must not merge with another', () => {
     const ids = new Set(Array.from({ length: 50 }, () => newCallId()));
     expect(ids.size).toBe(50);
+  });
+});
+
+/**
+ * F2 (2/2e) — the shared-hash digest, tested where its ALGEBRA can be tested.
+ *
+ * These properties belong here rather than in the wiring test, and the reason is
+ * a lesson from the eighth audit: the wiring test can only vary what a
+ * `hybridSearchCached` call can vary. Column dimensions and type are DB-plane
+ * registry state — a live call cannot make two stages disagree on them, so an
+ * implementation that dropped `dim` from the digest would pass every wiring
+ * assertion. A gate whose components are not individually provable is a gate
+ * that can quietly lose one, which is precisely how blocker 1 happened.
+ */
+describe('sharedKnobsDigest — the comparable hash for rule 6', () => {
+  const complete = {
+    columnDimensions: 1536,
+    columnType: 'vector',
+    adaptiveReturn: false,
+    rerankerEffective: 'src=bundle,en=0,m=none,in=8,out=none,t=2000,fn=0',
+  };
+
+  test('every component moves the hash — none is decorative', () => {
+    const base = sharedKnobsDigest('BASEHASH', complete)!;
+    expect(base).toBeDefined();
+
+    // Each of these is state that changes what the engine actually did. If any
+    // one of them stops moving the hash, two non-equivalent runs compare equal.
+    const variants: Array<[string, string | undefined, typeof complete]> = [
+      ['the base knobs hash', 'OTHERHASH', complete],
+      ['column dimensions', 'BASEHASH', { ...complete, columnDimensions: 1024 }],
+      ['column type', 'BASEHASH', { ...complete, columnType: 'halfvec' }],
+      ['adaptive return', 'BASEHASH', { ...complete, adaptiveReturn: true }],
+      ['the effective reranker', 'BASEHASH', { ...complete, rerankerEffective: 'src=per_call,en=1' }],
+    ];
+    for (const [what, baseHash, extra] of variants) {
+      expect(sharedKnobsDigest(baseHash, extra), `${what} must move the hash`).not.toBe(base);
+    }
+  });
+
+  test('identical inputs give an identical hash — the gate has to be able to say "equal"', () => {
+    expect(sharedKnobsDigest('BASEHASH', complete)).toBe(sharedKnobsDigest('BASEHASH', { ...complete }));
+  });
+
+  test('🔴 NEGATIVE CONTROL — an unknown component yields ABSENT, never a hash', () => {
+    // The whole point. Hashing a missing value as a literal placeholder would
+    // make two stages that BOTH failed to resolve it come out "equivalent" — a
+    // gate reporting equality it never established. Absence is unverifiable and
+    // the harness must treat it as invalidating.
+    expect(sharedKnobsDigest(undefined, complete)).toBeUndefined();
+    expect(sharedKnobsDigest('BASEHASH', { ...complete, columnDimensions: undefined })).toBeUndefined();
+    expect(sharedKnobsDigest('BASEHASH', { ...complete, columnType: undefined })).toBeUndefined();
+    expect(sharedKnobsDigest('BASEHASH', { ...complete, adaptiveReturn: undefined })).toBeUndefined();
+    expect(sharedKnobsDigest('BASEHASH', { ...complete, rerankerEffective: undefined })).toBeUndefined();
+  });
+});
+
+describe('rerankerDigest — what the pipeline would actually apply', () => {
+  const bundle = {
+    reranker_enabled: true,
+    reranker_model: 'bundle-model',
+    reranker_top_n_in: 8,
+    reranker_top_n_out: 4,
+    reranker_timeout_ms: 2000,
+  };
+
+  test('no per-call override reports the bundle', () => {
+    const d = rerankerDigest(undefined, bundle);
+    expect(d).toContain('src=bundle');
+    expect(d).toContain('m=bundle-model');
+    expect(d).toContain('en=1');
+  });
+
+  test('a per-call override replaces the bundle WHOLE — partials keep their gaps', () => {
+    // This mirrors the pipeline exactly: `opts.reranker ?? bundle` takes the
+    // object as given, it does not merge field by field. A digest that filled
+    // the gaps from the bundle would describe a config the engine never used.
+    const d = rerankerDigest({ enabled: true, topNIn: 3 }, bundle);
+    expect(d).toContain('src=per_call');
+    expect(d).toContain('in=3');
+    expect(d).toContain('m=none'); // NOT 'bundle-model'
+    expect(d).toContain('out=none');
+    expect(d).toContain('t=none');
+  });
+
+  test('an explicit null cap is not the same state as an unset one', () => {
+    const explicitNull = rerankerDigest({ enabled: true, topNIn: 3, topNOut: null }, bundle);
+    const unset = rerankerDigest({ enabled: true, topNIn: 3 }, bundle);
+    expect(explicitNull).toContain('out=null');
+    expect(unset).toContain('out=none');
+    expect(explicitNull).not.toBe(unset);
+  });
+
+  test('an injected reranker function is effective state, and shows', () => {
+    // A run scored by a caller-supplied function is not comparable to one scored
+    // by the real cross-encoder, however identical the other fields look.
+    const withFn = rerankerDigest({ enabled: true, topNIn: 3, rerankerFn: async () => [] }, bundle);
+    const withoutFn = rerankerDigest({ enabled: true, topNIn: 3 }, bundle);
+    expect(withFn).toContain('fn=1');
+    expect(withoutFn).toContain('fn=0');
+    expect(withFn).not.toBe(withoutFn);
   });
 });
