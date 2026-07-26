@@ -396,6 +396,15 @@ describe('EQUIVALENCE CONTROL — the instrument does not change the answer', ()
     const brokenPath = join(sinkDir, 'no-such-dir', 'receipts.jsonl');
     const broken = await runOnce(brokenPath);
 
+    // Order matters here, and a mutant proved it: with these after the
+    // path-check below, a sink that rethrows fails on "cacheStatus is
+    // undefined" — true, but it points at the wrong thing. The throw checks
+    // come first so the mutation that breaks the swallow reports itself.
+    expect(off.threw).toBeNull();
+    expect(on.threw).toBeNull();
+    // The load-bearing assertion: a broken instrument does not break the call.
+    expect(broken.threw).toBeNull();
+
     // What would invalidate this control: the three runs taking different
     // paths. If one of them served from the cache, the comparison would be
     // between a fresh result and a JSONB roundtrip — different serialization
@@ -404,11 +413,6 @@ describe('EQUIVALENCE CONTROL — the instrument does not change the answer', ()
     expect(off.cacheStatus).toBe('miss');
     expect(on.cacheStatus).toBe('miss');
     expect(broken.cacheStatus).toBe('miss');
-
-    expect(off.threw).toBeNull();
-    expect(on.threw).toBeNull();
-    // The load-bearing assertion: a broken instrument does not break the call.
-    expect(broken.threw).toBeNull();
 
     expect(off.results.length).toBeGreaterThan(2); // not comparing two empties
     expect(on.results).toBe(off.results);
