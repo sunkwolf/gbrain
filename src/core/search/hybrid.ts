@@ -1041,18 +1041,24 @@ export async function hybridSearch(
       // the bare default). Same masking class as a swallowed key read.
       if (!cfgForColumn) failures.push('merged_config (unavailable)');
       let innerHash: string | undefined;
+      let innerSharedHash: string | undefined;
       try {
-        innerHash = knobsHashFn(resolvedMode, {
+        const extras = {
           embeddingColumn: resolvedCol.name,
           embeddingModel: resolvedCol.embeddingModel,
           hardExcludes: resolveHardExcludes(opts?.exclude_slug_prefixes, opts?.include_slug_prefixes),
-        });
+        };
+        innerHash = knobsHashFn(resolvedMode, extras);
+        // Cache decision normalized out — see ReceiptResolution.shared_knobs_hash.
+        // This is the one that is comparable with the outer's.
+        innerSharedHash = knobsHashFn({ ...resolvedMode, cache_enabled: false }, extras);
       } catch {
-        // Leave it absent. An absent hash means "unverifiable", never "equal".
+        // Leave them absent. An absent hash means "unverifiable", never "equal".
       }
       receiptBox.push({
         stage: 'inner',
         ...(innerHash ? { knobs_hash: innerHash } : {}),
+        ...(innerSharedHash ? { shared_knobs_hash: innerSharedHash } : {}),
         cache_enabled: resolvedMode.cache_enabled,
         config_read: failures.length > 0 ? 'fallback' : 'ok',
         ...(failures.length > 0 ? { config_read_failures: failures } : {}),
@@ -1852,22 +1858,81 @@ export async function hybridSearch(
  * skipped vector search entirely (no embedding provider configured). In
  * that case the cache is also skipped — there's no embedding to key on.
  */
+/**
+ * F2 measurement patch (2/2c) — per-call receipt state, owned by the OUTER
+ * fence so a throw anywhere in the function still leaves exactly one receipt.
+ */
+interface ReceiptCtx {
+  callId: string;
+  startedAt: number;
+  resolutions: ReceiptResolution[];
+  /** Set by whichever exit already emitted, so the fence never doubles it. */
+  emitted: boolean;
+  /** Available once the outer resolution can be built; absent before that. */
+  buildOuter?: () => ReceiptResolution;
+}
+
 export async function hybridSearchCached(
   engine: BrainEngine,
   query: string,
   opts?: HybridSearchOpts,
 ): Promise<SearchResult[]> {
+  // F2 measurement patch (2/2c) — THE SINGLE EXIT FENCE.
+  //
+  // 2b only wrapped the inner search call, which left a hole the eighth audit
+  // named: anything that throws BEFORE it (an unknown embedding column is the
+  // concrete case) or AFTER it produced ZERO receipts with a healthy sink —
+  // and zero receipts is exactly what a LOST receipt looks like. One fence
+  // over the whole function closes it: every exit emits, exactly once.
+  //
+  // With receipts off this is one boolean test and a direct call.
+  if (!receiptsEnabled()) return hybridSearchCachedImpl(engine, query, opts);
+
+  const rc: ReceiptCtx = {
+    callId: newCallId(),
+    startedAt: Date.now(),
+    resolutions: [],
+    emitted: false,
+  };
+  try {
+    return await hybridSearchCachedImpl(engine, query, opts, rc);
+  } catch (err) {
+    if (!rc.emitted) {
+      try {
+        emitCallReceipt({
+          call_id: rc.callId,
+          ts_utc: new Date().toISOString(),
+          latency_ms: Date.now() - rc.startedAt,
+          query,
+          call_outcome: 'error',
+          error: err instanceof Error ? err.message : String(err),
+          // The outer resolution if we got far enough to build one. An early
+          // throw leaves an error-only receipt — still evidence, and still
+          // distinguishable from silence.
+          resolutions: [...(rc.buildOuter ? [rc.buildOuter()] : []), ...rc.resolutions],
+        });
+      } catch {
+        // Never let the instrument replace the real error.
+      }
+    }
+    throw err; // identity, type, stack and cause preserved.
+  }
+}
+
+async function hybridSearchCachedImpl(
+  engine: BrainEngine,
+  query: string,
+  opts?: HybridSearchOpts,
+  rc?: ReceiptCtx,
+): Promise<SearchResult[]> {
   // v0.32.3 search-lite mode: resolve mode + per-key overrides once. The
   // resolved knob set drives cache enable/threshold/TTL AND the knobs_hash
   // that scopes the cache row so a tokenmax write can't be served to a
   // conservative read. See [CDX-4] in the plan.
-  // F2 measurement patch (2/2b) — receipt state. Read the switch ONCE per
-  // call: with `GBRAIN_CALL_RECEIPT_PATH` unset (production) every branch
-  // below is a `false` test and nothing is allocated, computed or written.
-  const receiptOn = receiptsEnabled();
-  const callId = receiptOn ? newCallId() : '';
-  const callStartedAt = receiptOn ? Date.now() : 0;
-  const receiptResolutions: ReceiptResolution[] | undefined = receiptOn ? [] : undefined;
+  const receiptOn = rc !== undefined;
+  const callId = rc?.callId ?? '';
+  const callStartedAt = rc?.startedAt ?? 0;
+  const receiptResolutions: ReceiptResolution[] | undefined = rc?.resolutions;
   const outerModeDiag: SearchModeConfigReadDiag | undefined = receiptOn
     ? { readErrors: [], nonStringValues: [] }
     : undefined;
@@ -1935,6 +2000,25 @@ export async function hybridSearchCached(
     // policy can't be served to a lookup under another.
     hardExcludes: resolveHardExcludes(opts?.exclude_slug_prefixes, opts?.include_slug_prefixes),
   });
+
+  // F2 measurement patch (2/2c) — the comparable twin of the hash above, with
+  // the cache decision normalized out. Only computed with receipts on: it is
+  // for the harness, and the product never keys anything on it.
+  let outerSharedKnobsHash: string | undefined;
+  if (receiptOn) {
+    try {
+      outerSharedKnobsHash = knobsHash(
+        { ...resolvedForCache, cache_enabled: false },
+        {
+          embeddingColumn: resolvedColCached.name,
+          embeddingModel: resolvedColCached.embeddingModel,
+          hardExcludes: resolveHardExcludes(opts?.exclude_slug_prefixes, opts?.include_slug_prefixes),
+        },
+      );
+    } catch {
+      // Absent = unverifiable, never "equal".
+    }
+  }
 
   // Cache decision: opts.useCache (explicit) wins over global config; global
   // config wins over mode bundle default. Mode bundle is on for all 3 modes
@@ -2010,6 +2094,11 @@ export async function hybridSearchCached(
   let lookupBlockedBy: ReceiptResolution['lookup_blocked_by'] | undefined = skipCache
     ? 'skip_cache'
     : undefined;
+  // F2 (2/2c) — a lookup that THREW is not a miss. The cache swallows every
+  // exception into `{hit:false}`, so without these two a broken cache and an
+  // empty one are the same reading, and they are opposite conclusions.
+  let lookupError: string | undefined;
+  let cacheRowId: string | undefined;
 
   /**
    * F2 measurement patch (2/2b) — the OUTER resolution, built from values this
@@ -2032,6 +2121,7 @@ export async function hybridSearchCached(
     return {
       stage: 'outer',
       knobs_hash: cacheKnobsHash,
+      ...(outerSharedKnobsHash ? { shared_knobs_hash: outerSharedKnobsHash } : {}),
       cache_enabled: cacheEnabled,
       config_read: failures.length > 0 ? 'fallback' : 'ok',
       ...(failures.length > 0 ? { config_read_failures: failures } : {}),
@@ -2042,10 +2132,25 @@ export async function hybridSearchCached(
       search_limit: effectiveLimit,
       skip_reasons: skipCacheReasons,
       lookup_attempted: lookupAttempted,
-      lookup_outcome: lookupOutcome,
+      // A swallowed failure outranks the 'miss' the cache reported: the caller
+      // saw a miss, but the harness must not read it as one.
+      lookup_outcome: lookupError ? 'error' : lookupOutcome,
+      ...(lookupError ? { lookup_error: lookupError } : {}),
+      ...(cacheRowId ? { cache_row_id: cacheRowId } : {}),
       ...(lookupBlockedBy ? { lookup_blocked_by: lookupBlockedBy } : {}),
     };
   };
+
+  // F2 (2/2c): hand the fence a way to build the outer resolution as of
+  // whenever the throw happens. Registered HERE — from this line on, a throw
+  // anywhere still produces a receipt with the outer half filled in.
+  if (rc) {
+    rc.buildOuter = () =>
+      buildOuterResolution(
+        lookupAttempted ? 'miss' : 'not_attempted',
+        opts?.limit || resolvedForCache.searchLimit,
+      );
+  }
 
   // We need a query embedding to consult the cache. We try to embed once
   // here so the same embedding can be threaded back into the search call
@@ -2091,6 +2196,11 @@ export async function hybridSearchCached(
   if (!skipCache && queryEmbedding && cacheStatus !== 'disabled') {
     lookupAttempted = true;
     const hit = await cache.lookup(queryEmbedding, { sourceId: cacheScopeKey(opts), knobsHash: cacheKnobsHash });
+    // F2 (2/2c): capture BEFORE the hit branch returns — on the hit path this
+    // is the only chance, and on the miss path a swallowed error would
+    // otherwise reach the receipt as a healthy miss.
+    if (hit.error) lookupError = hit.error;
+    if (hit.rowId) cacheRowId = hit.rowId;
     if (hit.hit && hit.results) {
       cacheStatus = 'hit';
       cacheSimilarity = hit.similarity;
@@ -2161,6 +2271,7 @@ export async function hybridSearchCached(
       // `effectiveLimit` is the hit path's own `limit` (`opts.limit || 20`),
       // which is what actually sliced these results.
       if (receiptOn && receiptResolutions) {
+        if (rc) rc.emitted = true; // the fence must not double it
         emitCallReceipt({
           call_id: callId,
           ts_utc: new Date().toISOString(),
@@ -2188,9 +2299,10 @@ export async function hybridSearchCached(
 
   const innerMetaBox: { current: HybridSearchMeta | null } = { current: null };
   const userOnMeta = opts?.onMeta;
-  let results: SearchResult[];
-  try {
-    results = await hybridSearch(engine, query, {
+  // F2 (2/2c): no local try/catch here any more. The single exit fence in
+  // `hybridSearchCached` now covers this throw AND the ones before and after
+  // it, which is the point — one error path, no hole to forget.
+  const results = await hybridSearch(engine, query, {
       ...opts,
       // F2 measurement patch (2/2b) — the inner resolution lands here, so ONE
       // receipt carries both. Undefined in production (receipts off), which is
@@ -2209,33 +2321,6 @@ export async function hybridSearchCached(
         // that also carries cache + budget info.
       },
     });
-  } catch (err) {
-    // F2 measurement patch (2/2b) — THROW exit. A call that dies leaves no
-    // meta, no telemetry row and no eval_candidates row; without this the
-    // harness sees a query that simply produced nothing, which is the same
-    // shape as a query that ran and found nothing. The receipt is the only
-    // trace, so it is emitted BEFORE rethrowing — and the error is rethrown
-    // untouched, so the caller's behavior is identical with receipts on or off.
-    if (receiptOn && receiptResolutions) {
-      try {
-        emitCallReceipt({
-          call_id: callId,
-          ts_utc: new Date().toISOString(),
-          query,
-          latency_ms: Date.now() - callStartedAt,
-          call_outcome: 'error',
-          error: err instanceof Error ? err.message : String(err),
-          resolutions: [
-            buildOuterResolution(lookupAttempted ? 'miss' : 'not_attempted', freshEffectiveLimit),
-            ...receiptResolutions,
-          ],
-        });
-      } catch {
-        // Never let the instrument replace the real error.
-      }
-    }
-    throw err;
-  }
   const innerMeta = innerMetaBox.current;
 
   // Token budget pass (no-op when not set).
@@ -2292,6 +2377,7 @@ export async function hybridSearchCached(
   // writeback guards enumerated. `skipReasons`-style enumeration again: the
   // combined `if` says a write did not happen, not which guard stopped it.
   if (receiptOn && receiptResolutions) {
+    if (rc) rc.emitted = true; // the fence must not double it
     const writebackBlockedBy: string[] = [];
     if (cacheStatus !== 'miss') writebackBlockedBy.push(`cache_status_${cacheStatus}`);
     if (!queryEmbedding) writebackBlockedBy.push('no_query_embedding');

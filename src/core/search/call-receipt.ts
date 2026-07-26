@@ -54,6 +54,22 @@ export interface ReceiptResolution {
    * that compares hashes must treat absence as unverifiable, not as agreement.
    */
   knobs_hash?: string;
+  /**
+   * F2 measurement patch (2/2c) — the SAME knobs with the cache decision
+   * normalized out, so the two resolutions are actually comparable.
+   *
+   * `knobs_hash` is NOT comparable across stages, and a control that compares
+   * it is wrong by construction: the outer folds the per-call `use_cache` into
+   * its resolution and the inner does not, so a legitimate `use_cache:false`
+   * run makes the two hashes differ every single time. A harness rule reading
+   * "hashes differ ⇒ invalid" would therefore throw away exactly the condition
+   * the experiment needs — which is what the eighth audit caught.
+   *
+   * This field answers the question that rule was actually trying to ask:
+   * *did the two resolutions agree on everything else?* Compare THIS across
+   * stages, and compare `cache_enabled` against the condition separately.
+   */
+  shared_knobs_hash?: string;
   /** Effective cache decision for this call. */
   cache_enabled: boolean;
   /**
@@ -84,9 +100,25 @@ export interface ReceiptResolution {
   search_limit?: number;
   /** Why the cache was skipped, if it was. Empty array = not skipped. */
   skip_reasons: string[];
-  /** Whether a cache lookup was attempted, and how it went. */
+  /**
+   * Whether a cache lookup was attempted, and how it went.
+   *
+   * `error` exists because the lookup swallows every exception into
+   * `{hit:false}`. Without it, a failed lookup reports as a healthy `miss` —
+   * and a control asserting "with the cache off the sentinel is not served"
+   * would pass on a run where the cache was ON and merely broken. That is the
+   * false green this whole instrument exists to prevent, so it gets its own
+   * outcome rather than a flag someone has to remember to read.
+   */
   lookup_attempted: boolean;
-  lookup_outcome?: 'hit' | 'miss' | 'not_attempted';
+  lookup_outcome?: 'hit' | 'miss' | 'error' | 'not_attempted';
+  /** The swallowed error, when `lookup_outcome` is `error`. */
+  lookup_error?: string;
+  /**
+   * Identity of the cache row that served a hit. Lets a control prove a second
+   * hit came from the SAME row instead of a replacement written in between.
+   */
+  cache_row_id?: string;
   /**
    * When no lookup was attempted, WHY. "The cache was off" and "the query
    * embed timed out" both produce zero lookups and identical results; only
