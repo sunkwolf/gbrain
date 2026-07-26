@@ -39,8 +39,24 @@ actual_head=$(/usr/bin/git -C "$REPO" rev-parse HEAD)
 
 # Todo árbol que entra desde el host es de solo lectura. Un socket de filesystem
 # ya existente sería un destino del host montado dentro; se rehúsa la corrida.
+#
+# 🔴 SIN `-xdev`, y eso NO es cosmético — hallazgo de Claudy en su revisión de
+# diseño, con la mitad decisiva medida por Claudio:
+#
+#   `-xdev` no cruza fronteras de sistema de archivos, así que un socket que viva
+#   bajo un SUBMOUNT dentro de estos árboles pasaba el escaneo sin ser visto.
+#   Medido: `find … -xdev -type s` no lo ve; sin `-xdev`, sí.
+#
+#   Y la otra mitad, que decidía si era vector real o inocuo: **`--ro-bind` de
+#   Bubblewrap ES RECURSIVO** (medido con bwrap 0.11.2 — un socket bajo un
+#   submount aparece dentro como `/outer/sub/host.sock`). ⇒ el submount SÍ entra
+#   a la burbuja, y el guard no lo veía. Vector real, no hipotético.
+#
+# La familia del error es la de todo este frente: el escaneo cubría MENOS de lo
+# que el mount trae. Un guard que verifica un subconjunto de lo que el consumidor
+# recibe no es un guard.
 for source in "$REPO" "$NODE_MODULES" "$SELF_DIR"; do
-  socket=$(/usr/bin/find "$source" -xdev -type s -print -quit)
+  socket=$(/usr/bin/find "$source" -type s -print -quit)
   [[ -z "$socket" ]] || fail "el input contiene un socket del host: $socket"
 done
 
