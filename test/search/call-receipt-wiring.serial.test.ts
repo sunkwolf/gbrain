@@ -23,7 +23,7 @@
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import * as realEmbedding from '../../src/core/embedding.ts';
@@ -448,21 +448,51 @@ describe('call receipt — wired into hybridSearchCached', () => {
     expect(clean.lookup_error).toBeUndefined();
   });
 
-  test('a hit carries the id of the row that served it', async () => {
-    // D″ has to prove the second hit came from the SAME row and not from a
-    // replacement written in between. Without an identity it cannot.
-    await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
+  test("two hits prove they came from the SAME row — D′ against D″, not one hit's id", async () => {
+    // The ninth audit: the implementation was right, the test promised more than
+    // it proved. It took ONE hit and checked the id existed in `query_cache` —
+    // which cannot fail as long as some row is there — while the claim this field
+    // exists to support is about TWO observations: that D″ was served by the same
+    // row as D′ and not by a replacement written in between. One hit can never
+    // establish that, however well the assertion is written.
+    await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 }); // seeds
     await awaitPendingSearchCacheWrites();
     rmSync(sinkPath, { force: true });
 
+    // D′
     await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
-    const outer = resolutionOf(readReceipts()[0], 'outer')!;
-    expect(outer.lookup_outcome).toBe('hit');
-    expect(outer.cache_row_id).toBeDefined();
+    await awaitPendingSearchCacheWrites();
+    const dPrime = resolutionOf(readReceipts()[0], 'outer')!;
+    expect(dPrime.lookup_outcome).toBe('hit');
+    expect(dPrime.cache_row_id).toBeDefined();
 
-    // Control: it is the row that is actually in the table, not a fabrication.
-    const rows = await engine.executeRaw<{ id: string }>('SELECT id FROM query_cache');
-    expect(rows.map((r) => r.id)).toContain(outer.cache_row_id!);
+    // The state of the table BETWEEN the two hits. A hit only bumps
+    // `hit_count` — it never inserts — so a changed row set here means someone
+    // else wrote, and the pair stops being a two-observation-of-one-row claim.
+    const between = await engine.executeRaw<{ id: string }>('SELECT id FROM query_cache ORDER BY id');
+
+    // D″
+    rmSync(sinkPath, { force: true });
+    await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
+    await awaitPendingSearchCacheWrites();
+    const dDouble = resolutionOf(readReceipts()[0], 'outer')!;
+    expect(dDouble.lookup_outcome).toBe('hit');
+    expect(dDouble.cache_row_id).toBeDefined();
+
+    // THE CLAIM: same row, both times.
+    expect(dDouble.cache_row_id).toBe(dPrime.cache_row_id!);
+
+    // NO INTERMEDIATE WRITE. Without this, an identical id across two hits is
+    // still compatible with the row having been deleted and rewritten under the
+    // same deterministic id — `query_cache.id` is
+    // sha256("<source>::<query>::<hash>"), so a replacement REUSES the id. The
+    // id proves identity of the key, not continuity of the row; the row set has
+    // to be checked separately.
+    const after = await engine.executeRaw<{ id: string }>('SELECT id FROM query_cache ORDER BY id');
+    expect(after.map((r) => r.id)).toEqual(between.map((r) => r.id));
+
+    // And it is a row that really is in the table, not a fabrication.
+    expect(after.map((r) => r.id)).toContain(dDouble.cache_row_id!);
   });
 
   test('a throw BEFORE the inner search still emits exactly one receipt', async () => {
@@ -570,6 +600,68 @@ describe('call receipt — wired into hybridSearchCached', () => {
     await clearCache();
     await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
     expect(resolutionOf(readReceipts()[0], 'outer')!.config_read).toBe('ok');
+  });
+
+  test('the FILE plane is a separate diagnosis, and an absent file is not a failure', async () => {
+    // F2 (2/2f). This brain has no `~/.gbrain/config.json` (GBRAIN_HOME points at
+    // a temp dir), which is the normal install state — so the receipt must report
+    // it AND must not call it a fallback. Reporting it matters anyway: a harness
+    // comparing lab against production needs to know the lab had no config file
+    // where production has one.
+    await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
+    const r = readReceipts()[0];
+    for (const stage of ['outer', 'inner'] as const) {
+      const res = resolutionOf(r, stage)!;
+      expect(res.config_file_read, `${stage}: file plane reported`).toBe('absent');
+      expect(res.config_file_error, `${stage}: no error for an absent file`).toBeUndefined();
+      expect(res.config_read, `${stage}: absent is honest, not a fallback`).toBe('ok');
+    }
+  });
+
+  test('🔴 a present-but-broken config file shows as a FILE-plane failure, while the DB plane says ok', async () => {
+    // The ninth audit's open blocker, end to end. Before this, a malformed config
+    // file and no config file at all were the same reading — and the malformed
+    // one silently drops `embedding_model`, `embedding_dimensions`,
+    // `embedding_columns` and `search_embedding_column`, then
+    // `loadConfigWithEngine` synthesizes `{engine:'postgres'}` so the DB-plane
+    // diagnostic reports `ok` because nothing failed on its side. Different
+    // vector space, all instruments green.
+    const cfgDir = join(tmpHome, '.gbrain');
+    const cfgFile = join(cfgDir, 'config.json');
+    mkdirSync(cfgDir, { recursive: true });
+    writeFileSync(cfgFile, '{ "engine": "postgres", "embedding_dimensions": ');
+    try {
+      const results = await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
+      // The search still works — that masking is correct for behavior. The point
+      // is that it is no longer silent.
+      expect(results.length).toBeGreaterThan(0);
+    } finally {
+      rmSync(cfgFile, { force: true });
+    }
+
+    const r = readReceipts()[0];
+    for (const stage of ['outer', 'inner'] as const) {
+      const res = resolutionOf(r, stage)!;
+      expect(res.config_file_read, `${stage}: parse error named`).toBe('parse_error');
+      expect(res.config_file_error, `${stage}: error carried`).toBeTruthy();
+      // It folds into the one-bit summary too, so a harness reading only
+      // `config_read` still invalidates the run.
+      expect(res.config_read, `${stage}: rolls up to fallback`).toBe('fallback');
+      expect(
+        res.config_read_failures?.some((f) => f.startsWith('config_file (parse_error')),
+        `${stage}: failure names the plane and the step`,
+      ).toBe(true);
+    }
+
+    // NEGATIVE CONTROL: with the file gone the same query is back to `absent`
+    // and `ok`. Without this, an implementation hardwired to 'parse_error' —
+    // or one that left the previous call's diagnostic lying around — passes.
+    rmSync(sinkPath, { force: true });
+    await clearCache();
+    await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
+    const after = resolutionOf(readReceipts()[0], 'outer')!;
+    expect(after.config_file_read).toBe('absent');
+    expect(after.config_read).toBe('ok');
   });
 
   test('bare hybridSearch emits nothing — no half receipt without an outer', async () => {
