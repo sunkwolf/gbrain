@@ -40,6 +40,8 @@ import {
   receiptsEnabled,
   newCallId,
   emitCallReceipt,
+  rerankerDigest,
+  sharedKnobsDigest,
   type ReceiptResolution,
 } from './call-receipt.ts';
 import type { SearchModeConfigReadDiag } from './mode.ts';
@@ -929,6 +931,33 @@ export async function hybridSearch(
   const offset = opts?.offset || 0;
   const innerLimit = Math.min(limit * 2, MAX_SEARCH_LIMIT);
 
+  // F2 (2/2e) — reranker + adaptive-return resolved HERE, once, because the
+  // receipt below needs the same values the pipeline will use further down.
+  //
+  // Both were resolved at their point of use (rerank step ~700 lines below,
+  // adaptive-return just before the limit slice). Copying the expressions up
+  // here for the receipt would have created a second source of truth for two
+  // decisions — precisely the drift that `skipCacheReasons` was restructured to
+  // make impossible: change the resolution at one site later, and the receipt
+  // keeps reporting the old one with a straight face. So the declaration moves
+  // up and the original sites now READ it. Both are pure computations over
+  // values already in hand (`opts`, `resolvedMode`, `cfgForColumn`, all const),
+  // no I/O, so hoisting them cannot change behavior or ordering.
+  //
+  // Resolution rule is unchanged and deliberate: `opts.reranker` replaces the
+  // bundle WHOLE, it does not merge field-by-field.
+  const rerankerOpts = opts?.reranker ?? {
+    enabled: resolvedMode.reranker_enabled,
+    topNIn: resolvedMode.reranker_top_n_in,
+    topNOut: resolvedMode.reranker_top_n_out,
+    model: resolvedMode.reranker_model,
+    timeoutMs: resolvedMode.reranker_timeout_ms,
+  };
+  const adaptiveCfg = resolveAdaptiveReturn(
+    opts?.adaptiveReturn,
+    adaptiveReturnFromConfig(cfgForColumn as Record<string, unknown> | null),
+  );
+
   // F2 measurement patch (2/2b) — record the INNER resolution.
   //
   // This is the second, independent resolution of the same knobs: the loader
@@ -952,6 +981,7 @@ export async function hybridSearch(
       // Both config planes failed and we fell through to the file plane (or to
       // the bare default). Same masking class as a swallowed key read.
       if (!cfgForColumn) failures.push('merged_config (unavailable)');
+      const innerRerankerEffective = rerankerDigest(opts?.reranker, resolvedMode);
       let innerHash: string | undefined;
       let innerSharedHash: string | undefined;
       try {
@@ -962,8 +992,19 @@ export async function hybridSearch(
         };
         innerHash = knobsHashFn(resolvedMode, extras);
         // Cache decision normalized out — see ReceiptResolution.shared_knobs_hash.
-        // This is the one that is comparable with the outer's.
-        innerSharedHash = knobsHashFn({ ...resolvedMode, cache_enabled: false }, extras);
+        // This is the one that is comparable with the outer's. F2 (2/2e): the
+        // normalized `knobsHash` is only the BASE of it; the omitted effective
+        // state folds in through `sharedKnobsDigest`, which returns absent if
+        // any of it is unknown.
+        innerSharedHash = sharedKnobsDigest(
+          knobsHashFn({ ...resolvedMode, cache_enabled: false }, extras),
+          {
+            columnDimensions: resolvedCol.dimensions,
+            columnType: resolvedCol.type,
+            adaptiveReturn: adaptiveCfg.enabled,
+            rerankerEffective: innerRerankerEffective,
+          },
+        );
       } catch {
         // Leave them absent. An absent hash means "unverifiable", never "equal".
       }
@@ -976,6 +1017,10 @@ export async function hybridSearch(
         ...(failures.length > 0 ? { config_read_failures: failures } : {}),
         scope: cacheScopeKey(opts),
         embedding_column: resolvedCol.name,
+        column_dimensions: resolvedCol.dimensions,
+        column_type: resolvedCol.type,
+        adaptive_return: adaptiveCfg.enabled,
+        reranker_effective: innerRerankerEffective,
         similarity_threshold: resolvedMode.cache_similarity_threshold,
         ttl_seconds: resolvedMode.cache_ttl_seconds,
         search_limit: limit,
@@ -1615,13 +1660,11 @@ export async function hybridSearch(
   // from the resolved mode bundle (tokenmax → enabled, others → disabled).
   // The resolved mode's fields already participate in knobsHash, so cache
   // rows naturally segregate by reranker config.
-  const rerankerOpts = opts?.reranker ?? {
-    enabled: resolvedMode.reranker_enabled,
-    topNIn: resolvedMode.reranker_top_n_in,
-    topNOut: resolvedMode.reranker_top_n_out,
-    model: resolvedMode.reranker_model,
-    timeoutMs: resolvedMode.reranker_timeout_ms,
-  };
+  //
+  // F2 (2/2e): `rerankerOpts` is now resolved at the top of this function, next
+  // to the receipt that has to report it. Same expression, one source of truth —
+  // see the note there. Only the BUNDLE's reranker reaches knobsHash, which is
+  // why the receipt carries `reranker_effective` separately.
   const reranked = rerankerOpts.enabled
     ? await applyReranker(query, deduped, rerankerOpts as any)
     : deduped;
@@ -1646,10 +1689,8 @@ export async function hybridSearch(
   // set is incoherent, so paginated calls fall through to the fixed limit.
   // Runs on the alias-hopped set so an alias-injected page (top-of-organic)
   // survives the trim.
-  const adaptiveCfg = resolveAdaptiveReturn(
-    opts?.adaptiveReturn,
-    adaptiveReturnFromConfig(cfgForColumn as Record<string, unknown> | null),
-  );
+  // F2 (2/2e): `adaptiveCfg` is resolved at the top of this function now, next
+  // to the receipt that reports it — same expression, one source of truth.
   let returnPool = aliasHopped;
   let adaptiveDecision: AdaptiveReturnDecision | undefined;
   if (adaptiveCfg.enabled && offset === 0) {
@@ -1877,18 +1918,48 @@ async function hybridSearchCachedImpl(
     hardExcludes: resolveHardExcludes(opts?.exclude_slug_prefixes, opts?.include_slug_prefixes),
   });
 
+  // v0.42 — adaptive return-sizing. Resolved HERE (it used to be resolved
+  // ~35 lines down, at the `skipCacheReasons` list that consumes it) because the
+  // shared hash below has to fold it in: the inner resolves it from its OWN
+  // config read, so the two stages can disagree, and `knobsHash` does not carry
+  // it at all. Pure resolution over `opts` + `cfgCached`, both already in hand;
+  // the skip list still reads THIS value — one source of truth, moved earlier.
+  const adaptiveReturnOn = adaptiveReturnEnabled(
+    opts?.adaptiveReturn,
+    cfgCached as unknown as Record<string, unknown> | null,
+  );
+  // F2 (2/2e) — the reranker the pipeline would actually apply. The outer never
+  // runs the reranker, but it must report the SAME resolution the inner will
+  // apply (`opts.reranker ?? bundle`), or a per-call override makes the two
+  // stages incomparable while the hash claims they agree.
+  const outerRerankerEffective = rerankerDigest(opts?.reranker, resolvedForCache);
+
   // F2 measurement patch (2/2c) — the comparable twin of the hash above, with
   // the cache decision normalized out. Only computed with receipts on: it is
   // for the harness, and the product never keys anything on it.
+  //
+  // F2 (2/2e): the normalized `knobsHash` is the BASE, not the whole answer —
+  // the ninth audit's blocker 1. `sharedKnobsDigest` folds in the effective
+  // state `knobsHash` omits (column geometry, adaptive-return, the effective
+  // reranker) and returns ABSENT if any of it is unknown, so rule 6 can read
+  // equality as equivalence instead of assuming it.
   let outerSharedKnobsHash: string | undefined;
   if (receiptOn) {
     try {
-      outerSharedKnobsHash = knobsHash(
-        { ...resolvedForCache, cache_enabled: false },
+      outerSharedKnobsHash = sharedKnobsDigest(
+        knobsHash(
+          { ...resolvedForCache, cache_enabled: false },
+          {
+            embeddingColumn: resolvedColCached.name,
+            embeddingModel: resolvedColCached.embeddingModel,
+            hardExcludes: resolveHardExcludes(opts?.exclude_slug_prefixes, opts?.include_slug_prefixes),
+          },
+        ),
         {
-          embeddingColumn: resolvedColCached.name,
-          embeddingModel: resolvedColCached.embeddingModel,
-          hardExcludes: resolveHardExcludes(opts?.exclude_slug_prefixes, opts?.include_slug_prefixes),
+          columnDimensions: resolvedColCached.dimensions,
+          columnType: resolvedColCached.type,
+          adaptiveReturn: adaptiveReturnOn,
+          rerankerEffective: outerRerankerEffective,
         },
       );
     } catch {
@@ -1916,10 +1987,8 @@ async function hybridSearchCachedImpl(
   // (trimmed) result set must not be served to a gate-off lookup, and vice
   // versa. Folding the gate params into knobsHash is the v0.42+ follow-up
   // (TODO) that lets adaptive-on calls cache safely; until then, skip.
-  const adaptiveReturnOn = adaptiveReturnEnabled(
-    opts?.adaptiveReturn,
-    cfgCached as unknown as Record<string, unknown> | null,
-  );
+  // F2 (2/2e): `adaptiveReturnOn` is resolved above now, where the shared hash
+  // needs it. Same expression, same value, read here.
   // F2 measurement patch (2/2b) — the five reasons and the decision come from
   // ONE list. The receipt has to report WHICH reason fired (a harness reading
   // "disabled" cannot otherwise tell an operator's cache-off run from one
@@ -1990,6 +2059,12 @@ async function hybridSearchCachedImpl(
       ...(failures.length > 0 ? { config_read_failures: failures } : {}),
       scope: cacheScopeKey(opts),
       embedding_column: resolvedColCached.name,
+      // F2 (2/2e) — the state knobsHash omits, carried individually so a shared
+      // hash mismatch names its cause instead of just existing.
+      column_dimensions: resolvedColCached.dimensions,
+      column_type: resolvedColCached.type,
+      adaptive_return: adaptiveReturnOn,
+      reranker_effective: outerRerankerEffective,
       similarity_threshold: resolvedForCache.cache_similarity_threshold,
       ttl_seconds: resolvedForCache.cache_ttl_seconds,
       search_limit: effectiveLimit,
