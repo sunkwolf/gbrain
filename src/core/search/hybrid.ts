@@ -25,7 +25,7 @@ import {
 } from './return-policy.ts';
 import { applyAutocut, type AutocutDecision } from './autocut.ts';
 import { buildRelationalArm } from './relational-recall.ts';
-import { loadConfigWithEngine } from '../config.ts';
+import { loadConfigWithEngine, type ConfigReadDiag } from '../config.ts';
 import { dedupResults } from './dedup.ts';
 import { applyReranker } from './rerank.ts';
 import { autoDetectDetail, classifyQuery, isAmbiguousModalityQuery } from './query-intent.ts';
@@ -916,7 +916,10 @@ export async function hybridSearch(
   // Failing cfg load (pre-config brain, mid-migration, no engine.getConfig)
   // falls through to the file-plane sync loadConfig() — same shape, just
   // misses DB-plane overrides.
-  const mergedCfg = await loadConfigWithEngine(engine).catch(() => null);
+  // F2 (2/2d): capture the DB-plane reads this loader swallows. It returns a
+  // usable base config even when reads fail, so a null check can NEVER see it.
+  const innerCfgDiag: ConfigReadDiag | undefined = receiptBox ? { readErrors: [] } : undefined;
+  const mergedCfg = await loadConfigWithEngine(engine, undefined, innerCfgDiag).catch(() => null);
   const cfgForColumn = mergedCfg ?? ((await import('../config.ts')).loadConfig()) ?? null;
   const resolvedCol = cfgForColumn
     ? resolveEmbeddingColumn(opts, cfgForColumn)
@@ -943,6 +946,8 @@ export async function hybridSearch(
       const failures = [
         ...(modeDiag?.readErrors ?? []),
         ...(modeDiag?.nonStringValues ?? []).map((k) => `${k} (non-string)`),
+        // DB-plane reads swallowed by loadConfigWithEngine (column + cache safety).
+        ...(innerCfgDiag?.readErrors ?? []).map((k) => `${k} (db-plane)`),
       ];
       // Both config planes failed and we fell through to the file plane (or to
       // the bare default). Same masking class as a swallowed key read.
@@ -1850,7 +1855,11 @@ async function hybridSearchCachedImpl(
   // provider/dim. isCacheSafe compares the resolved column's full
   // embedding space (name + dim + model) against cfg and returns true
   // only when ALL match. Otherwise skip.
-  const mergedCfgCached = await loadConfigWithEngine(engine).catch(() => null);
+  // F2 (2/2d): same capture on the outer side — the 8th audit's blocker 5:
+  // `mergedCfgCached` is never null on a failed read, so the receipt used to
+  // report config_read:'ok' while reads were masked.
+  const outerCfgDiag: ConfigReadDiag | undefined = receiptOn ? { readErrors: [] } : undefined;
+  const mergedCfgCached = await loadConfigWithEngine(engine, undefined, outerCfgDiag).catch(() => null);
   const cfgCached = mergedCfgCached ?? ((await import('../config.ts')).loadConfig()) ?? { engine: 'pglite' as const };
   const resolvedColCached = resolveEmbeddingColumn(opts, cfgCached);
   const isNonDefaultColumn = !isCacheSafe(resolvedColCached, cfgCached);
@@ -1965,6 +1974,8 @@ async function hybridSearchCachedImpl(
     const failures = [
       ...(outerModeDiag?.readErrors ?? []),
       ...(outerModeDiag?.nonStringValues ?? []).map((k) => `${k} (non-string)`),
+      // DB-plane reads swallowed by loadConfigWithEngine (column + cache safety).
+      ...(outerCfgDiag?.readErrors ?? []).map((k) => `${k} (db-plane)`),
     ];
     // The DB-plane config load failed and we fell through to the file plane.
     // Same masking class as a swallowed key read: the run used values the
