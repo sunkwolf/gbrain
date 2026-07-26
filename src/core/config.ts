@@ -656,12 +656,30 @@ export function loadConfig(): GBrainConfig | null {
  * fields (embedding_model, etc.) keep their file/env-only loading because they
  * size the schema and must be stable across engine connect.
  */
+/**
+ * F2 measurement patch (2/2d) — read diagnostics for the DB-plane config merge.
+ *
+ * `loadConfigWithEngine` swallows per-key failures AND still returns a usable
+ * base config, so a caller cannot tell "the operator set nothing" from "the
+ * reads failed and we quietly used defaults". That masking is right for
+ * behavior — a brain mid-migration must still search — but it hides the reads
+ * that decide the embedding column and cache safety.
+ *
+ * Purely observational: passing this changes nothing, and production passes
+ * nothing. Same contract as `SearchModeConfigReadDiag` in search/mode.ts.
+ */
+export interface ConfigReadDiag {
+  /** Keys whose read THREW or whose value was unusable. Swallowed to defaults. */
+  readErrors: string[];
+}
+
 export async function loadConfigWithEngine(
   engine: {
     getConfig(key: string): Promise<string | null | undefined>;
     listConfigKeys?(prefix: string): Promise<string[]>;
   },
   base?: GBrainConfig | null,
+  diag?: ConfigReadDiag,
 ): Promise<GBrainConfig | null> {
   // Codex /ship finding #3: when there's no file config AND no env DB URL,
   // loadConfig() returns null and the DB merge would be skipped — env-only
@@ -685,6 +703,7 @@ export async function loadConfigWithEngine(
       if (v === undefined || v === null || v === '') return undefined;
       return v === 'true';
     } catch {
+      if (diag) diag.readErrors.push(key);
       return undefined;
     }
   }
@@ -694,6 +713,7 @@ export async function loadConfigWithEngine(
       if (v === undefined || v === null || v === '') return undefined;
       return v;
     } catch {
+      if (diag) diag.readErrors.push(key);
       return undefined;
     }
   }
@@ -703,6 +723,7 @@ export async function loadConfigWithEngine(
     try {
       keys = await engine.listConfigKeys(prefix);
     } catch {
+      if (diag) diag.readErrors.push(`${prefix}* (listConfigKeys)`);
       return undefined;
     }
 
@@ -760,9 +781,11 @@ export async function loadConfigWithEngine(
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
         merged.embedding_columns = parsed as Record<string, EmbeddingColumnConfig>;
       } else {
+        if (diag) diag.readErrors.push('embedding_columns (not a JSON object)');
         console.warn('[gbrain] config: embedding_columns DB value is not a JSON object; ignoring');
       }
     } catch (err) {
+      if (diag) diag.readErrors.push('embedding_columns (invalid JSON)');
       console.warn(`[gbrain] config: embedding_columns DB value is not valid JSON; ignoring (${(err as Error).message})`);
     }
   }
