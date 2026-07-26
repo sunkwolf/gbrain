@@ -295,14 +295,121 @@ describe('call receipt — wired into hybridSearchCached', () => {
     expect(outer.cache_enabled).toBe(false);
     expect(inner.cache_enabled).toBe(true); // the inner never saw the override
 
-    // Control that the shared hash is not simply constant: a different limit
-    // is a different shared hash. Without this the assertion above would pass
-    // on an implementation that returned the same string for everything.
+    // 🔴 The ninth audit PROVED this test's control was a false green, and the
+    // proof is worth more than the fix: Codex mutated the inner resolution to
+    // force `searchLimit:5` no matter what the call asked for, and the test
+    // still passed. The old control ran a second call with `limit:7` and then
+    // inspected the OUTER only — so a shared hash that had stopped tracking the
+    // inner entirely still looked healthy. A control that only ever re-reads one
+    // side of a two-sided equality cannot detect the side it stopped reading.
+    //
+    // The variation loop below is the fix, and it is parametrized per shared
+    // knob on purpose: one hard-coded knob only proves the hash is not a
+    // constant, and each knob reaches the hash through a DIFFERENT path
+    // (searchLimit through knobsHash, the reranker and adaptive-return through
+    // the 2/2e digest that knobsHash omits). Each variation asserts BOTH
+    // properties that make this hash a gate:
+    //
+    //   agreement : the two stages still resolve to the same shared hash;
+    //   movement  : that hash differs from the baseline pair, so the knob is
+    //               actually inside it and not silently dropped.
+    //
+    // Drop either half and the gate rots: without agreement the inner can
+    // freeze (the mutant above); without movement the whole thing can collapse
+    // to a constant and every comparison passes.
+    const baseline = outer.shared_knobs_hash!;
+    const variations: Array<{ name: string; opts: Record<string, unknown> }> = [
+      // Reaches the hash through knobsHash (`lim=`).
+      { name: 'limit', opts: { limit: 7 } },
+      // Reaches it through `reranker_effective` — the field knobsHash omits.
+      // `enabled:false` so nothing actually runs a reranker: the digest must
+      // change because the RESOLUTION SOURCE changed (per-call, not bundle),
+      // which is exactly the divergence the ninth audit named.
+      {
+        name: 'reranker',
+        opts: { reranker: { enabled: false, topNIn: 3, topNOut: 2, model: 'stub-reranker', timeoutMs: 50 } },
+      },
+      // Reaches it through `adaptive_return`, which knobsHash does not carry at
+      // all — each stage resolves it from its own config read.
+      { name: 'adaptiveReturn', opts: { adaptiveReturn: true } },
+    ];
+
+    for (const v of variations) {
+      rmSync(sinkPath, { force: true });
+      await clearCache();
+      await hybridSearchCached(engine, 'alice receipt fixtures', {
+        limit: 5,
+        useCache: false,
+        ...v.opts,
+      });
+      const varied = readReceipts()[0];
+      const vOuter = resolutionOf(varied, 'outer')!;
+      const vInner = resolutionOf(varied, 'inner')!;
+
+      // Absence is unverifiable, never agreement — assert presence explicitly
+      // so a pair of `undefined`s can never satisfy the equality below.
+      expect(vOuter.shared_knobs_hash, `${v.name}: outer hash present`).toBeDefined();
+      expect(vInner.shared_knobs_hash, `${v.name}: inner hash present`).toBeDefined();
+      // AGREEMENT — this is the assertion the mutant escaped.
+      expect(vInner.shared_knobs_hash, `${v.name}: stages agree`).toBe(vOuter.shared_knobs_hash!);
+      // MOVEMENT — both sides moved off the baseline, so the knob is in the hash.
+      expect(vOuter.shared_knobs_hash, `${v.name}: outer moved`).not.toBe(baseline);
+      expect(vInner.shared_knobs_hash, `${v.name}: inner moved`).not.toBe(baseline);
+    }
+  });
+
+  test('the state knobsHash OMITS is carried per stage, not just folded into the hash', async () => {
+    // Blocker 1 of the ninth audit had two halves. The hash closes the gate;
+    // these fields make a closed gate diagnosable. Without them a stage
+    // mismatch reports "the hashes differ" and the cause has to be bisected out
+    // of the engine — which in practice means the observation gets discarded
+    // with no cause recorded, and a systematic divergence reads as noise.
+    await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5, useCache: false });
+    const r = readReceipts()[0];
+    const outer = resolutionOf(r, 'outer')!;
+    const inner = resolutionOf(r, 'inner')!;
+
+    for (const [stage, res] of [['outer', outer], ['inner', inner]] as const) {
+      expect(res.column_dimensions, `${stage}: dimensions`).toBe(1536);
+      expect(res.column_type, `${stage}: column type`).toBe('vector');
+      expect(res.adaptive_return, `${stage}: adaptive return`).toBe(false);
+      // Resolved from the mode bundle here — no per-call override in this call.
+      expect(res.reranker_effective, `${stage}: reranker digest`).toContain('src=bundle');
+      expect(res.reranker_effective, `${stage}: reranker fn absent`).toContain('fn=0');
+    }
+    // The geometry is what makes two same-NAMED columns different vector spaces,
+    // so the two stages agreeing on it is the claim, not just reporting it.
+    expect(inner.column_dimensions).toBe(outer.column_dimensions);
+    expect(inner.column_type).toBe(outer.column_type);
+    expect(inner.reranker_effective).toBe(outer.reranker_effective);
+  });
+
+  test('a per-call reranker override shows up as per_call in BOTH stages', async () => {
+    // This is the divergence Codex found by reading: the inner applies
+    // `opts.reranker` directly (hybrid.ts rerank step) while the outer hashed
+    // the mode bundle's reranker. Same call, two different rerankers, and the
+    // shared hash said "equivalent". Both stages must now report the per-call
+    // resolution — including its partial-ness, since the pipeline takes the
+    // override WHOLE rather than merging it field by field.
     rmSync(sinkPath, { force: true });
     await clearCache();
-    await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 7, useCache: false });
-    const other = resolutionOf(readReceipts()[0], 'outer')!;
-    expect(other.shared_knobs_hash).not.toBe(outer.shared_knobs_hash);
+    await hybridSearchCached(engine, 'alice receipt fixtures', {
+      limit: 5,
+      useCache: false,
+      reranker: { enabled: false, topNIn: 3, topNOut: null, model: 'stub-reranker', timeoutMs: 50 },
+    });
+    const r = readReceipts()[0];
+    const outer = resolutionOf(r, 'outer')!;
+    const inner = resolutionOf(r, 'inner')!;
+
+    for (const [stage, res] of [['outer', outer], ['inner', inner]] as const) {
+      expect(res.reranker_effective, `${stage}: source`).toContain('src=per_call');
+      expect(res.reranker_effective, `${stage}: model`).toContain('m=stub-reranker');
+      // `null` is an explicit "no output cap" and must not read as "unset".
+      expect(res.reranker_effective, `${stage}: explicit null cap`).toContain('out=null');
+    }
+    expect(inner.reranker_effective).toBe(outer.reranker_effective);
+    expect(inner.shared_knobs_hash).toBe(outer.shared_knobs_hash);
   });
 
   test('a lookup that THREW is reported as error, not as a healthy miss', async () => {

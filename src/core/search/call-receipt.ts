@@ -40,6 +40,7 @@
  */
 
 import { appendFileSync } from 'fs';
+import { createHash } from 'crypto';
 
 /** One resolution of the search mode, as the engine actually resolved it. */
 export interface ReceiptResolution {
@@ -68,6 +69,14 @@ export interface ReceiptResolution {
    * This field answers the question that rule was actually trying to ask:
    * *did the two resolutions agree on everything else?* Compare THIS across
    * stages, and compare `cache_enabled` against the condition separately.
+   *
+   * F2 (2/2e) — the ninth audit's blocker 1: the first version of this field
+   * was just `knobsHash` with the cache decision normalized out, and
+   * `knobsHash` OMITS effective state that changes the pipeline. So two stages
+   * could agree on this hash having resolved different things, and rule 6 would
+   * read that agreement as "everything else matched". It is now built by
+   * `sharedKnobsDigest`, which folds the omissions in — see that function for
+   * the list and for why an incomplete input yields ABSENT rather than a hash.
    */
   shared_knobs_hash?: string;
   /** Effective cache decision for this call. */
@@ -88,6 +97,38 @@ export interface ReceiptResolution {
   scope?: string;
   /** Embedding column actually resolved (not the configured default). */
   embedding_column?: string;
+  /**
+   * F2 (2/2e) — the three pieces of effective state `knobsHash` omits, carried
+   * individually as well as folded into `shared_knobs_hash`.
+   *
+   * The hash makes rule 6 ONE comparison; these make a mismatch DIAGNOSABLE.
+   * With only the hash, two stages that disagree produce "the hashes differ"
+   * and the operator has to bisect the engine to learn why — which in practice
+   * means the run gets discarded without a cause, and a systematic divergence
+   * looks like noise.
+   *
+   * `column_dimensions` + `column_type`: `knobsHash` folds the column NAME and
+   * provider model, not its geometry. Two stages can resolve the same name to
+   * different dim/type (the registry is DB-plane state, read once per stage)
+   * and that is a different vector space, not a different label.
+   */
+  column_dimensions?: number;
+  column_type?: string;
+  /**
+   * Effective adaptive-return decision. Resolved SEPARATELY in each stage from
+   * its own config read, and absent from `knobsHash` entirely (the cache skips
+   * instead of segregating). A stage that trimmed the set and one that did not
+   * are not comparable, and nothing else in the receipt says which happened.
+   */
+  adaptive_return?: boolean;
+  /**
+   * Digest of the reranker config the pipeline would actually apply —
+   * `opts.reranker ?? mode bundle`, which is what `hybridSearch` reads at the
+   * rerank step. `knobsHash` folds only the BUNDLE's reranker, so on a per-call
+   * `reranker` override the outer hashed one config while the inner applied
+   * another, and the shared hash matched anyway.
+   */
+  reranker_effective?: string;
   /** Cache similarity threshold and TTL in force. */
   similarity_threshold?: number;
   ttl_seconds?: number;
@@ -161,6 +202,111 @@ export interface CallReceipt {
     blocked_by?: string[];
   };
   resolutions: ReceiptResolution[];
+}
+
+/**
+ * F2 (2/2e) — digest of the reranker config the pipeline would ACTUALLY apply.
+ *
+ * `hybridSearch` resolves the reranker as `opts.reranker ?? bundle`, taking the
+ * per-call object WHOLE — a partial override leaves the other fields undefined
+ * rather than falling back field-by-field. This digest reproduces that exactly,
+ * including the undefineds, because the harness needs what the pipeline uses,
+ * not what a well-formed config would have said.
+ *
+ * Structural parameter types on purpose: this module is the sink and stays free
+ * of search-internal imports.
+ */
+export function rerankerDigest(
+  perCall:
+    | {
+        enabled?: boolean;
+        model?: string;
+        topNIn?: number;
+        topNOut?: number | null;
+        timeoutMs?: number;
+        /** A per-call reranker implementation. Its PRESENCE is effective state. */
+        rerankerFn?: unknown;
+      }
+    | undefined,
+  bundle: {
+    reranker_enabled: boolean;
+    reranker_model: string;
+    reranker_top_n_in: number;
+    reranker_top_n_out?: number | null;
+    reranker_timeout_ms: number;
+  },
+): string {
+  const eff = perCall ?? {
+    enabled: bundle.reranker_enabled,
+    model: bundle.reranker_model,
+    topNIn: bundle.reranker_top_n_in,
+    topNOut: bundle.reranker_top_n_out,
+    timeoutMs: bundle.reranker_timeout_ms,
+    rerankerFn: undefined,
+  };
+  // `null` and `undefined` are DIFFERENT states here and must not collapse:
+  // `topNOut: null` is an explicit "no output cap", `undefined` is "the caller
+  // said nothing" — and on a partial per-call override the second one is what
+  // the pipeline actually uses.
+  const v = (x: unknown) => (x === undefined ? 'none' : x === null ? 'null' : String(x));
+  return [
+    `src=${perCall ? 'per_call' : 'bundle'}`,
+    `en=${eff.enabled ? 1 : 0}`,
+    `m=${v(eff.model)}`,
+    `in=${v(eff.topNIn)}`,
+    `out=${v(eff.topNOut)}`,
+    `t=${v(eff.timeoutMs)}`,
+    // An injected reranker replaces the scorer entirely — a run with one is not
+    // comparable to a run without it, whatever the other fields say.
+    `fn=${eff.rerankerFn === undefined ? 0 : 1}`,
+  ].join(',');
+}
+
+/**
+ * F2 (2/2e) — the comparable hash for rule 6, built from the normalized
+ * effective hash PLUS the state `knobsHash` leaves out.
+ *
+ * 🔴 RETURNS `undefined` WHEN ANY COMPONENT IS UNKNOWN, and that is the whole
+ * point. Hashing a missing value as a literal `'none'` would make two stages
+ * that BOTH failed to resolve it agree — a hash that says "equivalent" about a
+ * pair where neither side knows what it ran. Absent means unverifiable; the
+ * harness must treat it as invalidating, never as agreement. (The ninth audit
+ * caught the weaker version of exactly this: a gate that could report equality
+ * it had not established.)
+ *
+ * `baseHash` must already have the cache decision normalized out — this
+ * function does not know about `cache_enabled` and does not touch it.
+ */
+export function sharedKnobsDigest(
+  baseHash: string | undefined,
+  extra: {
+    columnDimensions?: number;
+    columnType?: string;
+    adaptiveReturn?: boolean;
+    rerankerEffective?: string;
+  },
+): string | undefined {
+  if (
+    baseHash === undefined ||
+    extra.columnDimensions === undefined ||
+    extra.columnType === undefined ||
+    extra.adaptiveReturn === undefined ||
+    extra.rerankerEffective === undefined
+  ) {
+    return undefined;
+  }
+  const h = createHash('sha256');
+  h.update(
+    [
+      'sv=1',
+      `k=${baseHash}`,
+      `dim=${extra.columnDimensions}`,
+      `ctype=${extra.columnType}`,
+      `ar=${extra.adaptiveReturn ? 1 : 0}`,
+      `rr=${extra.rerankerEffective}`,
+    ].join('|'),
+  );
+  return h.digest('hex').slice(0, 16);
 }
 
 /** Sink path, read once. Unset ⇒ receipts are disabled entirely. */
