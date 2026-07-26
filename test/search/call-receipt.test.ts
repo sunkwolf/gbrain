@@ -11,24 +11,41 @@ import { describe, test, expect, afterEach } from 'bun:test';
 import { existsSync, readFileSync, rmSync, mkdtempSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { withEnv } from '../helpers/with-env.ts';
 import {
   emitCallReceipt,
   receiptsEnabled,
   newCallId,
   rerankerDigest,
   sharedKnobsDigest,
+  adaptiveReturnDigest,
   type CallReceipt,
 } from '../../src/core/search/call-receipt.ts';
 
 const ENV_KEY = 'GBRAIN_CALL_RECEIPT_PATH';
 const created: string[] = [];
 
-function withSink(): string {
+/**
+ * F2 (2/2h) — the sink env var goes through `withEnv`, the repo's canonical
+ * helper, instead of a raw `process.env` mutation.
+ *
+ * The 10th audit caught this as a BLOCKER and it was mine: `process.env` is
+ * process-global, the parallel runner loads many files into one process per
+ * shard, and this file was mutating it while NOT being `*.serial.test.ts`.
+ * `check:test-isolation` failed on rule R1 — and I never saw it because I ran
+ * the targeted tests and `tsc`, never `bun run verify`. A gate that exists in
+ * the repo and that I did not run is not a gate that passed.
+ *
+ * `withEnv` (not renaming to `.serial`) on purpose: renaming would have made
+ * the lint quiet by quarantining the file, while `withEnv` actually restores
+ * the prior value via try/finally — including when the body throws. The
+ * quarantine hides the leak; the helper removes it.
+ */
+async function withSink<T>(fn: (path: string) => T | Promise<T>): Promise<T> {
   const dir = mkdtempSync(join(tmpdir(), 'gbrain-receipt-'));
   created.push(dir);
   const p = join(dir, 'receipts.jsonl');
-  process.env[ENV_KEY] = p;
-  return p;
+  return withEnv({ [ENV_KEY]: p }, () => fn(p));
 }
 
 function receipt(over: Partial<CallReceipt> = {}): CallReceipt {
@@ -53,99 +70,108 @@ function receipt(over: Partial<CallReceipt> = {}): CallReceipt {
 }
 
 afterEach(() => {
-  delete process.env[ENV_KEY];
+  // No env cleanup here: `withEnv` restores every key it touched via
+  // try/finally, so deleting it again would be a second source of truth for
+  // the same invariant.
   for (const d of created.splice(0)) {
     try { rmSync(d, { recursive: true, force: true }); } catch { /* best-effort */ }
   }
 });
 
 describe('call receipt', () => {
-  test('OFF BY DEFAULT — no env var, no sink, no work', () => {
-    delete process.env[ENV_KEY];
-    expect(receiptsEnabled()).toBe(false);
-    // Must not throw even with nowhere to write.
-    expect(() => emitCallReceipt(receipt())).not.toThrow();
+  test('OFF BY DEFAULT — no env var, no sink, no work', async () => {
+    await withEnv({ [ENV_KEY]: undefined }, () => {
+      expect(receiptsEnabled()).toBe(false);
+      // Must not throw even with nowhere to write.
+      expect(() => emitCallReceipt(receipt())).not.toThrow();
+    });
   });
 
-  test('POSITIVE CONTROL — with the sink set, the receipt lands and round-trips', () => {
-    const p = withSink();
-    expect(receiptsEnabled()).toBe(true);
+  test('POSITIVE CONTROL — with the sink set, the receipt lands and round-trips', async () => {
+    await withSink(async (p) => {
+      expect(receiptsEnabled()).toBe(true);
 
-    const r = receipt();
-    emitCallReceipt(r);
+      const r = receipt();
+      emitCallReceipt(r);
 
-    expect(existsSync(p)).toBe(true);
-    const lines = readFileSync(p, 'utf-8').trim().split('\n');
-    expect(lines).toHaveLength(1);
+      expect(existsSync(p)).toBe(true);
+      const lines = readFileSync(p, 'utf-8').trim().split('\n');
+      expect(lines).toHaveLength(1);
 
-    const back = JSON.parse(lines[0]) as CallReceipt;
-    expect(back.call_id).toBe(r.call_id);
-    expect(back.resolutions[0].knobs_hash).toBe('H_ON');
-    expect(back.resolutions[0].cache_enabled).toBe(true);
+      const back = JSON.parse(lines[0]) as CallReceipt;
+      expect(back.call_id).toBe(r.call_id);
+      expect(back.resolutions[0].knobs_hash).toBe('H_ON');
+      expect(back.resolutions[0].cache_enabled).toBe(true);
+    });
   });
 
-  test('appends — one line per call, never overwrites prior evidence', () => {
-    const p = withSink();
-    emitCallReceipt(receipt({ query: 'una' }));
-    emitCallReceipt(receipt({ query: 'dos' }));
-    const lines = readFileSync(p, 'utf-8').trim().split('\n');
-    expect(lines).toHaveLength(2);
-    expect(JSON.parse(lines[0]).query).toBe('una');
-    expect(JSON.parse(lines[1]).query).toBe('dos');
+  test('appends — one line per call, never overwrites prior evidence', async () => {
+    await withSink(async (p) => {
+      emitCallReceipt(receipt({ query: 'una' }));
+      emitCallReceipt(receipt({ query: 'dos' }));
+      const lines = readFileSync(p, 'utf-8').trim().split('\n');
+      expect(lines).toHaveLength(2);
+      expect(JSON.parse(lines[0]).query).toBe('una');
+      expect(JSON.parse(lines[1]).query).toBe('dos');
+    });
   });
 
-  test('🔴 NEGATIVE CONTROL — a broken sink must not reach the caller', () => {
+  test('🔴 NEGATIVE CONTROL — a broken sink must not reach the caller', async () => {
     // Point the sink at a path that cannot be written (a directory component
     // that does not exist). appendFileSync will throw internally.
-    process.env[ENV_KEY] = '/nonexistent-dir-gbrain-f2/receipts.jsonl';
-    expect(receiptsEnabled()).toBe(true);
-    // The whole promise of the patch rests on this line.
-    expect(() => emitCallReceipt(receipt())).not.toThrow();
+    await withEnv({ [ENV_KEY]: '/nonexistent-dir-gbrain-f2/receipts.jsonl' }, () => {
+      expect(receiptsEnabled()).toBe(true);
+      // The whole promise of the patch rests on this line.
+      expect(() => emitCallReceipt(receipt())).not.toThrow();
+    });
   });
 
-  test('a hit carries outer only — inner absent is a state, not a gap', () => {
-    const p = withSink();
-    emitCallReceipt(receipt()); // outer only, lookup_outcome: 'hit'
-    const back = JSON.parse(readFileSync(p, 'utf-8').trim()) as CallReceipt;
-    expect(back.resolutions).toHaveLength(1);
-    expect(back.resolutions[0].stage).toBe('outer');
-    expect(back.resolutions[0].lookup_outcome).toBe('hit');
-    // The harness reads this as "the hit short-circuited before the inner
-    // resolution", NOT as "the inner resolution reported nothing".
+  test('a hit carries outer only — inner absent is a state, not a gap', async () => {
+    await withSink(async (p) => {
+      emitCallReceipt(receipt()); // outer only, lookup_outcome: 'hit'
+      const back = JSON.parse(readFileSync(p, 'utf-8').trim()) as CallReceipt;
+      expect(back.resolutions).toHaveLength(1);
+      expect(back.resolutions[0].stage).toBe('outer');
+      expect(back.resolutions[0].lookup_outcome).toBe('hit');
+      // The harness reads this as "the hit short-circuited before the inner
+      // resolution", NOT as "the inner resolution reported nothing".
+    });
   });
 
-  test('a miss carries outer AND inner', () => {
-    const p = withSink();
-    emitCallReceipt(receipt({
-      resolutions: [
-        {
-          stage: 'outer', knobs_hash: 'H_OFF', cache_enabled: false, config_read: 'ok',
-          skip_reasons: ['cache_disabled'], lookup_attempted: false,
-          lookup_outcome: 'not_attempted',
-        },
-        {
-          stage: 'inner', knobs_hash: 'H_OFF', cache_enabled: false, config_read: 'ok',
-          skip_reasons: [], lookup_attempted: false,
-        },
-      ],
-    }));
-    const back = JSON.parse(readFileSync(p, 'utf-8').trim()) as CallReceipt;
-    expect(back.resolutions.map(r => r.stage)).toEqual(['outer', 'inner']);
+  test('a miss carries outer AND inner', async () => {
+    await withSink(async (p) => {
+      emitCallReceipt(receipt({
+        resolutions: [
+          {
+            stage: 'outer', knobs_hash: 'H_OFF', cache_enabled: false, config_read: 'ok',
+            skip_reasons: ['cache_disabled'], lookup_attempted: false,
+            lookup_outcome: 'not_attempted',
+          },
+          {
+            stage: 'inner', knobs_hash: 'H_OFF', cache_enabled: false, config_read: 'ok',
+            skip_reasons: [], lookup_attempted: false,
+          },
+        ],
+      }));
+      const back = JSON.parse(readFileSync(p, 'utf-8').trim()) as CallReceipt;
+      expect(back.resolutions.map(r => r.stage)).toEqual(['outer', 'inner']);
+    });
   });
 
-  test('config_read distinguishes an honest default from a silent fallback', () => {
-    const p = withSink();
-    emitCallReceipt(receipt({
-      resolutions: [{
-        stage: 'outer', knobs_hash: 'H?', cache_enabled: true,
-        config_read: 'fallback', // the read failed and defaults kicked in
-        skip_reasons: [], lookup_attempted: true, lookup_outcome: 'miss',
-      }],
-    }));
-    const back = JSON.parse(readFileSync(p, 'utf-8').trim()) as CallReceipt;
-    // Without this field, "cache_enabled: true" is ambiguous between "the
-    // operator wants it on" and "we could not read the config and defaulted".
-    expect(back.resolutions[0].config_read).toBe('fallback');
+  test('config_read distinguishes an honest default from a silent fallback', async () => {
+    await withSink(async (p) => {
+      emitCallReceipt(receipt({
+        resolutions: [{
+          stage: 'outer', knobs_hash: 'H?', cache_enabled: true,
+          config_read: 'fallback', // the read failed and defaults kicked in
+          skip_reasons: [], lookup_attempted: true, lookup_outcome: 'miss',
+        }],
+      }));
+      const back = JSON.parse(readFileSync(p, 'utf-8').trim()) as CallReceipt;
+      // Without this field, "cache_enabled: true" is ambiguous between "the
+      // operator wants it on" and "we could not read the config and defaulted".
+      expect(back.resolutions[0].config_read).toBe('fallback');
+    });
   });
 
   test('call ids are unique — resolutions of one call must not merge with another', () => {
@@ -169,7 +195,7 @@ describe('sharedKnobsDigest — the comparable hash for rule 6', () => {
   const complete = {
     columnDimensions: 1536,
     columnType: 'vector',
-    adaptiveReturn: false,
+    adaptiveReturn: 'off',
     rerankerEffective: 'src=bundle,en=0,m=none,in=8,out=none,t=2000,fn=0',
   };
 
@@ -183,7 +209,14 @@ describe('sharedKnobsDigest — the comparable hash for rule 6', () => {
       ['the base knobs hash', 'OTHERHASH', complete],
       ['column dimensions', 'BASEHASH', { ...complete, columnDimensions: 1024 }],
       ['column type', 'BASEHASH', { ...complete, columnType: 'halfvec' }],
-      ['adaptive return', 'BASEHASH', { ...complete, adaptiveReturn: true }],
+      ['adaptive return: the switch', 'BASEHASH', { ...complete, adaptiveReturn: 'on:3/10/1' }],
+      // 🔴 The tenth audit's blocker, pinned: with the gate ON, each CAP must
+      // move the hash on its own. Codex froze the inner's three caps to 1 —
+      // a different effective policy — and the wiring file stayed green,
+      // because only `enabled` was folded in.
+      ['adaptive return: entityMax', 'BASEHASH', { ...complete, adaptiveReturn: 'on:1/10/1' }],
+      ['adaptive return: otherMax', 'BASEHASH', { ...complete, adaptiveReturn: 'on:3/1/1' }],
+      ['adaptive return: minKeep', 'BASEHASH', { ...complete, adaptiveReturn: 'on:3/10/2' }],
       ['the effective reranker', 'BASEHASH', { ...complete, rerankerEffective: 'src=per_call,en=1' }],
     ];
     for (const [what, baseHash, extra] of variants) {
@@ -205,6 +238,34 @@ describe('sharedKnobsDigest — the comparable hash for rule 6', () => {
     expect(sharedKnobsDigest('BASEHASH', { ...complete, columnType: undefined })).toBeUndefined();
     expect(sharedKnobsDigest('BASEHASH', { ...complete, adaptiveReturn: undefined })).toBeUndefined();
     expect(sharedKnobsDigest('BASEHASH', { ...complete, rerankerEffective: undefined })).toBeUndefined();
+  });
+});
+
+describe('adaptiveReturnDigest — the policy, not just the switch', () => {
+  const on = { enabled: true, entityMax: 3, otherMax: 10, minKeep: 1 };
+
+  test('🔴 each cap moves the digest when the gate is ON', () => {
+    // The tenth audit's blocker in its smallest form. `resolveAdaptiveReturn`
+    // resolves four values and the three caps decide how many results survive
+    // the trim, so a digest carrying only `enabled` calls two different
+    // policies equivalent.
+    const base = adaptiveReturnDigest(on);
+    expect(adaptiveReturnDigest({ ...on, entityMax: 1 })).not.toBe(base);
+    expect(adaptiveReturnDigest({ ...on, otherMax: 1 })).not.toBe(base);
+    expect(adaptiveReturnDigest({ ...on, minKeep: 2 })).not.toBe(base);
+    expect(adaptiveReturnDigest({ ...on, enabled: false })).not.toBe(base);
+  });
+
+  test('the caps do NOT move it when the gate is OFF — and that is deliberate', () => {
+    // The opposite error costs just as much. `applyAdaptiveReturn` returns
+    // before reading the caps when disabled, so two gate-off stages with
+    // different caps really did the same thing. Folding the caps anyway would
+    // invalidate runs over a difference that changed nothing — a gate that
+    // cries wolf gets ignored, and then it protects nothing.
+    const off = { enabled: false, entityMax: 3, otherMax: 10, minKeep: 1 };
+    expect(adaptiveReturnDigest({ ...off, entityMax: 99, otherMax: 99, minKeep: 99 }))
+      .toBe(adaptiveReturnDigest(off));
+    expect(adaptiveReturnDigest(off)).toBe('off');
   });
 });
 

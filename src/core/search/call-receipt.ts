@@ -138,6 +138,22 @@ export interface ReceiptResolution {
    */
   adaptive_return?: boolean;
   /**
+   * F2 (2/2h) — the FULL effective adaptive-return policy, not just its switch.
+   *
+   * The tenth audit's blocker: `resolveAdaptiveReturn` resolves FOUR values —
+   * `enabled`, `entityMax`, `otherMax`, `minKeep` — and the three caps decide
+   * how many results survive the trim. Folding only `enabled` left a real false
+   * equivalence: Codex pinned the inner's three caps to 1, which changes the
+   * effective policy, and the wiring file stayed green at 19/0.
+   *
+   * Format `on:entity/other/min` when enabled, `off` when not. The caps are
+   * omitted while disabled ON PURPOSE: `applyAdaptiveReturn` returns early
+   * before reading them, so two gate-off stages with different caps really are
+   * equivalent, and folding the caps anyway would invalidate runs over a
+   * difference that changed nothing.
+   */
+  adaptive_return_policy?: string;
+  /**
    * Digest of the reranker config the pipeline would actually apply —
    * `opts.reranker ?? mode bundle`, which is what `hybridSearch` reads at the
    * rerank step. `knobsHash` folds only the BUNDLE's reranker, so on a per-call
@@ -279,6 +295,28 @@ export function rerankerDigest(
 }
 
 /**
+ * F2 (2/2h) — the effective adaptive-return policy, rendered for the digest.
+ *
+ * `enabled` alone is not the policy: the three caps decide how many results
+ * survive the trim, so two stages agreeing on the switch and differing on the
+ * caps produce different result sets from the same query. That gap was a real
+ * false equivalence — see `ReceiptResolution.adaptive_return_policy`.
+ *
+ * Disabled ⇒ `off`, with the caps deliberately dropped: the trim returns before
+ * reading them, so gate-off stages with different caps ARE equivalent. Folding
+ * them anyway would invalidate runs over a difference that changed nothing,
+ * which is the opposite failure and just as expensive.
+ */
+export function adaptiveReturnDigest(cfg: {
+  enabled: boolean;
+  entityMax: number;
+  otherMax: number;
+  minKeep: number;
+}): string {
+  return cfg.enabled ? `on:${cfg.entityMax}/${cfg.otherMax}/${cfg.minKeep}` : 'off';
+}
+
+/**
  * F2 (2/2e) — the comparable hash for rule 6, built from the normalized
  * effective hash PLUS the state `knobsHash` leaves out.
  *
@@ -298,7 +336,8 @@ export function sharedKnobsDigest(
   extra: {
     columnDimensions?: number;
     columnType?: string;
-    adaptiveReturn?: boolean;
+    /** The FULL effective policy from `adaptiveReturnDigest`, not just the switch. */
+    adaptiveReturn?: string;
     rerankerEffective?: string;
   },
 ): string | undefined {
@@ -318,7 +357,7 @@ export function sharedKnobsDigest(
       `k=${baseHash}`,
       `dim=${extra.columnDimensions}`,
       `ctype=${extra.columnType}`,
-      `ar=${extra.adaptiveReturn ? 1 : 0}`,
+      `ar=${extra.adaptiveReturn}`,
       `rr=${extra.rerankerEffective}`,
     ].join('|'),
   );
