@@ -431,6 +431,40 @@ describe('call receipt — wired into hybridSearchCached', () => {
     expect(resolutionOf(readReceipts()[0], 'outer')!.config_read).toBe('ok');
   });
 
+  test('config_read also covers the DB-plane loader, whose failures never null the config', async () => {
+    // The 8th audit's blocker 5. `loadConfigWithEngine` swallows per key AND
+    // returns a usable base config anyway, so the null check the 2b receipt
+    // relied on could never fire: it reported `ok` while the reads that decide
+    // the embedding column and cache safety had been masked.
+    //
+    // `search_embedding_column` is NOT in the mode-config key list, so pre-fix
+    // this failure was invisible to the receipt in every field it had.
+    const original = engine.getConfig.bind(engine);
+    (engine as unknown as { getConfig: (k: string) => Promise<string | null> }).getConfig = async (k: string) => {
+      if (k === 'search_embedding_column') throw new Error('db-plane read exploded');
+      return original(k);
+    };
+    try {
+      const results = await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
+      expect(results.length).toBeGreaterThan(0);
+    } finally {
+      (engine as unknown as { getConfig: unknown }).getConfig = original;
+    }
+
+    const r = readReceipts()[0];
+    for (const stage of ['outer', 'inner'] as const) {
+      const res = resolutionOf(r, stage)!;
+      expect(res.config_read).toBe('fallback');
+      expect(res.config_read_failures).toContain('search_embedding_column (db-plane)');
+    }
+
+    // NEGATIVE CONTROL: restored, the same query reports 'ok'.
+    rmSync(sinkPath, { force: true });
+    await clearCache();
+    await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
+    expect(resolutionOf(readReceipts()[0], 'outer')!.config_read).toBe('ok');
+  });
+
   test('bare hybridSearch emits nothing — no half receipt without an outer', async () => {
     const results = await hybridSearch(engine, 'alice receipt fixtures', { limit: 5 });
     expect(results.length).toBeGreaterThan(0);
