@@ -117,6 +117,30 @@ describe('loadConfig file-plane diagnostic', () => {
     ]);
   });
 
+  test('🔴 valid JSON whose MIGRATION throws is `migration_error`, not `parse_error`', () => {
+    // Declared as a gap when this diagnostic landed, and closed here because it
+    // turned out NOT to need a mock: a config file containing the literal `null`
+    // parses perfectly and then makes `migrateLegacyEmbeddingConfig` throw on
+    // `raw.embedding_model` (TypeError: null is not an object). A real file, a
+    // real throw, no test double — which matters, because a test whose failure
+    // is manufactured by its own mock proves the mock, not the code.
+    //
+    // The distinction is the whole point of splitting the catch: parse and
+    // migration fail for different reasons and an operator fixes them
+    // differently. Collapsing them would leave the third step of the read
+    // unobservable, which is where this started.
+    writeFileSync(cfgFile, 'null');
+    const d = diag();
+    // Behavior unchanged: it still resolves to null, exactly as with the single
+    // catch. Only the diagnosis is new.
+    expect(loadConfig(d)).toBeNull();
+    expect(d.outcome).toBe('migration_error');
+    expect(d.error).toBeTruthy();
+    expect(fileConfigReadFailures(d)).toEqual([
+      expect.stringContaining('config_file (migration_error'),
+    ]);
+  });
+
   test('the four keys a broken file hides are exactly the ones that pick the vector space', () => {
     // Not a behavior assertion — a statement of the stakes, pinned so a future
     // reader cannot mistake this diagnostic for cosmetics. With the file broken,
