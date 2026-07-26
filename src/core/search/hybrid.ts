@@ -25,7 +25,12 @@ import {
 } from './return-policy.ts';
 import { applyAutocut, type AutocutDecision } from './autocut.ts';
 import { buildRelationalArm } from './relational-recall.ts';
-import { loadConfigWithEngine, type ConfigReadDiag } from '../config.ts';
+import {
+  loadConfigWithEngine,
+  fileConfigReadFailures,
+  type ConfigReadDiag,
+  type FileConfigReadDiag,
+} from '../config.ts';
 import { dedupResults } from './dedup.ts';
 import { applyReranker } from './rerank.ts';
 import { autoDetectDetail, classifyQuery, isAmbiguousModalityQuery } from './query-intent.ts';
@@ -922,7 +927,14 @@ export async function hybridSearch(
   // usable base config even when reads fail, so a null check can NEVER see it.
   const innerCfgDiag: ConfigReadDiag | undefined = receiptBox ? { readErrors: [] } : undefined;
   const mergedCfg = await loadConfigWithEngine(engine, undefined, innerCfgDiag).catch(() => null);
-  const cfgForColumn = mergedCfg ?? ((await import('../config.ts')).loadConfig()) ?? null;
+  // F2 (2/2f): when the DB-plane loader THREW, its file-plane diagnostic never
+  // got filled, and this second read is the one that actually decided the
+  // column. Give it its own diagnostic so the file plane is never unobserved.
+  const innerFileFallbackDiag: FileConfigReadDiag | undefined =
+    receiptBox && !mergedCfg ? { outcome: 'not_read' } : undefined;
+  const cfgForColumn =
+    mergedCfg ?? ((await import('../config.ts')).loadConfig(innerFileFallbackDiag)) ?? null;
+  const innerFilePlane = mergedCfg ? innerCfgDiag?.filePlane : innerFileFallbackDiag;
   const resolvedCol = cfgForColumn
     ? resolveEmbeddingColumn(opts, cfgForColumn)
     : resolveEmbeddingColumn(opts, { engine: 'pglite' });
@@ -977,6 +989,10 @@ export async function hybridSearch(
         ...(modeDiag?.nonStringValues ?? []).map((k) => `${k} (non-string)`),
         // DB-plane reads swallowed by loadConfigWithEngine (column + cache safety).
         ...(innerCfgDiag?.readErrors ?? []).map((k) => `${k} (db-plane)`),
+        // File plane: a present-but-broken config file hides the embedding model,
+        // dimensions and column registry while the DB-plane diag reports 'ok'.
+        // 'absent' is honest and contributes nothing here — see the type.
+        ...fileConfigReadFailures(innerFilePlane),
       ];
       // Both config planes failed and we fell through to the file plane (or to
       // the bare default). Same masking class as a swallowed key read.
@@ -1015,6 +1031,8 @@ export async function hybridSearch(
         cache_enabled: resolvedMode.cache_enabled,
         config_read: failures.length > 0 ? 'fallback' : 'ok',
         ...(failures.length > 0 ? { config_read_failures: failures } : {}),
+        ...(innerFilePlane ? { config_file_read: innerFilePlane.outcome } : {}),
+        ...(innerFilePlane?.error ? { config_file_error: innerFilePlane.error } : {}),
         scope: cacheScopeKey(opts),
         embedding_column: resolvedCol.name,
         column_dimensions: resolvedCol.dimensions,
@@ -1901,7 +1919,15 @@ async function hybridSearchCachedImpl(
   // report config_read:'ok' while reads were masked.
   const outerCfgDiag: ConfigReadDiag | undefined = receiptOn ? { readErrors: [] } : undefined;
   const mergedCfgCached = await loadConfigWithEngine(engine, undefined, outerCfgDiag).catch(() => null);
-  const cfgCached = mergedCfgCached ?? ((await import('../config.ts')).loadConfig()) ?? { engine: 'pglite' as const };
+  // F2 (2/2f): same as the inner — the fallback read gets its own file-plane
+  // diagnostic, so a DB-plane throw does not leave the file plane unobserved.
+  const outerFileFallbackDiag: FileConfigReadDiag | undefined =
+    receiptOn && !mergedCfgCached ? { outcome: 'not_read' } : undefined;
+  const cfgCached =
+    mergedCfgCached ??
+    ((await import('../config.ts')).loadConfig(outerFileFallbackDiag)) ??
+    { engine: 'pglite' as const };
+  const outerFilePlane = mergedCfgCached ? outerCfgDiag?.filePlane : outerFileFallbackDiag;
   const resolvedColCached = resolveEmbeddingColumn(opts, cfgCached);
   const isNonDefaultColumn = !isCacheSafe(resolvedColCached, cfgCached);
 
@@ -2045,6 +2071,8 @@ async function hybridSearchCachedImpl(
       ...(outerModeDiag?.nonStringValues ?? []).map((k) => `${k} (non-string)`),
       // DB-plane reads swallowed by loadConfigWithEngine (column + cache safety).
       ...(outerCfgDiag?.readErrors ?? []).map((k) => `${k} (db-plane)`),
+      // File plane — see the inner's note. Same masking, different keys lost.
+      ...fileConfigReadFailures(outerFilePlane),
     ];
     // The DB-plane config load failed and we fell through to the file plane.
     // Same masking class as a swallowed key read: the run used values the
@@ -2057,6 +2085,8 @@ async function hybridSearchCachedImpl(
       cache_enabled: cacheEnabled,
       config_read: failures.length > 0 ? 'fallback' : 'ok',
       ...(failures.length > 0 ? { config_read_failures: failures } : {}),
+      ...(outerFilePlane ? { config_file_read: outerFilePlane.outcome } : {}),
+      ...(outerFilePlane?.error ? { config_file_error: outerFilePlane.error } : {}),
       scope: cacheScopeKey(opts),
       embedding_column: resolvedColCached.name,
       // F2 (2/2e) — the state knobsHash omits, carried individually so a shared

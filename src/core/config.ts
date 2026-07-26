@@ -542,13 +542,105 @@ export function effectiveEnvDatabaseUrl(dir: string = process.cwd()): string | u
   return url;
 }
 
-export function loadConfig(): GBrainConfig | null {
+/**
+ * F2 measurement patch (2/2f) — read diagnostics for the FILE plane.
+ *
+ * The ninth audit's blocker: `loadConfig` wrapped read + `JSON.parse` +
+ * `migrateLegacyEmbeddingConfig` in ONE empty catch, so "there is no config
+ * file" — an honest, extremely common state — and "the file is there but
+ * unreadable, malformed, or its migration threw" produced byte-identical
+ * outcomes: `fileConfig = null`, silently.
+ *
+ * That matters because the file plane is where `embedding_model`,
+ * `embedding_dimensions`, `embedding_columns` and `search_embedding_column`
+ * live. A malformed file hides all four, `loadConfigWithEngine` then synthesizes
+ * `{engine:'postgres'}`, and the DB-plane diagnostic keeps reporting `ok` —
+ * because from its side nothing failed. The run searches a different vector
+ * space than the operator configured and every instrument says fine.
+ *
+ * Purely observational: the outcome of `loadConfig` is byte-for-byte unchanged
+ * whether or not this is passed, and production passes nothing.
+ */
+export type FileConfigReadOutcome =
+  /** No read was attempted (an explicit `base` was supplied). */
+  | 'not_read'
+  /** Read, parsed and migrated. */
+  | 'ok'
+  /** No file at the config path. HONEST — this is the default install state. */
+  | 'absent'
+  /** The file exists and the read threw: permissions, a directory, I/O. */
+  | 'unreadable'
+  /** The file was read and is not valid JSON. */
+  | 'parse_error'
+  /** Read and parsed, but the legacy-embedding migration threw. */
+  | 'migration_error';
+
+export interface FileConfigReadDiag {
+  outcome: FileConfigReadOutcome;
+  /** The swallowed error, for every outcome that is a failure. */
+  error?: string;
+}
+
+/**
+ * The file-plane outcomes that are FAILURES, rendered for a receipt.
+ *
+ * `absent` and `not_read` are deliberately NOT failures: a machine with no
+ * `~/.gbrain/config.json` is the normal install, and calling that a fallback
+ * would make the signal fire on every clean brain until nobody reads it.
+ * Keeping the distinction is the entire point of the type above.
+ */
+export function fileConfigReadFailures(diag: FileConfigReadDiag | undefined): string[] {
+  if (!diag) return [];
+  switch (diag.outcome) {
+    case 'unreadable':
+    case 'parse_error':
+    case 'migration_error':
+      return [`config_file (${diag.outcome}${diag.error ? `: ${diag.error}` : ''})`];
+    default:
+      return [];
+  }
+}
+
+export function loadConfig(fileDiag?: FileConfigReadDiag): GBrainConfig | null {
   let fileConfig: GBrainConfig | null = null;
+  // F2 (2/2f): three steps, three catches. Same control flow as the single
+  // catch it replaces — any failure leaves `fileConfig` null — but the step
+  // that failed is now nameable instead of inferred.
+  let raw: string | undefined;
   try {
-    const raw = readFileSync(getConfigPath(), 'utf-8');
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
-    fileConfig = migrateLegacyEmbeddingConfig(parsed) as unknown as GBrainConfig;
-  } catch { /* no config file */ }
+    raw = readFileSync(getConfigPath(), 'utf-8');
+  } catch (err) {
+    if (fileDiag) {
+      const code = (err as NodeJS.ErrnoException)?.code;
+      // ENOENT is the honest one. Everything else — EACCES, EISDIR, EIO — is a
+      // file that exists in some form and could not be read, which is a fallback
+      // the operator has no other way to see.
+      fileDiag.outcome = code === 'ENOENT' ? 'absent' : 'unreadable';
+      if (code !== 'ENOENT') fileDiag.error = `${code ?? 'error'}: ${(err as Error)?.message ?? String(err)}`;
+    }
+  }
+  if (raw !== undefined) {
+    let parsed: Record<string, unknown> | undefined;
+    try {
+      parsed = JSON.parse(raw) as Record<string, unknown>;
+    } catch (err) {
+      if (fileDiag) {
+        fileDiag.outcome = 'parse_error';
+        fileDiag.error = (err as Error)?.message ?? String(err);
+      }
+    }
+    if (parsed !== undefined) {
+      try {
+        fileConfig = migrateLegacyEmbeddingConfig(parsed) as unknown as GBrainConfig;
+        if (fileDiag) fileDiag.outcome = 'ok';
+      } catch (err) {
+        if (fileDiag) {
+          fileDiag.outcome = 'migration_error';
+          fileDiag.error = (err as Error)?.message ?? String(err);
+        }
+      }
+    }
+  }
 
   // Try env vars (cwd-.env-origin DATABASE_URL excluded — see #427 guard above)
   const dbUrl = effectiveEnvDatabaseUrl();
@@ -671,6 +763,15 @@ export function loadConfig(): GBrainConfig | null {
 export interface ConfigReadDiag {
   /** Keys whose read THREW or whose value was unusable. Swallowed to defaults. */
   readErrors: string[];
+  /**
+   * F2 (2/2f) — the FILE plane, kept as its own diagnosis rather than folded
+   * into `readErrors`. The two planes fail independently and mean different
+   * things: a swallowed DB key means the operator's runtime knob was lost, a
+   * malformed config file means the embedding model, dimensions and column
+   * registry were lost. Collapsing them would leave the harness unable to say
+   * which, and the second one silently changes the vector space being searched.
+   */
+  filePlane?: FileConfigReadDiag;
 }
 
 export async function loadConfigWithEngine(
@@ -690,8 +791,15 @@ export async function loadConfigWithEngine(
   // config has no auth or model fields; DB-plane keys overlay correctly
   // and downstream callers either find them or fall through to defaults.
   // Also applies when callers pass an explicit null for `base`.
+  // F2 (2/2f): thread the file-plane diagnostic through the read this function
+  // performs on the caller's behalf. When `base` is supplied there IS no read,
+  // and `not_read` says so — an outcome the receipt must not confuse with 'ok'.
+  const filePlaneDiag: FileConfigReadDiag | undefined = diag
+    ? { outcome: 'not_read' }
+    : undefined;
+  if (diag) diag.filePlane = filePlaneDiag;
   const fileConfig: GBrainConfig =
-    (base !== undefined ? base : loadConfig()) ??
+    (base !== undefined ? base : loadConfig(filePlaneDiag)) ??
     ({ engine: 'postgres' } as GBrainConfig);
 
   // DB-plane reads. Quiet failures — if the config table doesn't exist yet
@@ -701,7 +809,16 @@ export async function loadConfigWithEngine(
     try {
       const v = await engine.getConfig(key);
       if (v === undefined || v === null || v === '') return undefined;
-      return v === 'true';
+      // F2 (2/2f): `v === 'true'` silently reads ANY other string as false — so
+      // `"TRUE"`, `"1"`, `"yes"` and a truncated write all become a confident
+      // `false` with no trace. The BEHAVIOR is preserved exactly (an unparseable
+      // value still resolves false; this patch does not get to change what the
+      // engine does) but an unusable value is now diagnosed, which is what the
+      // instrument promised: "value unusable ⇒ diagnosed".
+      if (v === 'true') return true;
+      if (v === 'false') return false;
+      if (diag) diag.readErrors.push(`${key} (invalid boolean: ${JSON.stringify(v)})`);
+      return false;
     } catch {
       if (diag) diag.readErrors.push(key);
       return undefined;

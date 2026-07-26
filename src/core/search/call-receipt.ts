@@ -93,6 +93,22 @@ export interface ReceiptResolution {
    * guess whether it was the one that matters (`search.cache.enabled`).
    */
   config_read_failures?: string[];
+  /**
+   * F2 (2/2f) — the FILE plane, reported separately from `config_read`.
+   *
+   * `config_read` answers "were reads masked?" as one bit over both planes.
+   * This answers a question that bit structurally cannot: WHICH plane, and in
+   * the file plane's case, whether the file was absent (honest — the default
+   * install) or present-and-broken (a fallback that silently changes the
+   * embedding model, dimensions and column registry the run used).
+   *
+   * `absent` and `not_read` are NOT failures and do not set `config_read` to
+   * `fallback`. They are still reported, because a harness comparing two
+   * machines needs to know the lab had no config file where production has one.
+   */
+  config_file_read?: 'not_read' | 'ok' | 'absent' | 'unreadable' | 'parse_error' | 'migration_error';
+  /** The swallowed file-plane error, when `config_file_read` is a failure. */
+  config_file_error?: string;
   /** Effective source scope for this call. */
   scope?: string;
   /** Embedding column actually resolved (not the configured default). */
