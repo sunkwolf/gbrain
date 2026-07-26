@@ -47,6 +47,7 @@ import {
   emitCallReceipt,
   rerankerDigest,
   sharedKnobsDigest,
+  adaptiveReturnDigest,
   type ReceiptResolution,
 } from './call-receipt.ts';
 import type { SearchModeConfigReadDiag } from './mode.ts';
@@ -1110,7 +1111,7 @@ export async function hybridSearch(
           {
             columnDimensions: resolvedCol.dimensions,
             columnType: resolvedCol.type,
-            adaptiveReturn: adaptiveCfg.enabled,
+            adaptiveReturn: adaptiveReturnDigest(adaptiveCfg),
             rerankerEffective: innerRerankerEffective,
           },
         );
@@ -1131,6 +1132,7 @@ export async function hybridSearch(
         column_dimensions: resolvedCol.dimensions,
         column_type: resolvedCol.type,
         adaptive_return: adaptiveCfg.enabled,
+        adaptive_return_policy: adaptiveReturnDigest(adaptiveCfg),
         reranker_effective: innerRerankerEffective,
         similarity_threshold: resolvedMode.cache_similarity_threshold,
         ttl_seconds: resolvedMode.cache_ttl_seconds,
@@ -2083,10 +2085,16 @@ async function hybridSearchCachedImpl(
   // config read, so the two stages can disagree, and `knobsHash` does not carry
   // it at all. Pure resolution over `opts` + `cfgCached`, both already in hand;
   // the skip list still reads THIS value — one source of truth, moved earlier.
-  const adaptiveReturnOn = adaptiveReturnEnabled(
+  // F2 (2/2h): se resuelve la política COMPLETA, no solo el interruptor.
+  // `adaptiveReturnEnabled` es exactamente `resolveAdaptiveReturn(...).enabled`
+  // (return-policy.ts), así que esto no cambia la decisión de saltar el caché —
+  // solo conserva los tres topes, que son los que deciden cuántos resultados
+  // sobreviven al recorte y que el digest necesita. Una sola fuente de verdad.
+  const adaptiveCfgCached = resolveAdaptiveReturn(
     opts?.adaptiveReturn,
-    cfgCached as unknown as Record<string, unknown> | null,
+    adaptiveReturnFromConfig(cfgCached as unknown as Record<string, unknown> | null),
   );
+  const adaptiveReturnOn = adaptiveCfgCached.enabled;
   // F2 (2/2e) — the reranker the pipeline would actually apply. The outer never
   // runs the reranker, but it must report the SAME resolution the inner will
   // apply (`opts.reranker ?? bundle`), or a per-call override makes the two
@@ -2117,7 +2125,7 @@ async function hybridSearchCachedImpl(
         {
           columnDimensions: resolvedColCached.dimensions,
           columnType: resolvedColCached.type,
-          adaptiveReturn: adaptiveReturnOn,
+          adaptiveReturn: adaptiveReturnDigest(adaptiveCfgCached),
           rerankerEffective: outerRerankerEffective,
         },
       );
@@ -2243,6 +2251,7 @@ async function hybridSearchCachedImpl(
       column_dimensions: resolvedColCached.dimensions,
       column_type: resolvedColCached.type,
       adaptive_return: adaptiveReturnOn,
+      adaptive_return_policy: adaptiveReturnDigest(adaptiveCfgCached),
       reranker_effective: outerRerankerEffective,
       similarity_threshold: resolvedForCache.cache_similarity_threshold,
       ttl_seconds: resolvedForCache.cache_ttl_seconds,
