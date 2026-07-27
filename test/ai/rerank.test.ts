@@ -129,6 +129,21 @@ describe('gateway.rerank() — happy path', () => {
     ]);
   });
 
+  test('reports the responding model only when the upstream response exposes it', async () => {
+    __setRerankTransportForTests(async () =>
+      mockResp({ model: 'served-model', results: [{ index: 0, relevance_score: 0.9 }] }),
+    );
+    let modelResponded: string | undefined;
+    await rerank({
+      query: 'q',
+      documents: ['a'],
+      model: 'zeroentropyai:zerank-1-small',
+      onResponseMeta: (meta) => { modelResponded = meta.modelResponded; },
+    });
+    expect(modelResponded).toBe('served-model');
+    expect(modelResponded).not.toBe('zerank-1-small');
+  });
+
   test('explicit input.model overrides gateway-configured model', async () => {
     let bodyModel = '';
     __setRerankTransportForTests(async (_url, init) => {
@@ -240,13 +255,13 @@ describe('gateway.rerank() — error classification', () => {
     }
   });
 
-  test('malformed response (no results array) → unknown', async () => {
+  test('malformed response (no results array) → malformed', async () => {
     __setRerankTransportForTests(async () => mockResp({ wrong_shape: true }));
     try {
       await rerank({ query: 'q', documents: ['d'] });
       throw new Error('should have thrown');
     } catch (err) {
-      expect((err as RerankError).reason).toBe('unknown');
+      expect((err as RerankError).reason).toBe('malformed');
     }
   });
 });

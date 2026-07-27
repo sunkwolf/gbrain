@@ -32,7 +32,11 @@ import {
   type FileConfigReadDiag,
 } from '../config.ts';
 import { dedupResults } from './dedup.ts';
-import { applyReranker } from './rerank.ts';
+import {
+  applyReranker,
+  rerankerNotRun,
+  type RerankerExecution,
+} from './rerank.ts';
 import { autoDetectDetail, classifyQuery, isAmbiguousModalityQuery } from './query-intent.ts';
 import { isTitlePhraseMatch } from './title-match.ts';
 import { normalizeAlias } from './alias-normalize.ts';
@@ -852,6 +856,8 @@ export interface HybridSearchOpts extends SearchOpts {
    * outer resolution to pair with. Not part of the public contract.
    */
   _callReceiptResolutions?: ReceiptResolution[];
+  /** INTERNAL — single mutable slot for the reranker execution in this call. */
+  _callReceiptRerankerExecution?: { current?: RerankerExecution };
 }
 
 /**
@@ -973,6 +979,7 @@ export async function hybridSearch(
   // F2 measurement patch (2/2b) — collect read diagnostics ONLY when the cache
   // wrapper is gathering a receipt. Nobody else allocates anything.
   const receiptBox = opts?._callReceiptResolutions;
+  const rerankerReceiptBox = opts?._callReceiptRerankerExecution;
   const modeDiag: SearchModeConfigReadDiag | undefined = receiptBox
     ? { readErrors: [], nonStringValues: [] }
     : undefined;
@@ -1377,6 +1384,17 @@ export async function hybridSearch(
       mayEscalateToMultimodal) &&
     isAvailable('embedding', multimodalProviderProbe);
   if (!isAvailable('embedding', providerProbe) && !willTryMultimodal) {
+    // F2 v1.3 (1/2) — rebased onto 0.42.75, and upstream's #2319 made this
+    // stamp MORE accurate, not less. The guard used to be `!isAvailable(text)`
+    // alone, so a multimodal-only install fell in here and the receipt said
+    // `embedding_provider_unavailable` about an install that had a perfectly
+    // usable (multimodal) provider — a receipt that reads true and misleads.
+    // With the multimodal probe in the condition, reaching this branch really
+    // does mean "no usable embedding provider on either route", so the reason
+    // code keeps its meaning and needs no new outcome value.
+    if (rerankerReceiptBox) {
+      rerankerReceiptBox.current = rerankerNotRun('skipped', 'embedding_provider_unavailable');
+    }
     // v0.43 — fuse the relational arm with keyword so typed-edge answers
     // survive on the no-embedding-provider path (the relational win is most
     // valuable exactly when vector is unavailable). The title arm fuses here
@@ -1619,6 +1637,9 @@ export async function hybridSearch(
   }
 
   if (vectorLists.length === 0) {
+    if (rerankerReceiptBox) {
+      rerankerReceiptBox.current = rerankerNotRun('skipped', 'query_embedding_failed');
+    }
     // Embed/vector failed silently; record that vector did not run.
     // v0.29.1 codex pass-2 #4: this is the third return path. Apply
     // post-fusion stages here too — without it, salience='on' silently
@@ -1819,8 +1840,16 @@ export async function hybridSearch(
   // see the note there. Only the BUNDLE's reranker reaches knobsHash, which is
   // why the receipt carries `reranker_effective` separately.
   const reranked = rerankerOpts.enabled
-    ? await applyReranker(query, deduped, rerankerOpts as any)
+    ? await applyReranker(
+        query,
+        deduped,
+        rerankerOpts as any,
+        rerankerReceiptBox ? (execution) => { rerankerReceiptBox.current = execution; } : undefined,
+      )
     : deduped;
+  if (!rerankerOpts.enabled && rerankerReceiptBox) {
+    rerankerReceiptBox.current = rerankerNotRun('disabled');
+  }
 
   // T3 — free-text alias hop. Runs AFTER rerank so a query that is a page's
   // declared chosen name reliably surfaces that page regardless of how the
@@ -1932,6 +1961,7 @@ interface ReceiptCtx {
   callId: string;
   startedAt: number;
   resolutions: ReceiptResolution[];
+  rerankerExecution: { current?: RerankerExecution };
   /** Set by whichever exit already emitted, so the fence never doubles it. */
   emitted: boolean;
   /** Available once the outer resolution can be built; absent before that. */
@@ -1958,6 +1988,7 @@ export async function hybridSearchCached(
     callId: newCallId(),
     startedAt: Date.now(),
     resolutions: [],
+    rerankerExecution: {},
     emitted: false,
   };
   try {
@@ -1972,6 +2003,8 @@ export async function hybridSearchCached(
           query,
           call_outcome: 'error',
           error: err instanceof Error ? err.message : String(err),
+          reranker_execution:
+            rc.rerankerExecution.current ?? rerankerNotRun('skipped', 'call_error_before_reranker'),
           // The outer resolution if we got far enough to build one. An early
           // throw leaves an error-only receipt — still evidence, and still
           // distinguishable from silence.
@@ -2404,6 +2437,7 @@ async function hybridSearchCachedImpl(
           query,
           latency_ms: Date.now() - callStartedAt,
           call_outcome: 'hit',
+          reranker_execution: rerankerNotRun('not_reached_cache_hit'),
           resolutions: [buildOuterResolution('hit', limit), ...receiptResolutions],
         });
       }
@@ -2434,6 +2468,7 @@ async function hybridSearchCachedImpl(
       // receipt carries both. Undefined in production (receipts off), which is
       // exactly what a direct `hybridSearch` caller passes.
       _callReceiptResolutions: receiptResolutions,
+      _callReceiptRerankerExecution: rc?.rerankerExecution,
       // v0.42.20.0 (Fix 3) — share the query-embed deadline so the inner embed
       // doesn't start a fresh 6s budget after the cache-lookup already spent it.
       _queryEmbedDeadline: queryEmbedDl,
@@ -2515,6 +2550,8 @@ async function hybridSearchCachedImpl(
       query,
       latency_ms: Date.now() - callStartedAt,
       call_outcome: 'fresh',
+      reranker_execution:
+        rc?.rerankerExecution.current ?? rerankerNotRun('skipped', 'call_error_before_reranker'),
       writeback: {
         attempted: Boolean(writebackEligible),
         ...(writebackBlockedBy.length > 0 ? { blocked_by: writebackBlockedBy } : {}),

@@ -110,6 +110,41 @@ describe('applyReranker — happy path', () => {
     const out = await applyReranker('q', results, opts);
     expect((out[0] as any).rerank_score).toBe(0.42);
   });
+
+  test('reports the ordered input/output pair, finite scores, duration, and only the model the response exposed', async () => {
+    const results = [
+      makeResult('a', 1.0, 'a'),
+      makeResult('b', 0.9, 'b'),
+    ];
+    let execution: import('../../src/core/search/rerank.ts').RerankerExecution | undefined;
+    const out = await applyReranker('q', results, {
+      enabled: true,
+      topNIn: 2,
+      topNOut: null,
+      model: 'requested:model',
+      rerankerFn: async (input) => {
+        input.onResponseMeta?.({ modelResponded: 'served:model' });
+        return [
+          { index: 1, relevanceScore: 0.8 },
+          { index: 0, relevanceScore: 0.2 },
+        ];
+      },
+    }, (value) => { execution = value; });
+
+    expect(out.map((r) => r.slug)).toEqual(['b', 'a']);
+    expect(execution?.status).toBe('succeeded');
+    expect(execution?.input.map((r) => r.slug)).toEqual(['a', 'b']);
+    expect(execution?.output.map((r) => [r.slug, r.rerank_score])).toEqual([
+      ['b', 0.8],
+      ['a', 0.2],
+    ]);
+    expect(execution?.input_count).toBe(2);
+    expect(execution?.output_count).toBe(2);
+    expect(execution?.model_responded).toBe('served:model');
+    expect(execution?.model_responded).not.toBe('requested:model');
+    expect(execution?.duration_ms).toBeGreaterThanOrEqual(0);
+    expect(execution?.fail_open).toBe(false);
+  });
 });
 
 describe('applyReranker — CDX2-F16 null vs undefined semantics', () => {
@@ -146,6 +181,7 @@ describe('applyReranker — fail-open on every RerankError reason', () => {
     'network' as const,
     'timeout' as const,
     'payload_too_large' as const,
+    'malformed' as const,
     'unknown' as const,
   ])('fail-open on RerankError reason=%s', async (reason) => {
     const results = [
@@ -209,6 +245,28 @@ describe('applyReranker — fail-open on every RerankError reason', () => {
     expect(out).toEqual(results);
   });
 
+  test('a failed attempt reports fail_open with identical ordered input/output', async () => {
+    const results = [makeResult('a', 1.0, 'a'), makeResult('b', 0.5, 'b')];
+    let execution: import('../../src/core/search/rerank.ts').RerankerExecution | undefined;
+    const out = await applyReranker('q', results, {
+      enabled: true,
+      topNIn: 2,
+      topNOut: null,
+      rerankerFn: async () => { throw new RerankError('forced timeout', 'timeout'); },
+    }, (value) => { execution = value; });
+
+    expect(out).toBe(results);
+    expect(execution?.status).toBe('failed');
+    expect(execution?.fail_open).toBe(true);
+    expect(execution?.input.map((r) => r.slug)).toEqual(['a', 'b']);
+    expect(execution?.output.map((r) => r.slug)).toEqual(['a', 'b']);
+    expect(execution?.output.every((r) => r.rerank_score === null)).toBe(true);
+    if (execution?.status === 'failed') {
+      expect(execution.failure_reason).toBe('timeout');
+      expect(execution.error).toContain('forced timeout');
+    }
+  });
+
   test('fail-open on malformed reranker response (empty results array)', async () => {
     const results = [makeResult('a', 1.0, 'a')];
     const opts: RerankerOpts = {
@@ -232,9 +290,12 @@ describe('applyReranker — pass-through cases', () => {
       topNOut: null,
       rerankerFn: async () => { called = true; return []; },
     };
-    const out = await applyReranker('q', results, opts);
+    let execution: import('../../src/core/search/rerank.ts').RerankerExecution | undefined;
+    const out = await applyReranker('q', results, opts, (value) => { execution = value; });
     expect(out).toEqual(results);
     expect(called).toBe(false);
+    expect(execution?.status).toBe('disabled');
+    expect(execution?.duration_ms).toBeNull();
   });
 
   test('empty results passes through immediately', async () => {
@@ -245,8 +306,25 @@ describe('applyReranker — pass-through cases', () => {
       topNOut: null,
       rerankerFn: async () => { called = true; return []; },
     };
-    const out = await applyReranker('q', [], opts);
+    let execution: import('../../src/core/search/rerank.ts').RerankerExecution | undefined;
+    const out = await applyReranker('q', [], opts, (value) => { execution = value; });
     expect(out).toEqual([]);
     expect(called).toBe(false);
+    expect(execution?.status).toBe('skipped');
+    if (execution?.status === 'skipped') expect(execution.skip_reason).toBe('no_candidates');
+  });
+
+  test('a throwing observer cannot change results or order', async () => {
+    const results = [makeResult('a', 1.0, 'a'), makeResult('b', 0.5, 'b')];
+    const out = await applyReranker('q', results, {
+      enabled: true,
+      topNIn: 2,
+      topNOut: null,
+      rerankerFn: async () => [
+        { index: 1, relevanceScore: 0.9 },
+        { index: 0, relevanceScore: 0.1 },
+      ],
+    }, () => { throw new Error('observer broken'); });
+    expect(out.map((r) => r.slug)).toEqual(['b', 'a']);
   });
 });

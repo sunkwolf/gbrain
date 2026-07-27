@@ -163,6 +163,18 @@ describe('call receipt — wired into hybridSearchCached', () => {
     expect(r.query).toBe('alice receipt fixtures');
     expect(r.call_outcome).toBe('fresh');
     expect(typeof r.latency_ms).toBe('number');
+    // This fixture's resolved bundle enables a reranker, but the hermetic
+    // gateway intentionally has no reranker credential. The search still
+    // returns results; the receipt must call that what it is: a failed
+    // attempt followed by fail-open, never a healthy/disabled stage.
+    expect(r.reranker_execution.status).toBe('failed');
+    expect(r.reranker_execution.fail_open).toBe(true);
+    if (r.reranker_execution.status === 'failed') {
+      expect(r.reranker_execution.failure_reason).toBe('auth');
+      expect(r.reranker_execution.input.map((x) => x.slug)).toEqual(
+        r.reranker_execution.output.map((x) => x.slug),
+      );
+    }
 
     const outer = resolutionOf(r, 'outer');
     const inner = resolutionOf(r, 'inner');
@@ -212,6 +224,7 @@ describe('call receipt — wired into hybridSearchCached', () => {
     expect(receipts.length).toBe(1);
     const r = receipts[0];
     expect(r.call_outcome).toBe('hit');
+    expect(r.reranker_execution.status).toBe('not_reached_cache_hit');
     expect(resolutionOf(r, 'outer')!.lookup_outcome).toBe('hit');
     expect(resolutionOf(r, 'outer')!.lookup_attempted).toBe(true);
     // The whole point of the optional inner: a hit returns BEFORE the inner

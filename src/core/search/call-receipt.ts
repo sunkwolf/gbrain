@@ -41,6 +41,7 @@
 
 import { appendFileSync } from 'fs';
 import { createHash } from 'crypto';
+import type { RerankerExecution } from './rerank.ts';
 
 /** One resolution of the search mode, as the engine actually resolved it. */
 export interface ReceiptResolution {
@@ -233,6 +234,8 @@ export interface CallReceipt {
     attempted: boolean;
     blocked_by?: string[];
   };
+  /** What the reranker stage actually did, not what its config requested. */
+  reranker_execution: RerankerExecution;
   resolutions: ReceiptResolution[];
 }
 

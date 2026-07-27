@@ -3887,7 +3887,7 @@ export async function toolLoop(opts: ToolLoopOpts): Promise<ToolLoopResult> {
  * loud-fail (auth — should have been caught by doctor). Mirror of the
  * RemoteMcpError pattern in src/core/mcp-client.ts. */
 export class RerankError extends Error {
-  reason: 'auth' | 'rate_limit' | 'network' | 'timeout' | 'payload_too_large' | 'unknown';
+  reason: 'auth' | 'rate_limit' | 'network' | 'timeout' | 'payload_too_large' | 'malformed' | 'unknown';
   status?: number;
   constructor(message: string, reason: RerankError['reason'], status?: number) {
     super(message);
@@ -3906,6 +3906,12 @@ export interface RerankInput {
   signal?: AbortSignal;
   /** Timeout in ms (default 5000). Search hot path; long stalls degrade UX. */
   timeoutMs?: number;
+  /**
+   * Internal observability seam. The gateway reports only what the upstream
+   * response actually exposed; absence stays absence and is never inferred
+   * from the requested model.
+   */
+  onResponseMeta?: (meta: { modelResponded?: string }) => void;
 }
 
 export interface RerankResult {
@@ -4094,7 +4100,16 @@ export async function rerank(input: RerankInput): Promise<RerankResult[]> {
     }
     const json: any = await resp.json();
     if (!json || !Array.isArray(json.results)) {
-      throw new RerankError('rerank: malformed response (no results array)', 'unknown');
+      throw new RerankError('rerank: malformed response (no results array)', 'malformed');
+    }
+    try {
+      input.onResponseMeta?.({
+        ...(typeof json.model === 'string' && json.model.length > 0
+          ? { modelResponded: json.model }
+          : {}),
+      });
+    } catch {
+      // Observability must never alter the reranker result or failure posture.
     }
     const mapped = json.results.map((r: any) => ({
       index: typeof r.index === 'number' ? r.index : 0,

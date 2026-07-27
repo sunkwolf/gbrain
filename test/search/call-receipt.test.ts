@@ -54,6 +54,16 @@ function receipt(over: Partial<CallReceipt> = {}): CallReceipt {
     ts_utc: new Date(0).toISOString(),
     query: 'consulta congelada',
     latency_ms: 12,
+    reranker_execution: {
+      status: 'not_reached_cache_hit',
+      input_count: 0,
+      output_count: 0,
+      input: [],
+      output: [],
+      duration_ms: null,
+      model_responded: null,
+      fail_open: false,
+    },
     resolutions: [
       {
         stage: 'outer',

@@ -34,6 +34,7 @@ export type RerankFailureReason =
   | 'network'
   | 'timeout'
   | 'payload_too_large'
+  | 'malformed'
   | 'unknown';
 
 export interface RerankFailureEvent {
