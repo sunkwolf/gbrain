@@ -41,6 +41,16 @@ function fixedEmbedding(): Float32Array {
   return arr;
 }
 
+const successfulFixtureReranker = {
+  enabled: true,
+  model: 'fixture-reranker-v1',
+  topNIn: 5,
+  topNOut: null,
+  timeoutMs: 100,
+  rerankerFn: async (input: { documents: string[] }) =>
+    input.documents.map((_, index) => ({ index, relevanceScore: 1 - index * 0.01 })),
+};
+
 let embedBehavior: (() => Promise<Float32Array>) | null = null;
 
 mock.module('../../src/core/embedding.ts', () => ({
@@ -163,7 +173,10 @@ afterEach(() => {
 
 describe('call receipt — wired into hybridSearchCached', () => {
   test('fresh call: exactly one receipt, outer AND inner, writeback attempted', async () => {
-    const results = await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
+    const results = await hybridSearchCached(engine, 'alice receipt fixtures', {
+      limit: 5,
+      reranker: successfulFixtureReranker,
+    });
     expect(results.length).toBeGreaterThan(0);
 
     const receipts = readReceipts();
@@ -176,17 +189,13 @@ describe('call receipt — wired into hybridSearchCached', () => {
     expect(r.query).toBe('alice receipt fixtures');
     expect(r.call_outcome).toBe('fresh');
     expect(typeof r.latency_ms).toBe('number');
-    // This fixture's resolved bundle enables a reranker, but the hermetic
-    // gateway intentionally has no reranker credential. The search still
-    // returns results; the receipt must call that what it is: a failed
-    // attempt followed by fail-open, never a healthy/disabled stage.
-    expect(r.reranker_execution.status).toBe('failed');
-    expect(r.reranker_execution.fail_open).toBe(true);
-    if (r.reranker_execution.status === 'failed') {
-      expect(r.reranker_execution.failure_reason).toBe('auth');
-      expect(r.reranker_execution.input.map((x) => x.slug)).toEqual(
-        r.reranker_execution.output.map((x) => x.slug),
-      );
+    expect(r.reranker_execution.status).toBe('succeeded');
+    expect(r.reranker_execution.fail_open).toBe(false);
+    if (r.reranker_execution.status === 'succeeded') {
+      expect(r.reranker_execution.output.every((x) => Number.isFinite(x.rerank_score))).toBe(true);
+      // The injected scorer has no upstream response envelope. Null is the
+      // explicit observability gap; the requested model is never substituted.
+      expect(r.reranker_execution.model_responded).toBeNull();
     }
 
     const outer = resolutionOf(r, 'outer');
@@ -222,7 +231,10 @@ describe('call receipt — wired into hybridSearchCached', () => {
   });
 
   test('cache hit: one receipt, outer only, and the absence is declared as a hit', async () => {
-    await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
+    await hybridSearchCached(engine, 'alice receipt fixtures', {
+      limit: 5,
+      reranker: successfulFixtureReranker,
+    });
     await awaitPendingSearchCacheWrites();
     const originRowId = readReceipts()[0].writeback?.cache_row_id;
     expect(originRowId).toBeDefined();
@@ -231,6 +243,7 @@ describe('call receipt — wired into hybridSearchCached', () => {
     let meta: import('../../src/core/types.ts').HybridSearchMeta | undefined;
     const second = await hybridSearchCached(engine, 'alice receipt fixtures', {
       limit: 5,
+      reranker: successfulFixtureReranker,
       onMeta: (m) => { meta = m; },
     });
     expect(meta?.cache?.status).toBe('hit');
