@@ -266,6 +266,8 @@ export interface CallReceipt {
   writeback?: {
     attempted: boolean;
     blocked_by?: string[];
+    /** Deterministic row identity issued by the fresh writeback. */
+    cache_row_id?: string;
   };
   /** What the reranker stage actually did, not what its config requested. */
   reranker_execution: RerankerExecution;

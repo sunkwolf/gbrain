@@ -64,6 +64,7 @@ import {
 import {
   SemanticQueryCache,
   loadCacheConfig,
+  cacheRowId as computeCacheRowId,
 } from './query-cache.ts';
 
 export const RRF_K = 60;
@@ -2557,6 +2558,9 @@ async function hybridSearchCachedImpl(
         rc?.rerankerExecution.current ?? rerankerNotRun('skipped', 'call_error_before_reranker'),
       writeback: {
         attempted: Boolean(writebackEligible),
+        ...(writebackEligible
+          ? { cache_row_id: computeCacheRowId(query, cacheScopeKey(opts), cacheKnobsHash) }
+          : {}),
         ...(writebackBlockedBy.length > 0 ? { blocked_by: writebackBlockedBy } : {}),
       },
       resolutions: [

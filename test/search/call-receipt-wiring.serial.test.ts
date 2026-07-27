@@ -213,6 +213,7 @@ describe('call receipt — wired into hybridSearchCached', () => {
 
     expect(r.writeback?.attempted).toBe(true);
     expect(r.writeback?.blocked_by).toBeUndefined();
+    expect(r.writeback?.cache_row_id).toMatch(/^[0-9a-f]{32}$/);
 
     // Control that the writeback the receipt CLAIMS actually landed.
     await awaitPendingSearchCacheWrites();
@@ -223,6 +224,8 @@ describe('call receipt — wired into hybridSearchCached', () => {
   test('cache hit: one receipt, outer only, and the absence is declared as a hit', async () => {
     await hybridSearchCached(engine, 'alice receipt fixtures', { limit: 5 });
     await awaitPendingSearchCacheWrites();
+    const originRowId = readReceipts()[0].writeback?.cache_row_id;
+    expect(originRowId).toBeDefined();
     rmSync(sinkPath, { force: true });
 
     let meta: import('../../src/core/types.ts').HybridSearchMeta | undefined;
@@ -241,6 +244,8 @@ describe('call receipt — wired into hybridSearchCached', () => {
     expect(r.reranker_execution.status).toBe('not_reached_cache_hit');
     expect(resolutionOf(r, 'outer')!.lookup_outcome).toBe('hit');
     expect(resolutionOf(r, 'outer')!.lookup_attempted).toBe(true);
+    expect(resolutionOf(r, 'outer')!.cache_row_id).toBeDefined();
+    expect(resolutionOf(r, 'outer')!.cache_row_id).toBe(originRowId);
     // The whole point of the optional inner: a hit returns BEFORE the inner
     // search exists. Absent + 'hit' is expected; absent + 'fresh' is not.
     expect(resolutionOf(r, 'inner')).toBeUndefined();
