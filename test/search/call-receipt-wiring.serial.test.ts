@@ -71,6 +71,18 @@ function readReceipts(path = sinkPath): CallReceipt[] {
     .map((l) => JSON.parse(l) as CallReceipt);
 }
 
+/**
+ * Opt-in, producer-backed recapture for the v1.3 oracle. Nothing is written in
+ * ordinary test runs. With GBRAIN_CAPTURE_RECEIPT_FIXTURES_DIR set, the exact
+ * receipt emitted by hybridSearchCached is persisted as a positive fixture.
+ */
+function capturePositive(name: string, receipt: CallReceipt): void {
+  const dir = process.env.GBRAIN_CAPTURE_RECEIPT_FIXTURES_DIR;
+  if (!dir) return;
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, name), `${JSON.stringify(receipt)}\n`);
+}
+
 function resolutionOf(r: CallReceipt, stage: 'outer' | 'inner') {
   return r.resolutions.find((x) => x.stage === stage);
 }
@@ -159,6 +171,7 @@ describe('call receipt — wired into hybridSearchCached', () => {
     // make a LOST line indistinguishable from a resolution that never ran.
     expect(receipts.length).toBe(1);
     const r = receipts[0];
+    capturePositive('P1_fresh_normal.json', r);
     expect(r.call_id.length).toBeGreaterThan(0);
     expect(r.query).toBe('alice receipt fixtures');
     expect(r.call_outcome).toBe('fresh');
@@ -223,6 +236,7 @@ describe('call receipt — wired into hybridSearchCached', () => {
     const receipts = readReceipts();
     expect(receipts.length).toBe(1);
     const r = receipts[0];
+    capturePositive('P2_hit.json', r);
     expect(r.call_outcome).toBe('hit');
     expect(r.reranker_execution.status).toBe('not_reached_cache_hit');
     expect(resolutionOf(r, 'outer')!.lookup_outcome).toBe('hit');
@@ -239,6 +253,7 @@ describe('call receipt — wired into hybridSearchCached', () => {
     expect(results.length).toBeGreaterThan(0);
 
     const r = readReceipts()[0];
+    capturePositive('P3_fresh_cache_off.json', r);
     const outer = resolutionOf(r, 'outer')!;
     expect(outer.cache_enabled).toBe(false);
     // Pre-patch, all five skip reasons collapsed into one boolean. This is the
@@ -529,6 +544,7 @@ describe('call receipt — wired into hybridSearchCached', () => {
     expect(receipts.length).toBe(1);
     expect(receipts[0].call_outcome).toBe('error');
     expect(receipts[0].error).toBeDefined();
+    capturePositive('P4_error_temprano.json', receipts[0]);
     // No inner resolution: it never got there. That is the honest reading.
     expect(resolutionOf(receipts[0], 'inner')).toBeUndefined();
   });
@@ -566,6 +582,7 @@ describe('call receipt — wired into hybridSearchCached', () => {
     }
 
     const r = readReceipts()[0];
+    capturePositive('P5_config_fallback.json', r);
     for (const stage of ['outer', 'inner'] as const) {
       const res = resolutionOf(r, stage)!;
       expect(res.config_read).toBe('fallback');
