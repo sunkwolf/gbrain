@@ -53,6 +53,7 @@ import {
   sharedKnobsDigest,
   adaptiveReturnDigest,
   type ReceiptResolution,
+  type SharedDigestEvidence,
 } from './call-receipt.ts';
 import type { SearchModeConfigReadDiag } from './mode.ts';
 import {
@@ -1100,7 +1101,7 @@ export async function hybridSearch(
       if (!cfgForColumn) failures.push('merged_config (unavailable)');
       const innerRerankerEffective = rerankerDigest(opts?.reranker, resolvedMode);
       let innerHash: string | undefined;
-      let innerSharedHash: string | undefined;
+      let innerSharedDigest: SharedDigestEvidence | undefined;
       try {
         const extras = {
           embeddingColumn: resolvedCol.name,
@@ -1113,8 +1114,9 @@ export async function hybridSearch(
         // normalized `knobsHash` is only the BASE of it; the omitted effective
         // state folds in through `sharedKnobsDigest`, which returns absent if
         // any of it is unknown.
-        innerSharedHash = sharedKnobsDigest(
-          knobsHashFn({ ...resolvedMode, cache_enabled: false }, extras),
+        innerSharedDigest = sharedKnobsDigest(
+          resolvedMode,
+          extras,
           {
             columnDimensions: resolvedCol.dimensions,
             columnType: resolvedCol.type,
@@ -1128,7 +1130,7 @@ export async function hybridSearch(
       receiptBox.push({
         stage: 'inner',
         ...(innerHash ? { knobs_hash: innerHash } : {}),
-        ...(innerSharedHash ? { shared_knobs_hash: innerSharedHash } : {}),
+        ...(innerSharedDigest ?? {}),
         cache_enabled: resolvedMode.cache_enabled,
         config_read: failures.length > 0 ? 'fallback' : 'ok',
         ...(failures.length > 0 ? { config_read_failures: failures } : {}),
@@ -1997,6 +1999,7 @@ export async function hybridSearchCached(
     if (!rc.emitted) {
       try {
         emitCallReceipt({
+          receipt_version: '1.3',
           call_id: rc.callId,
           ts_utc: new Date().toISOString(),
           latency_ms: Date.now() - rc.startedAt,
@@ -2143,18 +2146,16 @@ async function hybridSearchCachedImpl(
   // state `knobsHash` omits (column geometry, adaptive-return, the effective
   // reranker) and returns ABSENT if any of it is unknown, so rule 6 can read
   // equality as equivalence instead of assuming it.
-  let outerSharedKnobsHash: string | undefined;
+  let outerSharedDigest: SharedDigestEvidence | undefined;
   if (receiptOn) {
     try {
-      outerSharedKnobsHash = sharedKnobsDigest(
-        knobsHash(
-          { ...resolvedForCache, cache_enabled: false },
-          {
-            embeddingColumn: resolvedColCached.name,
-            embeddingModel: resolvedColCached.embeddingModel,
-            hardExcludes: resolveHardExcludes(opts?.exclude_slug_prefixes, opts?.include_slug_prefixes),
-          },
-        ),
+      outerSharedDigest = sharedKnobsDigest(
+        resolvedForCache,
+        {
+          embeddingColumn: resolvedColCached.name,
+          embeddingModel: resolvedColCached.embeddingModel,
+          hardExcludes: resolveHardExcludes(opts?.exclude_slug_prefixes, opts?.include_slug_prefixes),
+        },
         {
           columnDimensions: resolvedColCached.dimensions,
           columnType: resolvedColCached.type,
@@ -2271,7 +2272,7 @@ async function hybridSearchCachedImpl(
     return {
       stage: 'outer',
       knobs_hash: cacheKnobsHash,
-      ...(outerSharedKnobsHash ? { shared_knobs_hash: outerSharedKnobsHash } : {}),
+      ...(outerSharedDigest ?? {}),
       cache_enabled: cacheEnabled,
       config_read: failures.length > 0 ? 'fallback' : 'ok',
       ...(failures.length > 0 ? { config_read_failures: failures } : {}),
@@ -2432,6 +2433,7 @@ async function hybridSearchCachedImpl(
       if (receiptOn && receiptResolutions) {
         if (rc) rc.emitted = true; // the fence must not double it
         emitCallReceipt({
+          receipt_version: '1.3',
           call_id: callId,
           ts_utc: new Date().toISOString(),
           query,
@@ -2545,6 +2547,7 @@ async function hybridSearchCachedImpl(
     if (results.length === 0) writebackBlockedBy.push('empty_results');
     if (!(innerMeta?.vector_enabled ?? false)) writebackBlockedBy.push('vector_disabled');
     emitCallReceipt({
+      receipt_version: '1.3',
       call_id: callId,
       ts_utc: new Date().toISOString(),
       query,

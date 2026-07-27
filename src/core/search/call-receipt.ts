@@ -42,6 +42,34 @@
 import { appendFileSync } from 'fs';
 import { createHash } from 'crypto';
 import type { RerankerExecution } from './rerank.ts';
+import {
+  KNOBS_HASH_VERSION,
+  type KnobsHashContext,
+  type ResolvedSearchKnobs,
+} from './mode.ts';
+
+export const CALL_RECEIPT_VERSION = '1.3' as const;
+export const SHARED_DIGEST_VERSION = 1 as const;
+
+export type SharedDigestComponent =
+  | { name: string; type: 'string'; value: string }
+  | { name: string; type: 'integer'; value: number }
+  | { name: string; type: 'boolean'; value: boolean }
+  | { name: string; type: 'decimal'; value: string }
+  | { name: string; type: 'null'; value: null }
+  | { name: string; type: 'string_list'; value: string[] };
+
+export interface SharedDigestMaterial {
+  /** Ordered, typed components. Array order is part of the digest contract. */
+  components: SharedDigestComponent[];
+}
+
+export interface SharedDigestEvidence {
+  shared_digest_version: typeof SHARED_DIGEST_VERSION;
+  shared_digest_material: SharedDigestMaterial;
+  /** Full lowercase SHA-256 over canonicalSharedDigestMaterial(...). */
+  shared_knobs_hash: string;
+}
 
 /** One resolution of the search mode, as the engine actually resolved it. */
 export interface ReceiptResolution {
@@ -80,6 +108,9 @@ export interface ReceiptResolution {
    * the list and for why an incomplete input yields ABSENT rather than a hash.
    */
   shared_knobs_hash?: string;
+  /** Public digest contract. All three fields are emitted or all are absent. */
+  shared_digest_version?: typeof SHARED_DIGEST_VERSION;
+  shared_digest_material?: SharedDigestMaterial;
   /** Effective cache decision for this call. */
   cache_enabled: boolean;
   /**
@@ -202,6 +233,8 @@ export interface ReceiptResolution {
 }
 
 export interface CallReceipt {
+  /** Contract version of this emitted receipt. */
+  receipt_version: typeof CALL_RECEIPT_VERSION;
   /** Ties every resolution of one call together. */
   call_id: string;
   ts_utc: string;
@@ -320,8 +353,8 @@ export function adaptiveReturnDigest(cfg: {
 }
 
 /**
- * F2 (2/2e) — the comparable hash for rule 6, built from the normalized
- * effective hash PLUS the state `knobsHash` leaves out.
+ * Contract v1.3 / HSH-002 — the comparable hash for rule 6, built from the
+ * complete typed effective state instead of from an opaque base hash.
  *
  * 🔴 RETURNS `undefined` WHEN ANY COMPONENT IS UNKNOWN, and that is the whole
  * point. Hashing a missing value as a literal `'none'` would make two stages
@@ -331,11 +364,23 @@ export function adaptiveReturnDigest(cfg: {
  * caught the weaker version of exactly this: a gate that could report equality
  * it had not established.)
  *
- * `baseHash` must already have the cache decision normalized out — this
- * function does not know about `cache_enabled` and does not touch it.
+ * Cache is normalized to false in the public material. The product's 16-char
+ * cache key remains separate and unchanged; this 64-char digest is evidence.
  */
+export function canonicalSharedDigestMaterial(
+  version: number,
+  material: SharedDigestMaterial,
+): string {
+  // The property order below is normative. Components are an ordered array,
+  // decimals are fixed-width strings, and all other values have explicit type
+  // tags. Python uses the same compact UTF-8 JSON form in HSH-002.
+  return JSON.stringify({ shared_digest_version: version, components: material.components });
+}
+
+/** Build the complete, public preimage for HSH-002. */
 export function sharedKnobsDigest(
-  baseHash: string | undefined,
+  knobs: ResolvedSearchKnobs | undefined,
+  ctx: KnobsHashContext | undefined,
   extra: {
     columnDimensions?: number;
     columnType?: string;
@@ -343,9 +388,9 @@ export function sharedKnobsDigest(
     adaptiveReturn?: string;
     rerankerEffective?: string;
   },
-): string | undefined {
+): SharedDigestEvidence | undefined {
   if (
-    baseHash === undefined ||
+    knobs === undefined ||
     extra.columnDimensions === undefined ||
     extra.columnType === undefined ||
     extra.adaptiveReturn === undefined ||
@@ -353,18 +398,82 @@ export function sharedKnobsDigest(
   ) {
     return undefined;
   }
+
+  const decimal = (name: string, value: number, places: number): SharedDigestComponent => ({
+    name,
+    type: 'decimal',
+    value: value.toFixed(places),
+  });
+  const nullableDecimal = (
+    name: string,
+    value: number | undefined,
+    places: number,
+  ): SharedDigestComponent => value === undefined
+    ? { name, type: 'null', value: null }
+    : decimal(name, value, places);
+  const nullableInteger = (name: string, value: number | null | undefined): SharedDigestComponent =>
+    value === undefined || value === null
+      ? { name, type: 'null', value: null }
+      : { name, type: 'integer', value };
+  const nullableString = (name: string, value: string | undefined): SharedDigestComponent =>
+    value === undefined
+      ? { name, type: 'null', value: null }
+      : { name, type: 'string', value };
+
+  const material: SharedDigestMaterial = {
+    components: [
+      { name: 'knobs_hash_version', type: 'integer', value: KNOBS_HASH_VERSION },
+      { name: 'resolved_mode', type: 'string', value: knobs.resolved_mode },
+      // Shared means cache-neutral. Carry the normalized value explicitly so
+      // the preimage proves the normalization instead of merely documenting it.
+      { name: 'cache_enabled', type: 'boolean', value: false },
+      decimal('cache_similarity_threshold', knobs.cache_similarity_threshold, 4),
+      { name: 'cache_ttl_seconds', type: 'integer', value: knobs.cache_ttl_seconds },
+      { name: 'intent_weighting', type: 'boolean', value: knobs.intentWeighting },
+      nullableInteger('token_budget', knobs.tokenBudget),
+      { name: 'expansion', type: 'boolean', value: knobs.expansion },
+      { name: 'search_limit', type: 'integer', value: knobs.searchLimit },
+      { name: 'reranker_bundle_enabled', type: 'boolean', value: knobs.reranker_enabled },
+      { name: 'reranker_bundle_model', type: 'string', value: knobs.reranker_model },
+      { name: 'reranker_bundle_top_n_in', type: 'integer', value: knobs.reranker_top_n_in },
+      nullableInteger('reranker_bundle_top_n_out', knobs.reranker_top_n_out),
+      { name: 'reranker_bundle_timeout_ms', type: 'integer', value: knobs.reranker_timeout_ms },
+      nullableDecimal('floor_ratio', knobs.floor_ratio, 4),
+      decimal('cross_modal_both_text_weight', knobs.cross_modal_both_text_weight, 2),
+      decimal('cross_modal_both_image_weight', knobs.cross_modal_both_image_weight, 2),
+      decimal('image_query_text_refinement_weight', knobs.image_query_text_refinement_weight, 2),
+      decimal('image_query_image_refinement_weight', knobs.image_query_image_refinement_weight, 2),
+      { name: 'unified_multimodal', type: 'boolean', value: knobs.unified_multimodal },
+      { name: 'unified_multimodal_only', type: 'boolean', value: knobs.unified_multimodal_only },
+      { name: 'cross_modal_llm_intent', type: 'boolean', value: knobs.cross_modal_llm_intent },
+      { name: 'embedding_column', type: 'string', value: ctx?.embeddingColumn ?? 'embedding' },
+      { name: 'embedding_model', type: 'string', value: ctx?.embeddingModel ?? 'default' },
+      { name: 'graph_signals', type: 'boolean', value: knobs.graph_signals },
+      nullableString('schema_pack', ctx?.schemaPack),
+      nullableString('schema_pack_version', ctx?.schemaPackVersion),
+      { name: 'contextual_retrieval', type: 'string', value: knobs.contextual_retrieval },
+      { name: 'contextual_retrieval_disabled', type: 'boolean', value: knobs.contextual_retrieval_disabled },
+      nullableDecimal('title_boost', knobs.title_boost, 4),
+      { name: 'autocut', type: 'boolean', value: knobs.autocut },
+      decimal('autocut_jump', knobs.autocut_jump ?? 0.2, 2),
+      { name: 'relational_retrieval', type: 'boolean', value: knobs.relationalRetrieval },
+      { name: 'relational_retrieval_depth', type: 'integer', value: knobs.relational_retrieval_depth ?? 2 },
+      ctx?.hardExcludes === undefined
+        ? { name: 'hard_excludes', type: 'null', value: null }
+        : { name: 'hard_excludes', type: 'string_list', value: [...ctx.hardExcludes].sort() },
+      { name: 'column_dimensions', type: 'integer', value: extra.columnDimensions },
+      { name: 'column_type', type: 'string', value: extra.columnType },
+      { name: 'adaptive_return_policy', type: 'string', value: extra.adaptiveReturn },
+      { name: 'reranker_effective', type: 'string', value: extra.rerankerEffective },
+    ],
+  };
   const h = createHash('sha256');
-  h.update(
-    [
-      'sv=1',
-      `k=${baseHash}`,
-      `dim=${extra.columnDimensions}`,
-      `ctype=${extra.columnType}`,
-      `ar=${extra.adaptiveReturn}`,
-      `rr=${extra.rerankerEffective}`,
-    ].join('|'),
-  );
-  return h.digest('hex').slice(0, 16);
+  h.update(canonicalSharedDigestMaterial(SHARED_DIGEST_VERSION, material), 'utf8');
+  return {
+    shared_digest_version: SHARED_DIGEST_VERSION,
+    shared_digest_material: material,
+    shared_knobs_hash: h.digest('hex'),
+  };
 }
 
 /** Sink path, read once. Unset ⇒ receipts are disabled entirely. */

@@ -18,9 +18,12 @@ import {
   newCallId,
   rerankerDigest,
   sharedKnobsDigest,
+  canonicalSharedDigestMaterial,
+  SHARED_DIGEST_VERSION,
   adaptiveReturnDigest,
   type CallReceipt,
 } from '../../src/core/search/call-receipt.ts';
+import { resolveSearchMode } from '../../src/core/search/mode.ts';
 
 const ENV_KEY = 'GBRAIN_CALL_RECEIPT_PATH';
 const created: string[] = [];
@@ -50,6 +53,7 @@ async function withSink<T>(fn: (path: string) => T | Promise<T>): Promise<T> {
 
 function receipt(over: Partial<CallReceipt> = {}): CallReceipt {
   return {
+    receipt_version: '1.3',
     call_id: newCallId(),
     ts_utc: new Date(0).toISOString(),
     query: 'consulta congelada',
@@ -202,40 +206,73 @@ describe('call receipt', () => {
  * that can quietly lose one, which is precisely how blocker 1 happened.
  */
 describe('sharedKnobsDigest — the comparable hash for rule 6', () => {
+  const knobs = resolveSearchMode({ mode: 'balanced' });
+  const context = {
+    embeddingColumn: 'embedding',
+    embeddingModel: 'openai:text-embedding-3-small',
+    hardExcludes: ['archive/', 'private/'],
+  };
   const complete = {
     columnDimensions: 1536,
     columnType: 'vector',
     adaptiveReturn: 'off',
     rerankerEffective: 'src=bundle,en=0,m=none,in=8,out=none,t=2000,fn=0',
   };
+  const digest = (
+    resolved = knobs,
+    ctx = context,
+    extra: typeof complete = complete,
+  ) => sharedKnobsDigest(resolved, ctx, extra)?.shared_knobs_hash;
 
   test('every component moves the hash — none is decorative', () => {
-    const base = sharedKnobsDigest('BASEHASH', complete)!;
+    const base = digest();
     expect(base).toBeDefined();
+    expect(base).toMatch(/^[0-9a-f]{64}$/);
 
     // Each of these is state that changes what the engine actually did. If any
     // one of them stops moving the hash, two non-equivalent runs compare equal.
-    const variants: Array<[string, string | undefined, typeof complete]> = [
-      ['the base knobs hash', 'OTHERHASH', complete],
-      ['column dimensions', 'BASEHASH', { ...complete, columnDimensions: 1024 }],
-      ['column type', 'BASEHASH', { ...complete, columnType: 'halfvec' }],
-      ['adaptive return: the switch', 'BASEHASH', { ...complete, adaptiveReturn: 'on:3/10/1' }],
+    const extraVariants: Array<[string, typeof complete]> = [
+      ['column dimensions', { ...complete, columnDimensions: 1024 }],
+      ['column type', { ...complete, columnType: 'halfvec' }],
+      ['adaptive return: the switch', { ...complete, adaptiveReturn: 'on:3/10/1' }],
       // 🔴 The tenth audit's blocker, pinned: with the gate ON, each CAP must
       // move the hash on its own. Codex froze the inner's three caps to 1 —
       // a different effective policy — and the wiring file stayed green,
       // because only `enabled` was folded in.
-      ['adaptive return: entityMax', 'BASEHASH', { ...complete, adaptiveReturn: 'on:1/10/1' }],
-      ['adaptive return: otherMax', 'BASEHASH', { ...complete, adaptiveReturn: 'on:3/1/1' }],
-      ['adaptive return: minKeep', 'BASEHASH', { ...complete, adaptiveReturn: 'on:3/10/2' }],
-      ['the effective reranker', 'BASEHASH', { ...complete, rerankerEffective: 'src=per_call,en=1' }],
+      ['adaptive return: entityMax', { ...complete, adaptiveReturn: 'on:1/10/1' }],
+      ['adaptive return: otherMax', { ...complete, adaptiveReturn: 'on:3/1/1' }],
+      ['adaptive return: minKeep', { ...complete, adaptiveReturn: 'on:3/10/2' }],
+      ['the effective reranker', { ...complete, rerankerEffective: 'src=per_call,en=1' }],
     ];
-    for (const [what, baseHash, extra] of variants) {
-      expect(sharedKnobsDigest(baseHash, extra), `${what} must move the hash`).not.toBe(base);
+    for (const [what, extra] of extraVariants) {
+      expect(digest(knobs, context, extra), `${what} must move the hash`).not.toBe(base);
     }
+    expect(digest({ ...knobs, searchLimit: knobs.searchLimit + 1 }), 'a base knob must move the hash').not.toBe(base);
+    expect(digest(knobs, { ...context, embeddingColumn: 'embedding_voyage' }), 'context must move the hash').not.toBe(base);
   });
 
   test('identical inputs give an identical hash — the gate has to be able to say "equal"', () => {
-    expect(sharedKnobsDigest('BASEHASH', complete)).toBe(sharedKnobsDigest('BASEHASH', { ...complete }));
+    expect(digest()).toBe(digest({ ...knobs }, { ...context }, { ...complete }));
+  });
+
+  test('HSH-002 exposes the complete typed preimage and its canonical bytes', () => {
+    const evidence = sharedKnobsDigest(knobs, context, complete)!;
+    expect(evidence.shared_digest_version).toBe(SHARED_DIGEST_VERSION);
+    expect(evidence.shared_digest_material.components[0]).toEqual({
+      name: 'knobs_hash_version', type: 'integer', value: 12,
+    });
+    expect(evidence.shared_digest_material.components.at(-1)).toEqual({
+      name: 'reranker_effective', type: 'string', value: complete.rerankerEffective,
+    });
+    expect(canonicalSharedDigestMaterial(
+      evidence.shared_digest_version,
+      evidence.shared_digest_material,
+    )).toStartWith('{"shared_digest_version":1,"components":[');
+    // Cross-language golden HSH-002. The Python oracle pins the same material
+    // and digest, so a TS/Python canonicalization split cannot stay green.
+    expect(evidence.shared_knobs_hash).toBe(
+      'bd97598e8afbbb5f76f13f78d8f635df119d53eaadf9c79864f9edfa3f17da1e',
+    );
   });
 
   test('🔴 NEGATIVE CONTROL — an unknown component yields ABSENT, never a hash', () => {
@@ -243,11 +280,11 @@ describe('sharedKnobsDigest — the comparable hash for rule 6', () => {
     // make two stages that BOTH failed to resolve it come out "equivalent" — a
     // gate reporting equality it never established. Absence is unverifiable and
     // the harness must treat it as invalidating.
-    expect(sharedKnobsDigest(undefined, complete)).toBeUndefined();
-    expect(sharedKnobsDigest('BASEHASH', { ...complete, columnDimensions: undefined })).toBeUndefined();
-    expect(sharedKnobsDigest('BASEHASH', { ...complete, columnType: undefined })).toBeUndefined();
-    expect(sharedKnobsDigest('BASEHASH', { ...complete, adaptiveReturn: undefined })).toBeUndefined();
-    expect(sharedKnobsDigest('BASEHASH', { ...complete, rerankerEffective: undefined })).toBeUndefined();
+    expect(sharedKnobsDigest(undefined, context, complete)).toBeUndefined();
+    expect(sharedKnobsDigest(knobs, context, { ...complete, columnDimensions: undefined })).toBeUndefined();
+    expect(sharedKnobsDigest(knobs, context, { ...complete, columnType: undefined })).toBeUndefined();
+    expect(sharedKnobsDigest(knobs, context, { ...complete, adaptiveReturn: undefined })).toBeUndefined();
+    expect(sharedKnobsDigest(knobs, context, { ...complete, rerankerEffective: undefined })).toBeUndefined();
   });
 });
 
