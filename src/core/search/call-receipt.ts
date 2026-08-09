@@ -41,15 +41,29 @@
 
 import { appendFileSync } from 'fs';
 import { createHash } from 'crypto';
+import { getFtsLanguage } from '../fts-language.ts';
 import type { RerankerExecution } from './rerank.ts';
 import {
   KNOBS_HASH_VERSION,
+  knobsHashParts,
   type KnobsHashContext,
   type ResolvedSearchKnobs,
 } from './mode.ts';
 
 export const CALL_RECEIPT_VERSION = '1.3' as const;
-export const SHARED_DIGEST_VERSION = 1 as const;
+/**
+ * v1 → v2 (2026-08-09, rebase onto 0.42.75): `fts_language` joined the
+ * material. The MATERIAL changed, so the digest versions — not the profile
+ * catalogue. The rule "when the verdict changes without the document changing,
+ * version the JUDGE" is the OTHER case: here the document itself changed.
+ * P4-005 always meant "same configuration"; the digest simply did not yet
+ * deliver what the profile already assumed, and this reaches it.
+ *
+ * Consequence, declared rather than discovered later: receipts written at v1
+ * and v2 are NOT comparable, and every pinned fixture digest from v1 is stale.
+ * They get RECAPTURED from a real run, never hand-edited to fit.
+ */
+export const SHARED_DIGEST_VERSION = 2 as const;
 
 export type SharedDigestComponent =
   | { name: string; type: 'string'; value: string }
@@ -379,6 +393,117 @@ export function canonicalSharedDigestMaterial(
   return JSON.stringify({ shared_digest_version: version, components: material.components });
 }
 
+/**
+ * KNOBS-HASH COVERAGE — deliberately NOT called "coverage".
+ *
+ * What it checks: that every key prefix in `knobsHashParts()` is accounted for
+ * in the shared digest. That is its WHOLE scope, and the name says so on
+ * purpose. If upstream ever makes a retrieval factor matter WITHOUT putting it
+ * in `knobsHash`, this is blind to it — same as today. A guard called
+ * "coverage" would let the next reader fill the gap with what the word
+ * promises.
+ *
+ * Why it exists: `shared_knobs_hash` is a SUPERSET of the cache key with one
+ * deliberate normalization, so it cannot simply reuse the upstream string. It
+ * enumerates its own typed, hand-recomputable material — and that second
+ * enumeration is exactly what drifted: `prov=` (knobs v13) landed here,
+ * `fts=` (v15) did not, and nothing failed. Two searches differing only in
+ * GBRAIN_FTS_LANGUAGE produced DIFFERENT knobs_hash and the SAME
+ * shared_knobs_hash, so P4-005 would have called two genuinely different
+ * configurations equivalent — in the very experiment F2 exists to run.
+ *
+ * Why by COMPONENT and not by version: a version-based guard ("KNOBS_HASH_
+ * VERSION rose, so bump the digest") fires on behaviour-only bumps. v=14
+ * (upstream 85286a55, the compiled_truth boost scope) changed ONE line and
+ * added no component at all — that guard would have demanded a digest bump and
+ * a fixture recapture for nothing, and a guard that cries wolf gets ignored.
+ * This one fires when a KNOB arrives, which is when there is work to do.
+ *
+ * `cache` is mapped to an explicit NORMALIZED marker rather than left out: the
+ * one legitimate exception is DECLARED, so it can never be confused with a gap.
+ */
+const NORMALIZED_OUT = Symbol('normalized-out-of-the-shared-digest');
+
+const KNOBS_HASH_PREFIX_COVERAGE: Record<string, string | typeof NORMALIZED_OUT> = {
+  v: 'knobs_hash_version',
+  mode: 'resolved_mode',
+  // The reason this digest exists: shared means cache-neutral, so the cache
+  // decision is normalized to a constant instead of carried.
+  cache: NORMALIZED_OUT,
+  sim: 'cache_similarity_threshold',
+  ttl: 'cache_ttl_seconds',
+  iw: 'intent_weighting',
+  tb: 'token_budget',
+  exp: 'expansion',
+  lim: 'search_limit',
+  rr: 'reranker_bundle_enabled',
+  rrm: 'reranker_bundle_model',
+  rri: 'reranker_bundle_top_n_in',
+  rro: 'reranker_bundle_top_n_out',
+  rrt: 'reranker_bundle_timeout_ms',
+  fr: 'floor_ratio',
+  cmbt: 'cross_modal_both_text_weight',
+  cmbi: 'cross_modal_both_image_weight',
+  iqt: 'image_query_text_refinement_weight',
+  iqi: 'image_query_image_refinement_weight',
+  um: 'unified_multimodal',
+  umo: 'unified_multimodal_only',
+  lli: 'cross_modal_llm_intent',
+  col: 'embedding_column',
+  prov: 'embedding_model',
+  gs: 'graph_signals',
+  pack: 'schema_pack',
+  pver: 'schema_pack_version',
+  cr: 'contextual_retrieval',
+  crd: 'contextual_retrieval_disabled',
+  tib: 'title_boost',
+  ac: 'autocut',
+  acj: 'autocut_jump',
+  rel: 'relational_retrieval',
+  reld: 'relational_retrieval_depth',
+  hx: 'hard_excludes',
+  fts: 'fts_language',
+};
+
+/** The `k` of a `k=v` part. Upstream's parts are always prefixed this way. */
+function partPrefix(part: string): string {
+  const i = part.indexOf('=');
+  return i === -1 ? part : part.slice(0, i);
+}
+
+/**
+ * Prefixes present in `knobsHashParts()` that the shared digest neither
+ * carries nor explicitly normalizes away. Empty is the only acceptable result;
+ * anything else means upstream added a knob and this digest silently ignores
+ * it. Exported so a test can assert it — and so the assertion can be mutated
+ * in BOTH directions (see `knobs-hash-coverage.test.ts`).
+ */
+export function knobsHashCoverageGaps(
+  knobs: ResolvedSearchKnobs,
+  ctx?: KnobsHashContext,
+): string[] {
+  return coverageGapsForParts(knobsHashParts(knobs, ctx));
+}
+
+/**
+ * The pure half, exported so the mutant can bite the REAL predicate.
+ *
+ * Splitting this out is not tidiness. The first version of the test faked a
+ * gap by rebuilding the prefix list by hand and asserting on its own
+ * arithmetic — it would have stayed green with the guard deleted, which makes
+ * it precisely the kind of sign-that-looks-like-a-lock this patch exists to
+ * remove. Feeding a fabricated part into the actual function is the only way
+ * the "it bites" direction proves anything.
+ */
+export function coverageGapsForParts(parts: string[]): string[] {
+  const gaps: string[] = [];
+  for (const part of parts) {
+    const prefix = partPrefix(part);
+    if (!(prefix in KNOBS_HASH_PREFIX_COVERAGE)) gaps.push(prefix);
+  }
+  return gaps;
+}
+
 /** Build the complete, public preimage for HSH-002. */
 export function sharedKnobsDigest(
   knobs: ResolvedSearchKnobs | undefined,
@@ -467,6 +592,21 @@ export function sharedKnobsDigest(
       { name: 'column_type', type: 'string', value: extra.columnType },
       { name: 'adaptive_return_policy', type: 'string', value: extra.adaptiveReturn },
       { name: 'reranker_effective', type: 'string', value: extra.rerankerEffective },
+      // v=2 addition (APPEND-ONLY, same convention upstream uses for its own
+      // parts list): the resolved FTS configuration name.
+      //
+      // This is the gap the coverage guard above was written to make
+      // impossible. Upstream folded `fts=` into knobsHash at v=15 because
+      // switching GBRAIN_FTS_LANGUAGE and reindexing left every pre-switch
+      // cache row reachable. The shared digest did NOT follow, so two runs
+      // differing only in language produced the SAME shared_knobs_hash — and
+      // P4-005 compares exactly that field, in exactly that experiment.
+      //
+      // Read from getFtsLanguage() rather than threaded through ctx, for the
+      // same reason upstream gives at its own `fts=`: the language is a
+      // process-global env read with no per-call dimension, so threading it
+      // would only isolate callers that bother to pass it.
+      { name: 'fts_language', type: 'string', value: getFtsLanguage() },
     ],
   };
   const h = createHash('sha256');

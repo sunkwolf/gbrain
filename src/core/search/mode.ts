@@ -820,10 +820,28 @@ export interface KnobsHashContext {
   hardExcludes?: string[];
 }
 
-export function knobsHash(
+/**
+ * The digest MATERIAL behind `knobsHash()`, exposed as its own function.
+ *
+ * F2 measurement patch (rebase onto 0.42.75) — split out of `knobsHash` so
+ * there is exactly ONE enumeration of the cache-key knobs in this codebase.
+ * The call receipt's `shared_knobs_hash` used to enumerate the same knobs
+ * independently, and the two drifted in silence: `prov=` (v=13) happened to be
+ * covered, `fts=` (v=15) was not, and the difference between the two was
+ * nothing but which file someone happened to read that day. A second
+ * enumeration of the same list is a second thing to forget.
+ *
+ * Consumers that need coverage — not the hash — read this and check that every
+ * key prefix here is accounted for. See `knobsHashCoverageGaps` in
+ * `call-receipt.ts`.
+ *
+ * Upstream-PR candidate on its own merits: expose the digest material so
+ * instrumentation cannot diverge from the thing it instruments.
+ */
+export function knobsHashParts(
   knobs: ResolvedSearchKnobs,
   ctx?: KnobsHashContext,
-): string {
+): string[] {
   // Fixed-order key list. Adding a knob here REQUIRES bumping
   // KNOBS_HASH_VERSION and is a breaking change for any persisted cache.
   const parts = [
@@ -922,8 +940,15 @@ export function knobsHash(
     // cheap, bounded string.
     `fts=${getFtsLanguage()}`,
   ];
+  return parts;
+}
+
+export function knobsHash(
+  knobs: ResolvedSearchKnobs,
+  ctx?: KnobsHashContext,
+): string {
   const h = createHash('sha256');
-  h.update(parts.join('|'));
+  h.update(knobsHashParts(knobs, ctx).join('|'));
   return h.digest('hex').slice(0, 16);
 }
 

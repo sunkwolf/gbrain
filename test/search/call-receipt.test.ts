@@ -270,13 +270,20 @@ describe('sharedKnobsDigest — the comparable hash for rule 6', () => {
     expect(evidence.shared_digest_material.components[0]).toEqual({
       name: 'knobs_hash_version', type: 'integer', value: KNOBS_HASH_VERSION,
     });
-    expect(evidence.shared_digest_material.components.at(-1)).toEqual({
+    // v=2 appended `fts_language`, so the tail moved by one. `reranker_effective`
+    // is still asserted — at -2 — instead of being dropped: the point of these
+    // two is that the material is an ORDERED array and append-only, and an
+    // assertion that only ever looks at the last element cannot see that.
+    expect(evidence.shared_digest_material.components.at(-2)).toEqual({
       name: 'reranker_effective', type: 'string', value: complete.rerankerEffective,
+    });
+    expect(evidence.shared_digest_material.components.at(-1)).toEqual({
+      name: 'fts_language', type: 'string', value: 'english',
     });
     expect(canonicalSharedDigestMaterial(
       evidence.shared_digest_version,
       evidence.shared_digest_material,
-    )).toStartWith('{"shared_digest_version":1,"components":[');
+    )).toStartWith('{"shared_digest_version":2,"components":[');
     // Cross-language golden HSH-002. The Python oracle pins the same material
     // and digest, so a TS/Python canonicalization split cannot stay green.
     //
@@ -284,14 +291,18 @@ describe('sharedKnobsDigest — the comparable hash for rule 6', () => {
     // knobs_hash_version went 12 → 15 upstream, so the preimage is different
     // and so is its digest. The old value was bd97598e…
     //
-    // How it was re-pinned, because this is the one number where copying the
-    // other side's output would silently kill the check: the Python oracle was
-    // NOT handed the TypeScript hash. Its own material dict got the same single
-    // legitimate edit (12 → 15) and it recomputed from its own canonicalizer.
-    // The two agreed on b7d7295e… independently — THAT agreement is what got
-    // pinned here, not a value transcribed from one side to the other.
+    // How it is re-pinned, because this is the one number where copying the
+    // other side's output would silently kill the check: the Python oracle is
+    // NEVER handed the TypeScript hash. It gets the same legitimate edits to
+    // its own material dict and recomputes with its own canonicalizer, and only
+    // an INDEPENDENT agreement gets pinned here. Done twice today:
+    //   bd97598e… → b7d7295e…  knobs_hash_version 12 → 15 (upstream bump)
+    //   b7d7295e… → 1a534ecc…  shared digest v1 → v2, `fts_language` appended
+    // Both times the two canonicalizers landed on the same 64 chars on their
+    // own. If you ever need to change this number: change the MATERIAL on both
+    // sides, run both, and pin the agreement. Never transcribe.
     expect(evidence.shared_knobs_hash).toBe(
-      'b7d7295e92dc7bce51246254711a5dc5ed148a3493d7f28ab6cc11bd6be55424',
+      '1a534ecc4197daa5bc4ca6f64e1636ff7eb480706cc2b7079c4084e8d4086879',
     );
   });
 
