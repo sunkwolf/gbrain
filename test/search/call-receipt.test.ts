@@ -23,7 +23,7 @@ import {
   adaptiveReturnDigest,
   type CallReceipt,
 } from '../../src/core/search/call-receipt.ts';
-import { resolveSearchMode } from '../../src/core/search/mode.ts';
+import { resolveSearchMode, KNOBS_HASH_VERSION } from '../../src/core/search/mode.ts';
 
 const ENV_KEY = 'GBRAIN_CALL_RECEIPT_PATH';
 const created: string[] = [];
@@ -258,8 +258,17 @@ describe('sharedKnobsDigest — the comparable hash for rule 6', () => {
   test('HSH-002 exposes the complete typed preimage and its canonical bytes', () => {
     const evidence = sharedKnobsDigest(knobs, context, complete)!;
     expect(evidence.shared_digest_version).toBe(SHARED_DIGEST_VERSION);
+    // 2026-08-09, rebase onto 0.42.75: this was pinned to the LITERAL 12 and
+    // fired the moment upstream reached 15 — a number this repo does not own.
+    // It is NOT re-pinned to 15: that would just re-arm the same trap for the
+    // next bump, and it would fire on behaviour-only bumps too (v=14 added no
+    // digest component at all, so nothing would have needed doing). The
+    // assertion that still earns its keep is structural — component[0] IS the
+    // knobs-hash version, named and typed — while catching a genuinely new
+    // KNOB is the job of the coverage guard, which discriminates by COMPONENT
+    // instead of by version.
     expect(evidence.shared_digest_material.components[0]).toEqual({
-      name: 'knobs_hash_version', type: 'integer', value: 12,
+      name: 'knobs_hash_version', type: 'integer', value: KNOBS_HASH_VERSION,
     });
     expect(evidence.shared_digest_material.components.at(-1)).toEqual({
       name: 'reranker_effective', type: 'string', value: complete.rerankerEffective,
@@ -270,8 +279,19 @@ describe('sharedKnobsDigest — the comparable hash for rule 6', () => {
     )).toStartWith('{"shared_digest_version":1,"components":[');
     // Cross-language golden HSH-002. The Python oracle pins the same material
     // and digest, so a TS/Python canonicalization split cannot stay green.
+    //
+    // 2026-08-09, rebase onto 0.42.75 — re-pinned because the MATERIAL changed:
+    // knobs_hash_version went 12 → 15 upstream, so the preimage is different
+    // and so is its digest. The old value was bd97598e…
+    //
+    // How it was re-pinned, because this is the one number where copying the
+    // other side's output would silently kill the check: the Python oracle was
+    // NOT handed the TypeScript hash. Its own material dict got the same single
+    // legitimate edit (12 → 15) and it recomputed from its own canonicalizer.
+    // The two agreed on b7d7295e… independently — THAT agreement is what got
+    // pinned here, not a value transcribed from one side to the other.
     expect(evidence.shared_knobs_hash).toBe(
-      'bd97598e8afbbb5f76f13f78d8f635df119d53eaadf9c79864f9edfa3f17da1e',
+      'b7d7295e92dc7bce51246254711a5dc5ed148a3493d7f28ab6cc11bd6be55424',
     );
   });
 
