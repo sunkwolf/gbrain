@@ -391,6 +391,11 @@ const query: Operation = {
   },
   handler: async (ctx, p) => {
     const startedAt = Date.now();
+    // Per-call expansion only when the caller explicitly set `expand`;
+    // otherwise undefined so resolveSearchMode falls through to per-key
+    // config / the mode bundle. (Same fix as operations.ts:2153 — the
+    // ops/ refactor reintroduced the hardcoded default here.)
+    const expandExplicit = typeof p.expand === 'boolean' ? (p.expand as boolean) : undefined;
     const expand = p.expand !== false;
     const detail = (p.detail as 'low' | 'medium' | 'high') || undefined;
     const queryText = p.query as string | undefined;
@@ -482,7 +487,7 @@ const query: Operation = {
       limit: (p.limit as number) || undefined,
       offset: (p.offset as number) || 0,
       excludePrivate,
-      expansion: expand,
+      expansion: expandExplicit,
       expandFn: expand ? expandQuery : undefined,
       // T4/D5 — per-call mode (local/trusted only; remote ignored).
       ...((): { mode?: string } => { const m = resolvePerCallMode(ctx, p.mode); return m ? { mode: m } : {}; })(),
