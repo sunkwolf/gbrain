@@ -30,6 +30,7 @@ export const KNOB_DESCRIPTIONS: Record<keyof ModeBundle, string> = {
   reranker_top_n_in: 'Candidates sent to reranker per call',
   reranker_top_n_out: 'Cap on reranked output (null = no truncate)',
   reranker_timeout_ms: 'HTTP timeout for the reranker call',
+  reranker_doc_max_chars: 'Max chars per document sent to the reranker (null = full doc; CPU rerankers need a low cap)',
   floor_ratio: 'Floor-ratio gate for metadata boosts (0..1, undefined = off)',
   title_boost: 'Title-phrase boost multiplier (query is a title token-run; 1.0 = off)',
   // v0.46.15 retrieval wave knobs
