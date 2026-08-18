@@ -21,6 +21,15 @@ import { readFileSync, existsSync } from 'node:fs';
 export interface LongMemEvalProbeArgs {
   fixturePath: string;
   outputPath: string;
+  /**
+   * LOCAL (18-ago-2026) — reranker model for the eval's in-memory brain.
+   * REQUIRED, and the caller must have READ IT from the real brain's DB plane at
+   * invoke time (`search.reranker.model`). Not optional on purpose: without it the
+   * in-memory brain falls to the BUNDLE default `zeroentropyai:zerank-2`, fail-opens
+   * with no key, and the probe measures retrieval WITHOUT a reranker while live
+   * search reranks — a green that grades the wrong pipe.
+   */
+  rerankerModel: string;
 }
 
 /** Arguments accepted by the cross-modal adapter. */
@@ -54,7 +63,19 @@ export interface CrossModalBatchSummary {
  */
 export async function runLongMemEvalForProbe(args: LongMemEvalProbeArgs): Promise<void> {
   const { runEvalLongMemEval } = await import('../../commands/eval-longmemeval.ts');
-  await runEvalLongMemEval([args.fixturePath, '--output', args.outputPath]);
+  // Fail-closed: never invoke without the reranker. Invoking bare would run fine
+  // and quietly grade an un-reranked pipeline — the exact failure this fixes.
+  if (!args.rerankerModel) {
+    throw new Error(
+      'nightly-probe: refusing to run longmemeval without a reranker model. ' +
+      'The caller must read `search.reranker.model` from the brain and pass it; ' +
+      'running bare would grade retrieval WITHOUT a reranker and report it as normal.',
+    );
+  }
+  await runEvalLongMemEval([
+    args.fixturePath, '--output', args.outputPath,
+    '--reranker-model', args.rerankerModel,
+  ]);
 }
 
 /**

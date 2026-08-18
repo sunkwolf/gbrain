@@ -1389,6 +1389,16 @@ export async function runAutopilot(engine: BrainEngine, args: string[]) {
           hasEmbeddingProvider: () => isAvailable('embedding'),
           resolveMaxUsd: () => maxUsd,
           resolveRepoRoot: () => (fixtureAtPkgRoot ? pkgRoot : repoPath ?? gbrainHomePath('.')),
+          // LOCAL (18-ago-2026): el valor sale del plano de BD del brain REAL, leido
+          // AL INVOCAR. Si no se puede leer devuelve null y la fase aborta con ruido.
+          resolveRerankerModel: async () => {
+            try {
+              const v = await engine.getConfig('search.reranker.model');
+              return typeof v === 'string' && v.trim() ? v.trim() : null;
+            } catch {
+              return null;
+            }
+          },
           runLongMemEval: runLongMemEvalForProbe,
           runCrossModalBatch: runCrossModalBatchForProbe,
           now: () => new Date(),

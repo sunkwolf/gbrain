@@ -97,6 +97,8 @@ function makeDeps(overrides: Partial<NightlyProbeDeps> = {}): NightlyProbeDeps {
     hasEmbeddingProvider: async () => true,
     resolveMaxUsd: async () => 5,
     resolveRepoRoot: async () => process.cwd(),
+    // LOCAL (18-ago-2026) — el probe DEBE traer el reranker del brain real.
+    resolveRerankerModel: async () => 'llama-server-reranker:qwen3-reranker-0.6b',
     runLongMemEval: async () => { /* stub */ },
     runCrossModalBatch: async () => ({
       exitCode: 0,
@@ -111,6 +113,38 @@ function makeDeps(overrides: Partial<NightlyProbeDeps> = {}): NightlyProbeDeps {
 }
 
 describe('runNightlyQualityProbe (DI stub harness)', () => {
+  // ── LOCAL (18-ago-2026, Claudio) ────────────────────────────────────────────
+  // El probe corria contra un brain en memoria SIN fila de reranker, asi que
+  // resolveSearchMode caia al default del BUNDLE (zeroentropyai:zerank-2), sin
+  // llave, y hacia fail-open: el fail-open devuelve el orden RRF sin tocar, o sea
+  // que el probe calificaba una tuberia SIN reranker mientras la busqueda viva SI
+  // rerankea — y lo reportaba como resultado normal. Estos dos tests fijan que el
+  // valor venga del brain y que NO se pueda correr sin el.
+  test('LOCAL: pasa el reranker leido del brain a longmemeval', async () => {
+    await withEnv({ GBRAIN_AUDIT_DIR: auditTmp }, async () => {
+      let visto: string | undefined;
+      const r = await runNightlyQualityProbe(makeDeps({
+        resolveRerankerModel: async () => 'llama-server-reranker:qwen3-reranker-0.6b',
+        runLongMemEval: async (args: any) => { visto = args.rerankerModel; },
+      }));
+      expect(visto).toBe('llama-server-reranker:qwen3-reranker-0.6b');
+      expect(r.outcome).toBe('pass');
+    });
+  });
+
+  test('LOCAL: fail-closed — si no se puede leer el reranker, ABORTA y no corre el eval', async () => {
+    await withEnv({ GBRAIN_AUDIT_DIR: auditTmp }, async () => {
+      let corrio = false;
+      const r = await runNightlyQualityProbe(makeDeps({
+        resolveRerankerModel: async () => null,
+        runLongMemEval: async () => { corrio = true; },
+      }));
+      // Lo que importa no es solo el veredicto: es que NO se haya invocado bare.
+      expect(corrio).toBe(false);
+      expect(r.outcome).toBe('error');
+    });
+  });
+
   test('disabled config → outcome: disabled, no audit row', async () => {
     await withEnv({ GBRAIN_AUDIT_DIR: auditTmp }, async () => {
       const r = await runNightlyQualityProbe(makeDeps({ isEnabled: async () => false }));

@@ -63,6 +63,25 @@ interface ParsedArgs {
   /** v0.32.3 — search-lite mode to evaluate under. Resolves through resolveSearchMode. */
   mode?: 'conservative' | 'balanced' | 'tokenmax';
   /**
+   * LOCAL (18-ago-2026, Claudio+Claudy) — reranker model for the in-memory brain.
+   *
+   * WHY: this eval builds an in-memory brain and threaded ONLY `search.mode`, so
+   * that brain had no `search.reranker.model` row. `resolveSearchMode`'s pick chain
+   * (per-call > DB override > bundle) therefore fell through to the BUNDLE default,
+   * which is `zeroentropyai:zerank-2` — a paid cloud service we never configured.
+   * With no key that fail-opens, and fail-open returns the RRF order UNCHANGED
+   * (`search/rerank.ts`). Net effect: **the eval measured retrieval WITHOUT a
+   * reranker while live search reranks** — a thermometer reading a different pipe.
+   * Measured 18-ago: one rerank-failure audit row per eval question (11->12 on a
+   * 1-question run; negative control: no growth in 20s idle).
+   *
+   * TRANSPORT ONLY, by design: the VALUE must be read by the CALLER from the real
+   * brain's DB plane at invoke time (that is where `search.reranker.*` lives — the
+   * file plane does not carry it). A value baked into the caller's own config would
+   * be a mirror that silently drifts the day the reranker changes.
+   */
+  rerankerModel?: string;
+  /**
    * v0.35.1.0 — path to a previous run's hypothesis JSONL. Question IDs
    * already present in the file are skipped on this run; the run resumes
    * with the remaining questions. Typically set to the same path as
@@ -110,6 +129,12 @@ function parseArgs(args: string[]): ParsedArgs {
     if (a === '--no-trajectory') { out.noTrajectory = true; continue; }
     if (a === '--limit') { out.limit = Number(args[++i]); continue; }
     if (a === '--model') { out.model = args[++i]; continue; }
+    if (a === '--reranker-model') {
+      const v = args[++i];
+      if (!v || v.startsWith('--')) throw new Error('--reranker-model requires a provider:model id');
+      out.rerankerModel = v;
+      continue;
+    }
     if (a === '--top-k') { out.topK = Number(args[++i]); continue; }
     if (a === '--output') { out.outputPath = args[++i]; continue; }
     if (a === '--resume-from') { out.resumeFromPath = args[++i]; continue; }
@@ -148,6 +173,12 @@ function printHelp(): void {
     `Options:\n` +
     `  --limit N                 Run only the first N questions.\n` +
     `  --model M                 Override answer-generation model (default: resolveModel).\n` +
+    `  --reranker-model ID       provider:model for the in-memory brain's reranker.\n` +
+    `                            WITHOUT it the brain falls to the BUNDLE default\n` +
+    `                            (zeroentropyai:zerank-2) and, with no key, fail-opens\n` +
+    `                            to bare RRF -- i.e. the eval measures retrieval with NO\n` +
+    `                            reranker while live search reranks. Callers should read\n` +
+    `                            this from the real brain: gbrain config get search.reranker.model\n` +
     `  --retrieval-only          Skip LLM answer generation; emit retrieved sessions instead.\n` +
     `  --keyword-only            Skip vector embedding; pure keyword retrieval.\n` +
     `  --expansion               Enable multi-query expansion (off by default for benchmarks).\n` +
@@ -531,6 +562,12 @@ export async function runEvalLongMemEval(args: string[], runOpts: RunOpts = {}):
     // for the run. hybridSearch resolves it through the standard chain.
     if (opts.mode) {
       await engine.setConfig('search.mode', opts.mode);
+    }
+    // LOCAL (18-ago-2026) — same threading seam as `search.mode` above, one field
+    // more. Without it the in-memory brain has no reranker row and resolveSearchMode
+    // falls to the bundle default. See the `rerankerModel` doc in ParsedArgs.
+    if (opts.rerankerModel) {
+      await engine.setConfig('search.reranker.model', opts.rerankerModel);
     }
     for (const q of questions) {
       const qStart = Date.now();
