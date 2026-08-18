@@ -51,7 +51,15 @@ export interface NightlyProbeDeps {
   /** Resolves the repo root so we can find the committed fixture. */
   resolveRepoRoot: () => string | Promise<string>;
   /** Runs the longmemeval command; returns the path to the JSONL output. */
-  runLongMemEval: (args: { fixturePath: string; outputPath: string }) => Promise<void>;
+  runLongMemEval: (args: { fixturePath: string; outputPath: string; rerankerModel: string }) => Promise<void>;
+  /**
+   * LOCAL (18-ago-2026) — reads `search.reranker.model` from the REAL brain's DB
+   * plane, at invoke time. Deliberately a read and not a stored value: a model
+   * baked into the probe's own config is a mirror that drifts silently the day the
+   * brain's reranker changes. Returns null when it cannot read; the phase then
+   * ABORTS instead of running bare.
+   */
+  resolveRerankerModel: () => Promise<string | null>;
   /** Runs the cross-modal batch; returns exit code (0/1/2). */
   runCrossModalBatch: (args: {
     batchPath: string;
@@ -198,7 +206,15 @@ export async function runNightlyQualityProbe(deps: NightlyProbeDeps): Promise<Ni
   const summaryPath = path.join(workDir, 'summary.json');
 
   try {
-    await deps.runLongMemEval({ fixturePath, outputPath: lmeOutPath });
+    const rerankerModel = await deps.resolveRerankerModel();
+    if (!rerankerModel) {
+      throw new Error(
+        'nightly-probe: could not read `search.reranker.model` from the brain. ' +
+        'Aborting instead of running bare — a probe without a reranker grades a ' +
+        'different pipeline than production and reports it as a normal result.',
+      );
+    }
+    await deps.runLongMemEval({ fixturePath, outputPath: lmeOutPath, rerankerModel });
     const { exitCode, summary } = await deps.runCrossModalBatch({
       batchPath: lmeOutPath,
       summaryPath,

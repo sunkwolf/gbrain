@@ -34,6 +34,11 @@ const EXTRA_FLAGS: Record<string, string[]> = {
   embed: ['--pace', '--pace-max-concurrency'],
   // sync shares the same pace surface via env/config plus CLI passthrough.
   sync: ['--pace', '--pace-max-concurrency'],
+  // LOCAL (18-ago-2026): --reranker-model lives in src/commands/eval-longmemeval.ts,
+  // which the `eval` case block reaches through its dispatcher — two levels deep,
+  // past the one-level scan. Without this the flag is rejected at the CLI gate and
+  // the eval NEVER RUNS, which reads as "no fail-open audit rows" — a hollow green.
+  eval: ['--reranker-model'],
 };
 
 /**
