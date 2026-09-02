@@ -41,7 +41,36 @@ export const NIGHTLY_PROBE_SEARCH_CONFIG_KEYS: ReadonlyArray<string> = Object.fr
   'search.reranker.top_n_in',
   'search.reranker.top_n_out',
   'search.reranker.timeout_ms',
+  // LOCAL: nuestro parche del cap por documento. Sin esta clave el probe
+  // mide SIN el cap mientras la busqueda viva SI lo aplica — el mismo
+  // error de clase que el reranker ausente, movido de perilla.
+  'search.reranker.doc_max_chars',
 ]);
+
+/**
+ * LOCAL — fail-closed del snapshot de configuracion del probe.
+ *
+ * Solo juzga lo que el snapshot AFIRMA: si dice que el reranker esta prendido,
+ * el modelo tiene que venir. No inventa un default ni adivina cuando la clave
+ * `enabled` no viene (ahi manda el bundle, y eso es decision de upstream).
+ */
+export function assertRerankerSnapshotComplete(
+  snapshot: Record<string, string> | undefined,
+): void {
+  if (!snapshot) return;
+  const enabled = snapshot['search.reranker.enabled'];
+  if (enabled === undefined) return;
+  const on = enabled === '1' || enabled.toLowerCase() === 'true';
+  if (!on) return;
+  const model = snapshot['search.reranker.model'];
+  if (typeof model === 'string' && model.trim().length > 0) return;
+  throw new Error(
+    'nightly-probe: the live search config says the reranker is ENABLED but carries no ' +
+    '`search.reranker.model`. Refusing to run: the isolated benchmark brain would fall to ' +
+    'the bundle default, fail open with no key, and grade retrieval WITHOUT a reranker ' +
+    'while live search reranks — a green that grades a different pipeline.',
+  );
+}
 
 /** Result reported back to the cycle dispatcher / Minion handler. */
 export interface NightlyProbeResult {
@@ -212,6 +241,12 @@ export async function runNightlyQualityProbe(deps: NightlyProbeDeps): Promise<Ni
     const searchConfigSnapshot = deps.resolveSearchConfigSnapshot
       ? await deps.resolveSearchConfigSnapshot()
       : undefined;
+    // LOCAL (fail-closed) — el snapshot de upstream omite en SILENCIO la clave que
+    // no este en el brain (`if (value != null)`). Un brain con el reranker PRENDIDO
+    // y sin `model` cae al default del bundle, falla-abierto sin llave, y el probe
+    // califica un pipeline SIN reranker mientras la busqueda viva SI rerankea.
+    // Ese verde califica la tuberia equivocada: se aborta con ruido, no se corre.
+    assertRerankerSnapshotComplete(searchConfigSnapshot);
     await deps.runLongMemEval({ fixturePath, outputPath: lmeOutPath, searchConfigSnapshot });
     const { exitCode, summary } = await deps.runCrossModalBatch({
       batchPath: lmeOutPath,

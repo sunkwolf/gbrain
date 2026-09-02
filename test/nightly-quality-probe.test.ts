@@ -13,6 +13,8 @@ import { tmpdir } from 'os';
 import {
   runNightlyQualityProbe,
   shouldRunNightly,
+  assertRerankerSnapshotComplete,
+  NIGHTLY_PROBE_SEARCH_CONFIG_KEYS,
   type NightlyProbeDeps,
   type NightlyProbeResult,
 } from '../src/core/cycle/nightly-quality-probe.ts';
@@ -185,6 +187,76 @@ describe('runNightlyQualityProbe (DI stub harness)', () => {
         'search.reranker.timeout_ms': '30000',
       });
     });
+  });
+
+  // -------------------------------------------------------------------------
+  // LOCAL — fail-closed del snapshot del reranker.
+  //
+  // El par importa: el caso ROJO acredita que el guard muerde, y el VERDE
+  // acredita que muerde por la razon declarada y no por cualquier snapshot.
+  // Un guard probado solo por su rojo pasaria igual si abortara siempre.
+  // -------------------------------------------------------------------------
+
+  test('snapshot con reranker PRENDIDO y sin model → aborta, y NO corre el eval', async () => {
+    await withEnv({ GBRAIN_AUDIT_DIR: auditTmp }, async () => {
+      let ranEval = false;
+      const r = await runNightlyQualityProbe(makeDeps({
+        resolveSearchConfigSnapshot: async () => ({
+          'search.mode': 'balanced',
+          'search.reranker.enabled': 'true',
+          // sin `search.reranker.model` — el brain aislado caeria al default
+          // del bundle y calificaria SIN reranker.
+        }),
+        runLongMemEval: async () => { ranEval = true; },
+      }));
+
+      expect(r.outcome).not.toBe('pass');
+      expect(ranEval).toBe(false);
+    });
+  });
+
+  test('control positivo: el MISMO snapshot con model → corre y pasa', async () => {
+    await withEnv({ GBRAIN_AUDIT_DIR: auditTmp }, async () => {
+      let ranEval = false;
+      const r = await runNightlyQualityProbe(makeDeps({
+        resolveSearchConfigSnapshot: async () => ({
+          'search.mode': 'balanced',
+          'search.reranker.enabled': 'true',
+          'search.reranker.model': 'llama-server-reranker:qwen3-reranker-4b',
+        }),
+        runLongMemEval: async () => { ranEval = true; },
+      }));
+
+      expect(r.outcome).toBe('pass');
+      expect(ranEval).toBe(true);
+    });
+  });
+
+  test('guard, en aislamiento: los cuatro casos', () => {
+    // no hay snapshot -> upstream decide, no opinamos
+    expect(() => assertRerankerSnapshotComplete(undefined)).not.toThrow();
+    // `enabled` ausente -> manda el bundle, no opinamos
+    expect(() => assertRerankerSnapshotComplete({ 'search.mode': 'balanced' })).not.toThrow();
+    // apagado a proposito -> correr sin reranker es lo correcto
+    expect(() => assertRerankerSnapshotComplete({
+      'search.reranker.enabled': 'false',
+    })).not.toThrow();
+    // prendido y sin modelo -> el bug del 18-ago
+    expect(() => assertRerankerSnapshotComplete({
+      'search.reranker.enabled': '1',
+    })).toThrow(/reranker is ENABLED but carries no/);
+    // y un modelo en blanco no cuenta como modelo
+    expect(() => assertRerankerSnapshotComplete({
+      'search.reranker.enabled': 'true',
+      'search.reranker.model': '   ',
+    })).toThrow(/reranker is ENABLED but carries no/);
+  });
+
+  test('el cap por documento viaja en el snapshot que copia el probe', () => {
+    // Nuestro `doc_max_chars` es una perilla de la BUSQUEDA VIVA. Si el probe no
+    // la copia al brain aislado, mide un reranker sin cap y reporta el numero
+    // como si fuera el de produccion.
+    expect(NIGHTLY_PROBE_SEARCH_CONFIG_KEYS).toContain('search.reranker.doc_max_chars');
   });
 
   test('enabled + FAIL summary → outcome: fail', async () => {
