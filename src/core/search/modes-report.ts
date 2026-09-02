@@ -22,6 +22,7 @@ export const KNOB_DESCRIPTIONS: Record<keyof ModeBundle, string> = {
   cache_ttl_seconds: 'Per-row cache TTL',
   intentWeighting: 'Zero-LLM intent classifier weight adjustments',
   keywordOrFallback: 'Keyword-arm AND→OR zero-recall fallback',
+  relaxedArmDemotion: 'Democion de filas OR-relajadas en la fusion RRF (upstream #4787; default ON)',
   tokenBudget: 'Per-call token-budget cap (undefined = no cap)',
   expansion: 'LLM multi-query expansion (Haiku call per search)',
   searchLimit: 'Default `limit` for the operation layer',

@@ -61,6 +61,7 @@ describe('SEARCH_MODES + MODE_BUNDLES canonical shape', () => {
       cache_ttl_seconds: 3600,
       intentWeighting: true,
       keywordOrFallback: true,
+      relaxedArmDemotion: true,
       tokenBudget: 4000,
       expansion: false,
       searchLimit: 10,
@@ -97,6 +98,7 @@ describe('SEARCH_MODES + MODE_BUNDLES canonical shape', () => {
       cache_ttl_seconds: 3600,
       intentWeighting: true,
       keywordOrFallback: true,
+      relaxedArmDemotion: true,
       tokenBudget: 12000,
       expansion: false,
       searchLimit: 25,
@@ -132,6 +134,7 @@ describe('SEARCH_MODES + MODE_BUNDLES canonical shape', () => {
       cache_ttl_seconds: 3600,
       intentWeighting: true,
       keywordOrFallback: true,
+      relaxedArmDemotion: true,
       tokenBudget: undefined,
       expansion: true,
       searchLimit: 50,
@@ -459,7 +462,7 @@ describe('knobsHash determinism + cross-mode separation (CDX-4)', () => {
     // 27→28: compiledTruthBoost suppresses the 2x boost for synthetic
     // chunkless title rows (#4256, fixes #3695's fusion path) — reorders
     // fused rows for identical knobs; version-only invalidation.
-    expect(KNOBS_HASH_VERSION).toBe(28);
+    expect(KNOBS_HASH_VERSION).toBe(29);
   });
 
   test('#3515: detail set vs unset produces DIFFERENT hashes (cache contamination prevention)', () => {
@@ -489,7 +492,7 @@ describe('knobsHash determinism + cross-mode separation (CDX-4)', () => {
     // adaptive-on calls now cache instead of skipping.
     // 27→28: compiledTruthBoost synthetic-row suppression (#4256/#3695) —
     // version-only invalidation.
-    expect(KNOBS_HASH_VERSION).toBe(28);
+    expect(KNOBS_HASH_VERSION).toBe(29);
   });
 
   test('#4352 follow-up: excludePrivate true vs false produces DIFFERENT hashes (cache contamination prevention)', () => {
@@ -705,8 +708,8 @@ describe('v0.40.4 — graph_signals knob', () => {
 });
 
 describe('v0.42.3.0 — autocut knobs', () => {
-  test('KNOBS_HASH_VERSION is 28 (…; 24→25 keywordOrFallback knob kof=; 25→26 salience/recency + intent_patterns fold #4415; 26→27 adaptive-return gate + intent fold E5b/F11; 27→28 compiledTruthBoost synthetic-row suppression #4256)', () => {
-    expect(KNOBS_HASH_VERSION).toBe(28);
+  test('KNOBS_HASH_VERSION is 29 (…; 24→25 keywordOrFallback knob kof=; 25→26 salience/recency + intent_patterns fold #4415; 26→27 adaptive-return gate + intent fold E5b/F11; 27→28 compiledTruthBoost synthetic-row suppression #4256; 28→29 LOCAL relaxedArmDemotion knob rad=)', () => {
+    expect(KNOBS_HASH_VERSION).toBe(29);
   });
 
   test('bundle defaults: conservative off, balanced/tokenmax on @0.20', () => {
@@ -913,6 +916,42 @@ describe('keywordOrFallback knob (v=25)', () => {
   test('kof participates in knobsHash — a fallback-on row cannot serve a fallback-off lookup', () => {
     const on = knobsHash(resolveSearchMode({ mode: 'balanced' }));
     const off = knobsHash(resolveSearchMode({ mode: 'balanced', overrides: { keywordOrFallback: false } }));
+    expect(on).not.toBe(off);
+  });
+});
+
+describe('LOCAL — relaxedArmDemotion knob (v=29)', () => {
+  // La perilla existe porque en NUESTROS dos corpus en espanol la democion de
+  // upstream (#4787) pierde aciertos que salian en posicion 1-2: PC 2/35, VPS
+  // 6/42, y apagarla no costo ninguno en las 77 preguntas medidas el 2-sep.
+  // El DEFAULT se queda en la conducta de upstream a proposito: la divergencia
+  // se elige por config, no se hereda por instalar.
+
+  test('el default de los tres bundles es la conducta de UPSTREAM (encendida)', () => {
+    for (const mode of ['conservative', 'balanced', 'tokenmax'] as const) {
+      expect(resolveSearchMode({ mode }).relaxedArmDemotion).toBe(true);
+    }
+  });
+
+  test('el override de config la apaga; el default del bundle sigue encendido', () => {
+    expect(resolveSearchMode({ mode: 'balanced' }).relaxedArmDemotion).toBe(true);
+    const off = resolveSearchMode({ mode: 'balanced', overrides: { relaxedArmDemotion: false } });
+    expect(off.relaxedArmDemotion).toBe(false);
+  });
+
+  test('loadOverridesFromConfig parsea search.relaxedArmDemotion en sus cuatro formas', () => {
+    expect(loadOverridesFromConfig({ 'search.relaxedArmDemotion': 'false' }).relaxedArmDemotion).toBe(false);
+    expect(loadOverridesFromConfig({ 'search.relaxedArmDemotion': '0' }).relaxedArmDemotion).toBe(false);
+    expect(loadOverridesFromConfig({ 'search.relaxedArmDemotion': '1' }).relaxedArmDemotion).toBe(true);
+    expect(loadOverridesFromConfig({ 'search.relaxedArmDemotion': 'true' }).relaxedArmDemotion).toBe(true);
+    expect(loadOverridesFromConfig({}).relaxedArmDemotion).toBeUndefined();
+  });
+
+  test('rad participa en knobsHash — una fila cacheada CON democion no puede servir una consulta SIN democion', () => {
+    // Sin esto, apagar la perilla en una casa con cache PRENDIDO (el VPS) leeria
+    // resultados calculados con la democion encendida y la medicion mentiria.
+    const on = knobsHash(resolveSearchMode({ mode: 'balanced' }));
+    const off = knobsHash(resolveSearchMode({ mode: 'balanced', overrides: { relaxedArmDemotion: false } }));
     expect(on).not.toBe(off);
   });
 });

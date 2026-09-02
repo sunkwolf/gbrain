@@ -88,6 +88,18 @@ export interface ModeBundle {
    */
   keywordOrFallback: boolean;
   /**
+   * LOCAL — democion de brazos relajados en la fusion (#4787, v0.48.0.0).
+   * true  = conducta de UPSTREAM: las filas OR-relajadas no votan en RRF cuando
+   *         el brazo vectorial devolvio algo (su medicion: LME recall_all@5
+   *         51.3% hibrido vs 93.8% vector-only).
+   * false = las filas relajadas siguen votando, como antes de 0.48.0.0.
+   * DEFAULT true en los tres bundles: no cambiamos la conducta de upstream sin
+   * que alguien lo pida por config. Existe porque en NUESTROS dos corpus en
+   * espanol la democion pierde aciertos que salian en posicion 1-2 (PC 2/35,
+   * VPS 6/42) y apagarla no costo ninguno en 77 preguntas medidas.
+   */
+  relaxedArmDemotion: boolean;
+  /**
    * Per-call token budget cap (PR #897). undefined = no-op (tokenmax).
    * 4000 = tight (conservative, fits Haiku context loop).
    * 12000 = balanced (sweet-spot for Sonnet).
@@ -349,6 +361,7 @@ export const MODE_BUNDLES: Readonly<Record<SearchMode, Readonly<ModeBundle>>> = 
     cache_ttl_seconds: 3600,
     intentWeighting: true,
     keywordOrFallback: true,
+    relaxedArmDemotion: true,
     tokenBudget: 4000,
     expansion: false,
     searchLimit: 10,
@@ -398,6 +411,7 @@ export const MODE_BUNDLES: Readonly<Record<SearchMode, Readonly<ModeBundle>>> = 
     cache_ttl_seconds: 3600,
     intentWeighting: true,
     keywordOrFallback: true,
+    relaxedArmDemotion: true,
     tokenBudget: 12000,
     expansion: false,
     searchLimit: 25,
@@ -461,6 +475,7 @@ export const MODE_BUNDLES: Readonly<Record<SearchMode, Readonly<ModeBundle>>> = 
     cache_ttl_seconds: 3600,
     intentWeighting: true,
     keywordOrFallback: true,
+    relaxedArmDemotion: true,
     tokenBudget: undefined,
     expansion: true,
     searchLimit: 50,
@@ -530,6 +545,7 @@ export interface SearchKeyOverrides {
   cache_ttl_seconds?: number;
   intentWeighting?: boolean;
   keywordOrFallback?: boolean;
+  relaxedArmDemotion?: boolean;
   tokenBudget?: number;
   expansion?: boolean;
   searchLimit?: number;
@@ -585,6 +601,7 @@ export interface SearchPerCallOpts {
   cache_ttl_seconds?: number;
   intentWeighting?: boolean;
   keywordOrFallback?: boolean;
+  relaxedArmDemotion?: boolean;
   tokenBudget?: number;
   expansion?: boolean;
   searchLimit?: number;
@@ -691,6 +708,7 @@ export function resolveSearchMode(input: ResolveSearchModeInput): ResolvedSearch
     cache_ttl_seconds: pick('cache_ttl_seconds'),
     intentWeighting: pick('intentWeighting'),
     keywordOrFallback: pick('keywordOrFallback'),
+    relaxedArmDemotion: pick('relaxedArmDemotion'),
     tokenBudget: pick('tokenBudget'),
     expansion: pick('expansion'),
     searchLimit: pick('searchLimit'),
@@ -976,7 +994,7 @@ export function attributeKnob<K extends keyof ModeBundle>(
 // part; version-only invalidation (same class as the 13→14 detail=medium
 // boost-scope bump and the 21→22 stamp/injection epoch). One-time global
 // cold-miss spike on upgrade; refills within cache.ttl_seconds (3600s).
-export const KNOBS_HASH_VERSION = 28;
+export const KNOBS_HASH_VERSION = 29;
 
 /**
  * v0.36 (D8 / CDX-2) — second-arg context for the cache key. The
@@ -1205,6 +1223,7 @@ export function knobsHash(
     // disjoint (relaxed rows vs empty keyword arm). `?? true` mirrors the
     // module's defensive read of other knobs for partial-knobs callers.
     `kof=${(knobs.keywordOrFallback ?? true) ? 1 : 0}`,
+    `rad=${(knobs.relaxedArmDemotion ?? true) ? 1 : 0}`,
     // v=26 additions (#4415, wave-g, append-only): effective salience/
     // recency boost modes + applied intent-pattern config fingerprint. A
     // salience/recency-boosted (reordered) write must never serve a lookup
@@ -1276,6 +1295,10 @@ export function loadOverridesFromConfig(
   const kof = get('search.keywordOrFallback');
   if (kof !== undefined) {
     out.keywordOrFallback = kof === '1' || kof.toLowerCase() === 'true';
+  }
+  const rad = get('search.relaxedArmDemotion');
+  if (rad !== undefined) {
+    out.relaxedArmDemotion = rad === '1' || rad.toLowerCase() === 'true';
   }
   const tb = get('search.tokenBudget');
   if (tb !== undefined) {
@@ -1462,6 +1485,7 @@ export const SEARCH_MODE_CONFIG_KEYS: ReadonlyArray<string> = Object.freeze([
   'search.cache.ttl_seconds',
   'search.intentWeighting',
   'search.keywordOrFallback',
+  'search.relaxedArmDemotion',
   'search.tokenBudget',
   'search.expansion',
   'search.searchLimit',
