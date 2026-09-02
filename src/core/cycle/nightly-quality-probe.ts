@@ -44,6 +44,15 @@ export const NIGHTLY_PROBE_SEARCH_CONFIG_KEYS: ReadonlyArray<string> = Object.fr
   // LOCAL: nuestro parche del cap por documento. Sin esta clave el probe
   // mide SIN el cap mientras la busqueda viva SI lo aplica — el mismo
   // error de clase que el reranker ausente, movido de perilla.
+  //
+  // 🔸 MEDIDO el 2-sep-2026, y hay que decirlo para que nadie lea de mas:
+  // en el brain de la PC este cap HOY NO MUERDE. `doc_max_chars` esta en
+  // 6000 y el chunk mas largo del corpus mide 5989 (0 de 5735 lo exceden,
+  // p999=4720), asi que el slice nunca trunca. ==> agregar la clave NO
+  // cambia ningun numero hoy. Se agrega porque la fidelidad del probe no
+  // puede depender de que un valor siga estando fuera del rango de los
+  // datos: el dia que alguien calibre el cap (el comentario del parche
+  // pide 350-1600) o cambie el chunker, la clave ya tiene que estar.
   'search.reranker.doc_max_chars',
 ]);
 
