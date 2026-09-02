@@ -1992,12 +1992,16 @@ export async function hybridSearch(
   // evidence, which still beats noise-shaped OR matches (adjudicated vs the
   // stricter original-list-only reading).
   const vectorArmNonEmpty = textVectorArmNonEmpty(vectorLists, isBothMode);
-  const keywordFusionList = vectorArmNonEmpty
-    ? keywordResults.filter((r) => !r.keyword_relaxed)
-    : keywordResults;
-  const titleFusionList = vectorArmNonEmpty
-    ? titleResults.filter((r) => !r.keyword_relaxed)
-    : titleResults;
+  // LOCAL 2-sep-2026 — BRAZO EXPERIMENTAL, no un parche firmado.
+  // Apaga la democion de #4787 (v0.48.0.0). Upstream la puso con recibos por
+  // pregunta sobre LongMemEval; en el corpus de la PC (espanol, 1567 pag) se
+  // lleva 2 aciertos del gold set que antes salian en posicion 1, y apagarla
+  // los devuelve sin costar ninguno de los otros 33.
+  //   0.46.21 = 5/35 · 0.48.1 = 3/35 · 0.48.1 sin democion = 5/35
+  // LIMITE: ese "sin costo" esta medido SOLO sobre esas 35 preguntas.
+  // `vectorArmNonEmpty` se conserva calculado: lo usa la observabilidad de abajo.
+  const keywordFusionList = keywordResults;
+  const titleFusionList = titleResults;
   // Observability for both demotion outcomes (adversarial review, 2026-09):
   // muted relaxed rows get a meta COUNT (common, normal operation — never a
   // degraded stage, which would collapse the cache TTL for every query with
@@ -2007,6 +2011,19 @@ export async function hybridSearch(
   const relaxedDropped =
     (keywordResults.length - keywordFusionList.length) +
     (titleResults.length - titleFusionList.length);
+  // 🔴 CONSECUENCIA DE APAGAR LA DEMOCION, declarada y NO parcheada:
+  // esta guarda se queda EXACTAMENTE como la escribio upstream. Intente quitarla
+  // (para que el sello de degradado siguiera disparando con el vector sano) y el
+  // test `keyword-relaxed-fusion` lo rechazo con razon: upstream decide a PROPOSITO
+  // que las filas silenciadas salgan como meta.relaxed_dropped y NO como etapa
+  // degradada, porque un sello ahi COLAPSA EL TTL DEL CACHE en cada consulta sin
+  // coincidencias lexicas estrictas. Mi "arreglo" cambiaba un fijado silencioso por
+  // un colapso casi universal: peor.
+  // ⇒ El efecto real de este brazo, que hay que MEDIR y no tapar: con la democion
+  //   apagada las filas relajadas se cargan con el vector sano y NO llevan sello,
+  //   asi que el cache las fija con TTL largo. En la PC da igual (cache deshabilitado);
+  //   en el VPS el cache esta PRENDIDO ==> correr este brazo alla exige `cache clear`
+  //   entre celdas, o la celda siguiente lee la anterior.
   if (
     !vectorArmNonEmpty &&
     (keywordFusionList.some((r) => r.keyword_relaxed) || titleFusionList.some((r) => r.keyword_relaxed))
