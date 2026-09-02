@@ -100,7 +100,8 @@ describe('KNOBS_HASH_VERSION + version invariants', () => {
     // Phase E2 / Cat 13) — same unshipped epoch; null hashes as off.
     // v=29 ALSO carries mbg= (metadata boost gate, ranker wave Phase E3 /
     // Cat 13) — same unshipped epoch; a partial literal hashes as always.
-    expect(KNOBS_HASH_VERSION).toBe(29);
+    // LOCAL 29→30: rad= (search.relaxedArmDemotion) joins the key.
+    expect(KNOBS_HASH_VERSION).toBe(30);
   });
 
   test('hash is 16 hex chars regardless of reranker config', () => {

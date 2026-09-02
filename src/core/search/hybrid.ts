@@ -2058,10 +2058,16 @@ export async function hybridSearch(
   // evidence, which still beats noise-shaped OR matches (adjudicated vs the
   // stricter original-list-only reading).
   const vectorArmNonEmpty = textVectorArmNonEmpty(vectorArms);
-  const keywordFusionList = vectorArmNonEmpty
+  // LOCAL — la democion pasa a ser CONFIGURABLE (`search.relaxedArmDemotion`).
+  // Default true = exactamente la conducta de upstream descrita arriba; el knob
+  // solo permite apagarla en corpora donde medimos que nos cuesta aciertos.
+  // Se evalua ANTES del `&&` para que `demoteRelaxed=false` cortocircuite y el
+  // resto del bloque lea igual que el original.
+  const demoteRelaxed = (resolvedMode.relaxedArmDemotion ?? true) && vectorArmNonEmpty;
+  const keywordFusionList = demoteRelaxed
     ? keywordResults.filter((r) => !r.keyword_relaxed)
     : keywordResults;
-  const titleFusionList = vectorArmNonEmpty
+  const titleFusionList = demoteRelaxed
     ? titleResults.filter((r) => !r.keyword_relaxed)
     : titleResults;
   // Observability for both demotion outcomes (adversarial review, 2026-09):
@@ -2070,6 +2076,18 @@ export async function hybridSearch(
   // zero strict lexical matches); carried relaxed rows on a vector-ENABLED
   // run get a degraded stage so the cache write takes the short TTL instead
   // of pinning transitional noise for the full TTL.
+  // LOCAL — este bloque se queda EXACTAMENTE como upstream, y con la perilla eso
+  // es lo CORRECTO, no una omision:
+  //   - `relaxedDropped` da 0 con la perilla apagada, que es la verdad: no se
+  //     silencio ninguna fila.
+  //   - el sello de etapa degradada NO debe dispararse con la perilla apagada.
+  //     Ese sello existe para acortar el TTL cuando se cargan filas relajadas
+  //     *transitoriamente* (brazo vectorial vacio). Con la perilla apagada
+  //     cargarlas es el estado ESTABLE elegido por config, no una degradacion:
+  //     sellarlo colapsaria el TTL del cache de forma permanente, que es el dano
+  //     que upstream escribio que queria evitar.
+  //   (Lo intente al reves en el brazo hard-off del 2-sep y el test
+  //    `keyword-relaxed-fusion` me lo tumbo con razon.)
   const relaxedDropped =
     (keywordResults.length - keywordFusionList.length) +
     (titleResults.length - titleFusionList.length);

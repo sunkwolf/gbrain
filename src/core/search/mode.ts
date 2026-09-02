@@ -97,6 +97,18 @@ export interface ModeBundle {
    */
   keywordOrFallback: boolean;
   /**
+   * LOCAL — democion de brazos relajados en la fusion (#4787, v0.48.0.0).
+   * true  = conducta de UPSTREAM: las filas OR-relajadas no votan en RRF cuando
+   *         el brazo vectorial devolvio algo (su medicion: LME recall_all@5
+   *         51.3% hibrido vs 93.8% vector-only).
+   * false = las filas relajadas siguen votando, como antes de 0.48.0.0.
+   * DEFAULT true en los tres bundles: no cambiamos la conducta de upstream sin
+   * que alguien lo pida por config. Existe porque en NUESTROS dos corpus en
+   * espanol la democion pierde aciertos que salian en posicion 1-2 (PC 2/35,
+   * VPS 6/42) y apagarla no costo ninguno en 77 preguntas medidas.
+   */
+  relaxedArmDemotion: boolean;
+  /**
    * Per-call token budget cap (PR #897). undefined = no-op (tokenmax).
    * 4000 = tight (conservative, fits Haiku context loop).
    * 12000 = balanced (sweet-spot for Sonnet).
@@ -415,6 +427,7 @@ export const MODE_BUNDLES: Readonly<Record<SearchMode, Readonly<ModeBundle>>> = 
     cache_ttl_seconds: 3600,
     intentWeighting: true,
     keywordOrFallback: true,
+    relaxedArmDemotion: true,
     tokenBudget: 4000,
     expansion: false,
     expansion_variant_budget: null,
@@ -470,6 +483,7 @@ export const MODE_BUNDLES: Readonly<Record<SearchMode, Readonly<ModeBundle>>> = 
     cache_ttl_seconds: 3600,
     intentWeighting: true,
     keywordOrFallback: true,
+    relaxedArmDemotion: true,
     tokenBudget: 12000,
     expansion: false,
     expansion_variant_budget: null,
@@ -532,6 +546,7 @@ export const MODE_BUNDLES: Readonly<Record<SearchMode, Readonly<ModeBundle>>> = 
     cache_ttl_seconds: 3600,
     intentWeighting: true,
     keywordOrFallback: true,
+    relaxedArmDemotion: true,
     tokenBudget: undefined,
     expansion: true,
     expansion_variant_budget: null,
@@ -607,6 +622,7 @@ export interface SearchKeyOverrides {
   cache_ttl_seconds?: number;
   intentWeighting?: boolean;
   keywordOrFallback?: boolean;
+  relaxedArmDemotion?: boolean;
   tokenBudget?: number;
   expansion?: boolean;
   expansion_variant_budget?: number | null;
@@ -667,6 +683,7 @@ export interface SearchPerCallOpts {
   cache_ttl_seconds?: number;
   intentWeighting?: boolean;
   keywordOrFallback?: boolean;
+  relaxedArmDemotion?: boolean;
   tokenBudget?: number;
   expansion?: boolean;
   expansion_variant_budget?: number | null;
@@ -773,6 +790,7 @@ export function resolveSearchMode(input: ResolveSearchModeInput): ResolvedSearch
     cache_ttl_seconds: pick('cache_ttl_seconds'),
     intentWeighting: pick('intentWeighting'),
     keywordOrFallback: pick('keywordOrFallback'),
+    relaxedArmDemotion: pick('relaxedArmDemotion'),
     tokenBudget: pick('tokenBudget'),
     expansion: pick('expansion'),
     expansion_variant_budget: pick('expansion_variant_budget'),
@@ -858,7 +876,11 @@ export function attributeKnob<K extends keyof ModeBundle>(
  * reorder or add a knob without bumping a constant — a hash collision would
  * mean stale cache rows silently reading the wrong shape.
  */
-export const KNOBS_HASH_VERSION = 29;
+// LOCAL bump 29→30: `rad=` (search.relaxedArmDemotion) joins the key. With
+// the knob off, relaxed OR rows keep voting in fusion, so a row cached with
+// demotion must NOT be served to a lookup without it. Upstream took v=29 for
+// the ranker wave (0.48.4.0); ours sequences after it.
+export const KNOBS_HASH_VERSION = 30;
 
 /**
  * v0.36 (D8 / CDX-2) — second-arg context for the cache key. The
@@ -1087,6 +1109,7 @@ export function knobsHash(
     // disjoint (relaxed rows vs empty keyword arm). `?? true` mirrors the
     // module's defensive read of other knobs for partial-knobs callers.
     `kof=${(knobs.keywordOrFallback ?? true) ? 1 : 0}`,
+    `rad=${(knobs.relaxedArmDemotion ?? true) ? 1 : 0}`,
     // v=26 additions (#4415, wave-g, append-only): effective salience/
     // recency boost modes + applied intent-pattern config fingerprint. A
     // salience/recency-boosted (reordered) write must never serve a lookup
@@ -1178,6 +1201,10 @@ export function loadOverridesFromConfig(
   const kof = get('search.keywordOrFallback');
   if (kof !== undefined) {
     out.keywordOrFallback = kof === '1' || kof.toLowerCase() === 'true';
+  }
+  const rad = get('search.relaxedArmDemotion');
+  if (rad !== undefined) {
+    out.relaxedArmDemotion = rad === '1' || rad.toLowerCase() === 'true';
   }
   const tb = get('search.tokenBudget');
   if (tb !== undefined) {
@@ -1397,6 +1424,7 @@ export const KNOB_CONFIG_KEY: Readonly<Record<keyof ModeBundle, string>> = Objec
   cache_ttl_seconds: 'search.cache.ttl_seconds',
   intentWeighting: 'search.intentWeighting',
   keywordOrFallback: 'search.keywordOrFallback',
+  relaxedArmDemotion: 'search.relaxedArmDemotion',
   tokenBudget: 'search.tokenBudget',
   expansion: 'search.expansion',
   expansion_variant_budget: 'search.expansion_variant_budget',

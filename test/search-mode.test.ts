@@ -61,6 +61,7 @@ describe('SEARCH_MODES + MODE_BUNDLES canonical shape', () => {
       cache_ttl_seconds: 3600,
       intentWeighting: true,
       keywordOrFallback: true,
+      relaxedArmDemotion: true,
       tokenBudget: 4000,
       expansion: false,
       // ranker wave — null = legacy weighting (byte-identical to pre-knob fusion).
@@ -104,6 +105,7 @@ describe('SEARCH_MODES + MODE_BUNDLES canonical shape', () => {
       cache_ttl_seconds: 3600,
       intentWeighting: true,
       keywordOrFallback: true,
+      relaxedArmDemotion: true,
       tokenBudget: 12000,
       expansion: false,
       expansion_variant_budget: null,
@@ -145,6 +147,7 @@ describe('SEARCH_MODES + MODE_BUNDLES canonical shape', () => {
       cache_ttl_seconds: 3600,
       intentWeighting: true,
       keywordOrFallback: true,
+      relaxedArmDemotion: true,
       tokenBudget: undefined,
       expansion: true,
       expansion_variant_budget: null,
@@ -494,7 +497,8 @@ describe('knobsHash determinism + cross-mode separation (CDX-4)', () => {
     // Phase E2 / Cat 13) — same unshipped epoch; null hashes as off.
     // v=29 ALSO carries mbg= (metadata boost gate, ranker wave Phase E3 /
     // Cat 13) — same unshipped epoch; a partial literal hashes as always.
-    expect(KNOBS_HASH_VERSION).toBe(29);
+    // LOCAL 29→30: rad= (search.relaxedArmDemotion) joins the key.
+    expect(KNOBS_HASH_VERSION).toBe(30);
   });
 
   test('#3515: detail set vs unset produces DIFFERENT hashes (cache contamination prevention)', () => {
@@ -532,7 +536,8 @@ describe('knobsHash determinism + cross-mode separation (CDX-4)', () => {
     // Phase E2 / Cat 13) — same unshipped epoch; null hashes as off.
     // v=29 ALSO carries mbg= (metadata boost gate, ranker wave Phase E3 /
     // Cat 13) — same unshipped epoch; a partial literal hashes as always.
-    expect(KNOBS_HASH_VERSION).toBe(29);
+    // LOCAL 29→30: rad= (search.relaxedArmDemotion) joins the key.
+    expect(KNOBS_HASH_VERSION).toBe(30);
   });
 
   test('#4352 follow-up: excludePrivate true vs false produces DIFFERENT hashes (cache contamination prevention)', () => {
@@ -748,7 +753,7 @@ describe('v0.40.4 — graph_signals knob', () => {
 });
 
 describe('v0.42.3.0 — autocut knobs', () => {
-  test('KNOBS_HASH_VERSION is 29 (…; 25→26 salience/recency + intent_patterns fold #4415; 26→27 adaptive-return gate + intent fold E5b/F11; 27→28 compiledTruthBoost synthetic-row suppression #4256; 28→29 evb= expansion variant budget fold)', () => {
+  test('KNOBS_HASH_VERSION is 30 (…; 25→26 salience/recency + intent_patterns fold #4415; 26→27 adaptive-return gate + intent fold E5b/F11; 27→28 compiledTruthBoost synthetic-row suppression #4256; 28→29 evb= expansion variant budget fold; 29→30 LOCAL relaxedArmDemotion rad=)', () => {
     // 28→29: evb= expansion variant budget fold (ranker wave) — budget-weighted
     // variant fusion reorders rows for identical knobs; null hashes as legacy.
     // v=29 ALSO carries rrp= (relational rerank pin, ranker wave R1) — same
@@ -757,7 +762,8 @@ describe('v0.42.3.0 — autocut knobs', () => {
     // Phase E2 / Cat 13) — same unshipped epoch; null hashes as off.
     // v=29 ALSO carries mbg= (metadata boost gate, ranker wave Phase E3 /
     // Cat 13) — same unshipped epoch; a partial literal hashes as always.
-    expect(KNOBS_HASH_VERSION).toBe(29);
+    // LOCAL 29→30: rad= (search.relaxedArmDemotion) joins the key.
+    expect(KNOBS_HASH_VERSION).toBe(30);
   });
 
   test('bundle defaults: autocut off in every bundle (ranker wave rule R2), jump 0.20 kept for operators who re-enable it', () => {
@@ -969,6 +975,42 @@ describe('keywordOrFallback knob (v=25)', () => {
   });
 });
 
+describe('LOCAL — relaxedArmDemotion knob (v=30)', () => {
+  // La perilla existe porque en NUESTROS dos corpus en espanol la democion de
+  // upstream (#4787) pierde aciertos que salian en posicion 1-2: PC 2/35, VPS
+  // 6/42, y apagarla no costo ninguno en las 77 preguntas medidas el 2-sep.
+  // El DEFAULT se queda en la conducta de upstream a proposito: la divergencia
+  // se elige por config, no se hereda por instalar.
+
+  test('el default de los tres bundles es la conducta de UPSTREAM (encendida)', () => {
+    for (const mode of ['conservative', 'balanced', 'tokenmax'] as const) {
+      expect(resolveSearchMode({ mode }).relaxedArmDemotion).toBe(true);
+    }
+  });
+
+  test('el override de config la apaga; el default del bundle sigue encendido', () => {
+    expect(resolveSearchMode({ mode: 'balanced' }).relaxedArmDemotion).toBe(true);
+    const off = resolveSearchMode({ mode: 'balanced', overrides: { relaxedArmDemotion: false } });
+    expect(off.relaxedArmDemotion).toBe(false);
+  });
+
+  test('loadOverridesFromConfig parsea search.relaxedArmDemotion en sus cuatro formas', () => {
+    expect(loadOverridesFromConfig({ 'search.relaxedArmDemotion': 'false' }).relaxedArmDemotion).toBe(false);
+    expect(loadOverridesFromConfig({ 'search.relaxedArmDemotion': '0' }).relaxedArmDemotion).toBe(false);
+    expect(loadOverridesFromConfig({ 'search.relaxedArmDemotion': '1' }).relaxedArmDemotion).toBe(true);
+    expect(loadOverridesFromConfig({ 'search.relaxedArmDemotion': 'true' }).relaxedArmDemotion).toBe(true);
+    expect(loadOverridesFromConfig({}).relaxedArmDemotion).toBeUndefined();
+  });
+
+  test('rad participa en knobsHash — una fila cacheada CON democion no puede servir una consulta SIN democion', () => {
+    // Sin esto, apagar la perilla en una casa con cache PRENDIDO (el VPS) leeria
+    // resultados calculados con la democion encendida y la medicion mentiria.
+    const on = knobsHash(resolveSearchMode({ mode: 'balanced' }));
+    const off = knobsHash(resolveSearchMode({ mode: 'balanced', overrides: { relaxedArmDemotion: false } }));
+    expect(on).not.toBe(off);
+  });
+});
+
 describe('adaptive-return knobs hash fold (v=27, 2026-08 fix wave E5b)', () => {
   const knobs = resolveSearchMode({ mode: 'balanced' });
   const ar = (over: Partial<{ enabled: boolean; entityMax: number; otherMax: number; minKeep: number; intent: string }>) =>
@@ -1091,6 +1133,7 @@ describe('ranker wave (R1) — relational_rerank_pin knob (relational rows bypas
     expect(one).not.toBe(dflt);
     expect(one).not.toBe(off);
     // The pin rides KNOBS_HASH_VERSION 29 together with evb= — no separate bump.
-    expect(KNOBS_HASH_VERSION).toBe(29);
+    // LOCAL 29→30: rad= (search.relaxedArmDemotion) joins the key.
+    expect(KNOBS_HASH_VERSION).toBe(30);
   });
 });

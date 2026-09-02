@@ -94,6 +94,7 @@ describe('KNOBS_HASH_VERSION', () => {
     // version-only invalidation.
     // 28→29: evb= expansion variant budget fold (ranker wave) — budget-weighted
     // variant fusion reorders rows for identical knobs; null hashes as legacy.
-    expect(KNOBS_HASH_VERSION).toBe(29);
+    // LOCAL 29→30: rad= (search.relaxedArmDemotion) joins the key.
+    expect(KNOBS_HASH_VERSION).toBe(30);
   });
 });

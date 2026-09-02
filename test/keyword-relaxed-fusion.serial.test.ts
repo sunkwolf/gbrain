@@ -142,6 +142,51 @@ describe('hybrid fusion demotion', () => {
     for (const r of res) expect(r.keyword_relaxed).toBeUndefined();
   });
 
+  // ---------------------------------------------------------------------
+  // LOCAL — la perilla `search.relaxedArmDemotion`.
+  //
+  // Este par es el que acredita el CABLEADO, no la resolucion del knob: los
+  // tests de mode.ts prueban que el valor se resuelve, y una mordida que corta
+  // el knob antes de hybrid.ts los deja a TODOS en verde. Medido el 2-sep: esa
+  // mordida no la cazaba nadie hasta que existio este test.
+  // ---------------------------------------------------------------------
+  test('LOCAL: perilla APAGADA + brazo vectorial sano → las filas relajadas SOBREVIVEN a la fusion', async () => {
+    await engine.setConfig('search.relaxedArmDemotion', 'false');
+    try {
+      // El pool relajado existe para esta consulta (mismo control que el test de arriba)…
+      const relaxed = await engine.searchKeyword('zephyr walrus', { limit: 10, orFallback: true });
+      expect(relaxed.length).toBeGreaterThan(0);
+      // …y con la perilla apagada, el brazo vectorial sano ya NO las silencia.
+      //
+      // 🔑 Se mide `relaxed_dropped`, NO si una fila relajada aparece en el top-10.
+      // La perilla decide si esas filas VOTAN en la fusion, no si GANAN: con el
+      // brazo vectorial sano pueden votar y aun asi quedar bajo el corte. Mi
+      // primera version de este test afirmaba lo segundo y fallaba — y me llevo
+      // a sospechar del cableado cuando el cableado estaba bien. El test pedia
+      // mas de lo que la perilla promete.
+      let meta: import('../src/core/types.ts').HybridSearchMeta | undefined;
+      const res = await hybridSearch(engine, 'zephyr walrus', {
+        limit: 10, expansion: false, onMeta: (m) => { meta = m; },
+      });
+      expect(res.length).toBeGreaterThan(0);
+      expect(meta?.relaxed_dropped ?? 0).toBe(0);   // nada silenciado
+    } finally {
+      await engine.setConfig('search.relaxedArmDemotion', 'true');
+    }
+  });
+
+  test('LOCAL: control positivo — con la perilla en su DEFAULT, las mismas filas vuelven a silenciarse', async () => {
+    // Sin este control, el test de arriba pasaria igual si la democion estuviera
+    // rota SIEMPRE: mediria un cero que no significa nada.
+    let meta: import('../src/core/types.ts').HybridSearchMeta | undefined;
+    const res = await hybridSearch(engine, 'zephyr walrus', {
+      limit: 10, expansion: false, onMeta: (m) => { meta = m; },
+    });
+    expect(res.length).toBeGreaterThan(0);
+    expect(meta?.relaxed_dropped ?? 0).toBeGreaterThan(0);   // con el default SI se silencian
+    for (const r of res) expect(r.keyword_relaxed).toBeUndefined();
+  });
+
   test('vector arm down (embed failure) → relaxed rows still rescue (fallback path unchanged)', async () => {
     const res = await hybridSearch(engine, 'EMBEDFAIL zephyr walrus', { limit: 10, expansion: false });
     expect(res.length).toBeGreaterThan(0);
