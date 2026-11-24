@@ -1351,6 +1351,8 @@ export const KNOWN_CONFIG_KEYS: readonly string[] = [
   // W3: confidence-gated reranking (mode.ts reads; `off` | `shadow`, and δ in [0, 1]).
   'search.reranker.gate',
   'search.reranker.gate_min_gap',
+  // LOCAL: perilla de democion de filas relajadas (mode.ts la lee).
+  'search.relaxedArmDemotion',
   'search.floor_ratio',
   'search.title_boost',
   'search.evidence_cosine_floor',

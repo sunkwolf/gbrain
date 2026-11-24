@@ -85,10 +85,16 @@ export async function fuseArms(
   // evidence, which still beats noise-shaped OR matches (adjudicated vs the
   // stricter original-list-only reading).
   const vectorArmNonEmpty = textVectorArmNonEmpty(vectorArms);
-  const keywordFusionList = vectorArmNonEmpty
+  // LOCAL — la democion es CONFIGURABLE (`search.relaxedArmDemotion`, default
+  // true = conducta de upstream). Con la perilla apagada las filas relajadas
+  // votan como estado estable elegido por config: el sello degradado de abajo
+  // sigue atado a `vectorArmNonEmpty`, igual que upstream, para no colapsar el
+  // TTL del cache de forma permanente.
+  const demoteRelaxed = (resolvedMode.relaxedArmDemotion ?? true) && vectorArmNonEmpty;
+  const keywordFusionList = demoteRelaxed
     ? keywordResults.filter((r) => !r.keyword_relaxed)
     : keywordResults;
-  const titleFusionList = vectorArmNonEmpty
+  const titleFusionList = demoteRelaxed
     ? titleResults.filter((r) => !r.keyword_relaxed)
     : titleResults;
   // Observability for both demotion outcomes (adversarial review, 2026-09):

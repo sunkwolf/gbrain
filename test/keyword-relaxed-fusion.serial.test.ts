@@ -142,6 +142,35 @@ describe('hybrid fusion demotion', () => {
     for (const r of res) expect(r.keyword_relaxed).toBeUndefined();
   });
 
+  // LOCAL — la perilla `search.relaxedArmDemotion`. Este par acredita el
+  // CABLEADO hasta hybrid/rank.ts: una mordida que corta el knob antes de rank.ts
+  // deja verdes los tests de mode.ts, y estos dos la cazan.
+  test('LOCAL: perilla APAGADA + brazo vectorial sano → las filas relajadas votan (nada silenciado)', async () => {
+    await engine.setConfig('search.relaxedArmDemotion', 'false');
+    try {
+      const relaxed = await engine.searchKeyword('zephyr walrus', { limit: 10, orFallback: true });
+      expect(relaxed.length).toBeGreaterThan(0);
+      let meta: import('../src/core/types.ts').HybridSearchMeta | undefined;
+      const res = await hybridSearch(engine, 'zephyr walrus', {
+        limit: 10, expansion: false, onMeta: (m) => { meta = m; },
+      });
+      expect(res.length).toBeGreaterThan(0);
+      expect(meta?.relaxed_dropped ?? 0).toBe(0);
+    } finally {
+      await engine.setConfig('search.relaxedArmDemotion', 'true');
+    }
+  });
+
+  test('LOCAL: control positivo — con la perilla en su DEFAULT las mismas filas se silencian', async () => {
+    let meta: import('../src/core/types.ts').HybridSearchMeta | undefined;
+    const res = await hybridSearch(engine, 'zephyr walrus', {
+      limit: 10, expansion: false, onMeta: (m) => { meta = m; },
+    });
+    expect(res.length).toBeGreaterThan(0);
+    expect(meta?.relaxed_dropped ?? 0).toBeGreaterThan(0);
+    for (const r of res) expect(r.keyword_relaxed).toBeUndefined();
+  });
+
   test('vector arm down (embed failure) → relaxed rows still rescue (fallback path unchanged)', async () => {
     const res = await hybridSearch(engine, 'EMBEDFAIL zephyr walrus', { limit: 10, expansion: false });
     expect(res.length).toBeGreaterThan(0);

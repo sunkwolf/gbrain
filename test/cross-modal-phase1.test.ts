@@ -217,7 +217,7 @@ describe('D2 — knobsHash differs across cross-modal knob values', () => {
     // confidence floor, Phase E2 / Cat 13) — same unshipped epoch, no extra bump.
     // 29→30 (#5889): exact-title-first title-arm order + weight-A remote
     // title predicate reorder rows for identical knobs; version-only.
-    expect(KNOBS_HASH_VERSION).toBe(31);
+    expect(KNOBS_HASH_VERSION).toBe(32); // LOCAL: rad= de search.relaxedArmDemotion
   });
 
   test('flipping unified_multimodal changes the hash', () => {

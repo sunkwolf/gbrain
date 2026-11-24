@@ -96,6 +96,6 @@ describe('KNOBS_HASH_VERSION', () => {
     // variant fusion reorders rows for identical knobs; null hashes as legacy.
     // 29→30 (#5889): exact-title-first title-arm order + weight-A remote
     // title predicate reorder rows for identical knobs; version-only.
-    expect(KNOBS_HASH_VERSION).toBe(31);
+    expect(KNOBS_HASH_VERSION).toBe(32); // LOCAL: rad= de search.relaxedArmDemotion
   });
 });

@@ -228,6 +228,17 @@ export interface ModeBundle {
    * Override: `search.reranker.gate_min_gap` → bundle. knobsHash part `rrgg=`.
    */
   reranker_gate_min_gap: number;
+  /**
+   * LOCAL — democion de filas OR-relajadas en la fusion RRF (upstream #4787).
+   * true  = conducta de UPSTREAM: las filas relajadas no votan cuando algun
+   *         brazo vectorial de texto devolvio algo.
+   * false = las filas relajadas siguen votando, como antes de 0.48.0.0.
+   * DEFAULT true en los tres bundles. Existe porque en NUESTROS corpus en
+   * espanol la democion pierde aciertos en posicion 1-2 (re-medido 23-nov-2026
+   * en 0.60.766: 3 de 35 preguntas caen de la posicion 1).
+   * Override: `search.relaxedArmDemotion`. knobsHash part `rad=`.
+   */
+  relaxedArmDemotion: boolean;
 
   // v0.36 cross-modal wave knobs (D2 + D3 + D6 + D8 + D13 + LLM-intent).
   // All three mode bundles default these to the same values — cross-modal
@@ -511,6 +522,7 @@ export const MODE_BUNDLES: Readonly<Record<SearchMode, Readonly<ModeBundle>>> = 
     evidence_cosine_floor: 0.8,
     reranker_gate: DEFAULT_RERANK_GATE,
     reranker_gate_min_gap: DEFAULT_RERANK_GATE_MIN_GAP,
+    relaxedArmDemotion: true,
     // v0.36 cross-modal defaults (same across all modes — opt-in)
     cross_modal_both_text_weight: 0.6,
     cross_modal_both_image_weight: 0.4,
@@ -580,6 +592,7 @@ export const MODE_BUNDLES: Readonly<Record<SearchMode, Readonly<ModeBundle>>> = 
     evidence_cosine_floor: 0.8,
     reranker_gate: DEFAULT_RERANK_GATE,
     reranker_gate_min_gap: DEFAULT_RERANK_GATE_MIN_GAP,
+    relaxedArmDemotion: true,
     // v0.36 cross-modal defaults (same across all modes — opt-in)
     cross_modal_both_text_weight: 0.6,
     cross_modal_both_image_weight: 0.4,
@@ -659,6 +672,7 @@ export const MODE_BUNDLES: Readonly<Record<SearchMode, Readonly<ModeBundle>>> = 
     evidence_cosine_floor: 0.8,
     reranker_gate: DEFAULT_RERANK_GATE,
     reranker_gate_min_gap: DEFAULT_RERANK_GATE_MIN_GAP,
+    relaxedArmDemotion: true,
     // v0.36 cross-modal defaults (same across all modes — opt-in)
     cross_modal_both_text_weight: 0.6,
     cross_modal_both_image_weight: 0.4,
@@ -742,6 +756,7 @@ export interface SearchKeyOverrides {
   // W3 — confidence-gated reranking overrides.
   reranker_gate?: RerankGateMode;
   reranker_gate_min_gap?: number;
+  relaxedArmDemotion?: boolean;
   // v0.36 cross-modal overrides
   cross_modal_both_text_weight?: number;
   cross_modal_both_image_weight?: number;
@@ -811,6 +826,7 @@ export interface SearchPerCallOpts {
   // W3 — confidence-gated reranking per-call override (RERANK_GATE_MODES).
   reranker_gate?: RerankGateMode;
   reranker_gate_min_gap?: number;
+  relaxedArmDemotion?: boolean;
   // v0.36 cross-modal per-call overrides
   cross_modal_both_text_weight?: number;
   cross_modal_both_image_weight?: number;
@@ -931,6 +947,7 @@ export function resolveSearchMode(input: ResolveSearchModeInput): ResolvedSearch
     evidence_cosine_floor: pick('evidence_cosine_floor'),
     reranker_gate: pick('reranker_gate'),
     reranker_gate_min_gap: pick('reranker_gate_min_gap'),
+    relaxedArmDemotion: pick('relaxedArmDemotion'),
     // v0.36 cross-modal knobs
     cross_modal_both_text_weight: pick('cross_modal_both_text_weight'),
     cross_modal_both_image_weight: pick('cross_modal_both_image_weight'),
@@ -1012,7 +1029,8 @@ export function attributeKnob<K extends keyof ModeBundle>(
  * reorder or add a knob without bumping a constant — a hash collision would
  * mean stale cache rows silently reading the wrong shape.
  */
-export const KNOBS_HASH_VERSION = 31;
+// LOCAL bump 31→32: `rad=` (search.relaxedArmDemotion) entra a la llave.
+export const KNOBS_HASH_VERSION = 32;
 
 /**
  * v0.36 (D8 / CDX-2) — second-arg context for the cache key. The
@@ -1308,6 +1326,9 @@ export function knobsHash(
     // Partial-knobs literals hash as the bundle defaults.
     `rrg=${knobs.reranker_gate ?? DEFAULT_RERANK_GATE}`,
     `rrgg=${(knobs.reranker_gate_min_gap ?? DEFAULT_RERANK_GATE_MIN_GAP).toFixed(3)}`,
+    // LOCAL: con la democion apagada las filas relajadas votan; una fila cacheada
+    // con democion no debe servirse a una consulta sin ella.
+    `rad=${(knobs.relaxedArmDemotion ?? true) ? 1 : 0}`,
     `ecf=${(knobs.evidence_cosine_floor ?? DEFAULT_HIGH_COSINE_FLOOR).toFixed(3)}`,
     // System One (append-only, emitted only when a decide slot is not off, so
     // the all-off key is unchanged and needs no version bump).
@@ -1477,6 +1498,14 @@ export function loadOverridesFromConfig(
   const rrgg = normalizeRerankGateMinGap(get('search.reranker.gate_min_gap'));
   if (rrgg !== undefined) out.reranker_gate_min_gap = rrgg;
 
+  // LOCAL — perilla de democion de filas relajadas.
+  const rad = get('search.relaxedArmDemotion');
+  if (rad !== undefined) {
+    const v = rad.trim().toLowerCase();
+    if (v === '1' || v === 'true') out.relaxedArmDemotion = true;
+    else if (v === '0' || v === 'false') out.relaxedArmDemotion = false;
+  }
+
   // v0.36 cross-modal overrides (D3 registry)
   const cmbt = get('search.cross_modal.both_mode_text_weight');
   if (cmbt !== undefined) {
@@ -1643,6 +1672,7 @@ export const KNOB_CONFIG_KEY: Readonly<Record<keyof ModeBundle, string>> = Objec
   evidence_cosine_floor: 'search.evidence_cosine_floor',
   reranker_gate: 'search.reranker.gate',
   reranker_gate_min_gap: 'search.reranker.gate_min_gap',
+  relaxedArmDemotion: 'search.relaxedArmDemotion',
   cross_modal_both_text_weight: 'search.cross_modal.both_mode_text_weight',
   cross_modal_both_image_weight: 'search.cross_modal.both_mode_image_weight',
   image_query_text_refinement_weight: 'search.image_query.text_refinement_weight',
