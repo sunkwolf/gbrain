@@ -13,6 +13,8 @@ import { tmpdir } from 'os';
 import {
   runNightlyQualityProbe,
   shouldRunNightly,
+  assertRerankerSnapshotComplete,
+  NIGHTLY_PROBE_SEARCH_CONFIG_KEYS,
   type NightlyProbeDeps,
   type NightlyProbeResult,
 } from '../src/core/cycle/nightly-quality-probe.ts';
@@ -189,6 +191,54 @@ describe('runNightlyQualityProbe (DI stub harness)', () => {
         'search.reranker.timeout_ms': '30000',
       });
     });
+  });
+
+  // LOCAL — fail-closed del snapshot del reranker. El ROJO acredita que el
+  // guard muerde; el VERDE, que muerde por la razon declarada.
+  test('LOCAL: snapshot con reranker PRENDIDO y sin model → aborta, y NO corre el eval', async () => {
+    await withEnv({ GBRAIN_AUDIT_DIR: auditTmp }, async () => {
+      let ranEval = false;
+      const r = await runNightlyQualityProbe(makeDeps({
+        resolveSearchConfigSnapshot: async () => ({
+          'search.mode': 'balanced',
+          'search.reranker.enabled': 'true',
+        }),
+        runLongMemEval: async () => { ranEval = true; },
+      }));
+      expect(r.outcome).not.toBe('pass');
+      expect(ranEval).toBe(false);
+    });
+  });
+
+  test('LOCAL: control positivo — el MISMO snapshot con model → corre y pasa', async () => {
+    await withEnv({ GBRAIN_AUDIT_DIR: auditTmp }, async () => {
+      let ranEval = false;
+      const r = await runNightlyQualityProbe(makeDeps({
+        resolveSearchConfigSnapshot: async () => ({
+          'search.mode': 'balanced',
+          'search.reranker.enabled': 'true',
+          'search.reranker.model': 'llama-server-reranker:qwen3-reranker-0.6b',
+        }),
+        runLongMemEval: async () => { ranEval = true; },
+      }));
+      expect(r.outcome).toBe('pass');
+      expect(ranEval).toBe(true);
+    });
+  });
+
+  test('LOCAL: guard en aislamiento — los cinco casos', () => {
+    expect(() => assertRerankerSnapshotComplete(undefined)).not.toThrow();
+    expect(() => assertRerankerSnapshotComplete({ 'search.mode': 'balanced' })).not.toThrow();
+    expect(() => assertRerankerSnapshotComplete({ 'search.reranker.enabled': 'false' })).not.toThrow();
+    expect(() => assertRerankerSnapshotComplete({ 'search.reranker.enabled': '1' }))
+      .toThrow(/reranker is ENABLED but carries no/);
+    expect(() => assertRerankerSnapshotComplete({
+      'search.reranker.enabled': 'true', 'search.reranker.model': '   ',
+    })).toThrow(/reranker is ENABLED but carries no/);
+  });
+
+  test('LOCAL: la perilla de democion viaja en el snapshot que copia el probe', () => {
+    expect(NIGHTLY_PROBE_SEARCH_CONFIG_KEYS).toContain('search.relaxedArmDemotion');
   });
 
   test('enabled + FAIL summary → outcome: fail', async () => {
